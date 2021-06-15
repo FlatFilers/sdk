@@ -1,0 +1,9 @@
+node_modules
+dist
+test
+src/**.js
+
+coverage
+.nyc_output
+*.log
+.idea

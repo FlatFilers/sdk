@@ -1,0 +1,41 @@
+{
+  "name": "@flatfile/sdk",
+  "version": "0.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "files": [
+    "dist"
+  ],
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "lint": "eslint -c .eslintrc.js --ext .ts src test",
+    "build": "tsc",
+    "watch": "rollup -cw",
+    "prepare": "npm run build"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^19.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^13.0.0",
+    "browserify": "^17.0.0",
+    "jest": "^27.0.3",
+    "mkdirp": "^1.0.4",
+    "nqr": "^1.0.0",
+    "rollup": "^2.50.5",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "sorcery": "^0.10.0",
+    "uglify-js": "^3.13.8"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "eventemitter3": "^4.0.7",
+    "graphql": "^15.5.0",
+    "graphql-request": "^3.4.0"
+  }
+}
