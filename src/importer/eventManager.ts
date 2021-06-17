@@ -21,7 +21,6 @@ export interface IEvents {
 }
 
 export const eventManager = new EventEmitter()
-console.log('new event manager', eventManager)
 
 type FilterFlags<Base, Condition> = {
   [Key in keyof Base]: Base[Key] extends Condition ? Key : never

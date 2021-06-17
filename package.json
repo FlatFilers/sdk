@@ -21,6 +21,7 @@
     "@rollup/plugin-commonjs": "^19.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.0.0",
+    "@types/insert-css": "^2.0.0",
     "browserify": "^17.0.0",
     "jest": "^27.0.3",
     "mkdirp": "^1.0.4",
@@ -36,6 +37,7 @@
     "axios": "^0.21.1",
     "eventemitter3": "^4.0.7",
     "graphql": "^15.5.0",
-    "graphql-request": "^3.4.0"
+    "graphql-request": "^3.4.0",
+    "insert-css": "^2.0.0"
   }
 }

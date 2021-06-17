@@ -87,8 +87,12 @@ export class ApiService {
 
   async init(): Promise<{batchId: string, schemas: {id: string}[], workspaceId: string}>{
     const query = gql`
-      mutation InitializeEmptyBatch {
-        initializeEmptyBatch {
+      mutation InitializeEmptyBatch(
+        $importedFromUrl: String!
+      ) {
+        initializeEmptyBatch(
+          importedFromUrl: $importedFromUrl
+        ) {
           batchId
           workspaceId
           schemas {
@@ -98,7 +102,9 @@ export class ApiService {
       }
     `
 
-    return this.client.request(query)
+    return this.client.request(query, {
+      importedFromUrl: location.href
+    })
       .then(({initializeEmptyBatch}) => {
         emit('init', initializeEmptyBatch)
         return initializeEmptyBatch
