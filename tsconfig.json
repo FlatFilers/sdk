@@ -1,37 +1,21 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "outDir": "dist",
-    "rootDir": "src",
-    "moduleResolution": "node",
-    "module": "esnext",
-    "declaration": true,
-    "importHelpers": true,
-    "inlineSourceMap": true,
-    "listFiles": false,
-    "traceResolution": false,
-    "pretty": true,
-    "skipLibCheck": true,
-    "isolatedModules": true,
+    "outDir": "./dist/",
+    "declaration":true,
+    "sourceMap": true,
+    "strict": true,
     "esModuleInterop": true,
-    "lib" : [
-      "es6", "dom"
-    ],
-    "types" : [
-      "node",
-      "jest"
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "typescript-starter": ["src/index.ts"]
-    }
+    "module": "esnext",
+    "moduleResolution": "node",
+    "pretty": true,
+    "target": "es5",
+    "jsx": "react",
+    "types": ["node", "jest"],
+    "baseUrl": "./src",
+    "isolatedModules": true
   },
   "include": [
-    "src/**/*",
+    "src/**/*"
   ],
-  "exclude": [
-    "dist",
-    "node_modules",
-    "**/*.spec.*"
-  ]
+  "exclude": ["node_modules", "dist", "**/*.test.*", "**/*.spec.*"]
 }

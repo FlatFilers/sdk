@@ -31,7 +31,7 @@ type Diff<T, U> = T extends U ? never : T
 export function emit<
   K extends Diff<keyof IEvents, AllowedNames<IEvents, undefined>>,
   Attr extends IEvents[K]
->(event: K, payload: Attr = undefined) {
+>(event: K, payload?: Attr | undefined) {
   eventManager.emit(event, {
     payload,
   })

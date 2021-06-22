@@ -11,7 +11,7 @@ const addClass = (el: HTMLElement, className: string) => {
   el.className = classes.join(' ')
 }
 
-const removeClass = (el: HTMLElement, className: string): string => {
+const removeClass = (el: HTMLElement, className: string): string | undefined => {
   if (el.className === '') return
   const classes = el.className.split(' ')
   const idx = classes.indexOf(className)
@@ -47,14 +47,14 @@ export function flatfileImporter(token: string) {
     )
 
     const onClose = setInterval(() => {
-      if (o.closed) {
+      if (o?.closed) {
         clearInterval(onClose)
         emitClose()
       }
     }, 500)
 
     return () => {
-      o.close()
+      o?.close()
       emitClose()
     }
   }
@@ -136,7 +136,7 @@ export function flatfileImporter(token: string) {
   }
 
   // TODO: handle multiple launches
-  const handleLaunch = async (options: ILaunchOptions): Promise<() => void | void> => {
+  const handleLaunch = async (options: ILaunchOptions): Promise<(() => void) | void> => {
     try {
       let file: File
       const data = await api.init()
