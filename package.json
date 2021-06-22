@@ -2,6 +2,14 @@
   "name": "@flatfile/sdk",
   "version": "0.0.0",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FlatFilers/sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FlatFilers/sdk/issues"
+  },
+  "homepage": "https://github.com/FlatFilers/sdk#readme",
   "files": [
     "dist"
   ],
