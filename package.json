@@ -9,11 +9,14 @@
   ],
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "jest",
-    "lint": "eslint -c .eslintrc.js --ext .ts src test",
     "build": "tsc",
-    "watch": "rollup -cw",
-    "prepare": "npm run build"
+    "lint": "eslint . --ext '.ts,.tsx'",
+    "lint:fix": "eslint . --ext '.ts,.tsx' --fix",
+    "prepare": "npm run build",
+    "test": "jest",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "npm run type-check -- --watch",
+    "watch": "rollup -cw"
   },
   "author": "",
   "license": "ISC",
@@ -22,6 +25,8 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.0.0",
     "@types/insert-css": "^2.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
     "browserify": "^17.0.0",
     "eslint": "^7.29.0",
     "eslint-config-prettier": "^8.3.0",
