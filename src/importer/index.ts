@@ -138,7 +138,7 @@ export function flatfileImporter(token: string) {
   // TODO: handle multiple launches
   const handleLaunch = async (options: ILaunchOptions): Promise<(() => void) | void> => {
     try {
-      let file: File
+      let file: File | undefined = undefined
       const data = await api.init()
 
       if (options.file) {
