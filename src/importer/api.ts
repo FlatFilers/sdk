@@ -84,7 +84,11 @@ export class ApiService {
     throw new Error(error.message)
   }
 
-  async init(): Promise<{ batchId: string; schemas: { id: string }[]; workspaceId: string }> {
+  async init(): Promise<{
+    batchId: string
+    schemas: { id: string }[]
+    workspaceId: string
+  }> {
     const query = gql`
       mutation InitializeEmptyBatch($importedFromUrl: String!) {
         initializeEmptyBatch(importedFromUrl: $importedFromUrl) {
