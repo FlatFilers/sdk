@@ -16,6 +16,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "analyze": "webpack --progress --config webpack.analyze.js",
     "prebuild": "rm -rf ./dist",
     "build": "npm run build:types && npm run build:webpack",
     "build:types": "tsc --emitDeclarationOnly",
