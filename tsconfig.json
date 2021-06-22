@@ -13,11 +13,13 @@
     "pretty": true,
     "skipLibCheck": true,
     "isolatedModules": true,
+    "esModuleInterop": true,
     "lib" : [
       "es6", "dom"
     ],
     "types" : [
-      "node"
+      "node",
+      "jest"
     ],
     "baseUrl": ".",
     "paths": {
