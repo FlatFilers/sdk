@@ -16,12 +16,13 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "prebuild" : "rm -rf ./dist",
     "build": "npm run build:types && npm run build:webpack",
     "build:types": "tsc --emitDeclarationOnly",
     "build:webpack": "webpack --progress --config webpack.prod.js",
     "lint": "eslint . --ext '.ts,.tsx'",
     "lint:fix": "eslint . --ext '.ts,.tsx' --fix",
-    "prepare": "npm run build",
+    "prepack": "npm run build",
     "test": "jest",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch"
