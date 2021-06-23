@@ -1,18 +1,18 @@
 import { insertCss } from 'insert-css'
 
 import { ApiService } from './api'
-import { emit, IEvents, listen, cleanup } from './eventManager'
+import { cleanup, emit, IEvents, listen } from './eventManager'
 
 const addClass = (el: HTMLElement, className: string) => {
-  if (el.className === "") return el.className = className
+  if (el.className === '') return (el.className = className)
   const classes = el.className.split(' ')
   if (classes.indexOf(className) > -1) return
   classes.push(className)
   el.className = classes.join(' ')
 }
 
-const removeClass = (el: HTMLElement, className: string): string => {
-  if (el.className === "") return
+const removeClass = (el: HTMLElement, className: string): string | undefined => {
+  if (el.className === '') return
   const classes = el.className.split(' ')
   const idx = classes.indexOf(className)
   if (idx > -1) classes.splice(idx, 1)
@@ -27,9 +27,10 @@ interface ILaunchOptions {
   batchId?: string // resume prior session
 }
 
-const createCSV = (source: string) => new File([source], 'data.csv', { type: 'text/csv;charset=utf-8;' })
+const createCSV = (source: string) =>
+  new File([source], 'data.csv', { type: 'text/csv;charset=utf-8;' })
 
-export function flatfileImporter(token: string){
+export function flatfileImporter(token: string) {
   const api = new ApiService(token)
   const BASE_URL = 'http://localhost:8080/p/taycan/'
   // const BASE_URL = 'https://app.flatfile.io/embed/'
@@ -40,23 +41,26 @@ export function flatfileImporter(token: string){
   }
 
   const openNewTab = (batchId?: string) => {
-    const o = window.open(`${BASE_URL}?jwt=${encodeURI(token)}${batchId ? `&batchId=${batchId}` : ''}`, '_blank')
+    const o = window.open(
+      `${BASE_URL}?jwt=${encodeURI(token)}${batchId ? `&batchId=${batchId}` : ''}`,
+      '_blank'
+    )
 
     const onClose = setInterval(() => {
-      if(o.closed){
+      if (o?.closed) {
         clearInterval(onClose)
         emitClose()
-      }      
+      }
     }, 500)
 
     return () => {
-      o.close()
+      o?.close()
       emitClose()
     }
   }
 
   const openInIframe = (batchId?: string) => {
-    if(!document.querySelector('.flatfile-sdk')){
+    if (!document.querySelector('.flatfile-sdk')) {
       insertCss(`
         .flatfile-sdk {
           position: fixed;
@@ -102,7 +106,7 @@ export function flatfileImporter(token: string){
         `<div class="flatfile-sdk"><button class="flatfile-close"></button></div>`
       )
     }
-    
+
     const o = document.createElement('iframe')
     o.src = `${BASE_URL}?jwt=${encodeURI(token)}${batchId ? `&batchId=${batchId}` : ''}`
 
@@ -132,59 +136,62 @@ export function flatfileImporter(token: string){
   }
 
   // TODO: handle multiple launches
-  const handleLaunch = async (options: ILaunchOptions): Promise<() => void | void> => {
-    try{
-      let file: File
+  const handleLaunch = async (options: ILaunchOptions): Promise<(() => void) | void> => {
+    try {
+      let file: File | undefined = undefined
       const data = await api.init()
 
-      if(options.file){
+      if (options.file) {
         // check for extension
         file = options.file
-      } else if(options.data && typeof options.data === 'string'){
+      } else if (options.data && typeof options.data === 'string') {
         file = createCSV(options.data)
       }
 
-      if(file){
-        const {uploadId, viewId} = await api.upload(data.workspaceId, data.batchId, data.schemas[0].id, file)
-        console.log({uploadId, viewId})
+      if (file) {
+        const { uploadId, viewId } = await api.upload(
+          data.workspaceId,
+          data.batchId,
+          data.schemas[0].id,
+          file
+        )
+        console.log({ uploadId, viewId })
       }
 
-      emit('launch', {batchId: data.batchId})
+      emit('launch', { batchId: data.batchId })
 
-      if(options.newTab){
+      if (options.newTab) {
         return openNewTab(data.batchId)
       }
 
       return openInIframe(data.batchId)
-    }catch({message}){
+    } catch ({ message }) {
       emit('error', message)
       cleanup()
     }
   }
 
   return {
-    launch(options: ILaunchOptions = {}){
-      let destroy: any;
-      handleLaunch(options)
-        .then(_destroy => {
-          if(_destroy){
-            destroy = _destroy
-          }
-        })
-      
+    launch(options: ILaunchOptions = {}) {
+      let destroy: any
+      handleLaunch(options).then((_destroy) => {
+        if (_destroy) {
+          destroy = _destroy
+        }
+      })
 
       return {
-        on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void){
+        on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void) {
           listen(event, cb)
         },
         close() {
-          if(!destroy){
+          if (!destroy) {
             console.error('Could not close the importer because it has not been launched.')
             return
           }
           destroy()
-        }
+        },
       }
-    }
+    },
   }
 }

@@ -1,5 +1,6 @@
-import { GraphQLClient, gql } from 'graphql-request'
 import axios from 'axios'
+import { gql, GraphQLClient } from 'graphql-request'
+
 import { emit } from './eventManager'
 
 const getSignedUrlHeaders = (signedUrl: string) => {
@@ -32,7 +33,7 @@ const getSignedUrlHeaders = (signedUrl: string) => {
     'x-amz-object-lock-mode',
     'x-amz-object-lock-retain-until-date',
     'x-amz-object-lock-legal-hold',
-    'x-amz-expected-bucket-owner'
+    'x-amz-expected-bucket-owner',
   ]
   const parsedSignedURL = new URL(signedUrl)
   parsedSignedURL.searchParams.forEach((value, key) => {
@@ -70,29 +71,27 @@ export class ApiService {
   private baseUrl = 'http://localhost:3000'
   private client: GraphQLClient
 
-  constructor(
-    private token: string
-  ){
+  constructor(private token: string) {
     this.client = new GraphQLClient(`${this.baseUrl}/graphql`, {
       headers: {
-        'Authorization': `Bearer ${this.token}`
-      }
+        Authorization: `Bearer ${this.token}`,
+      },
     })
   }
 
-  private handleError(error: any): Promise<any>{
+  private handleError(error: any): Promise<any> {
     // TODO: pretty handle error
     throw new Error(error.message)
   }
 
-  async init(): Promise<{batchId: string, schemas: {id: string}[], workspaceId: string}>{
+  async init(): Promise<{
+    batchId: string
+    schemas: { id: string }[]
+    workspaceId: string
+  }> {
     const query = gql`
-      mutation InitializeEmptyBatch(
-        $importedFromUrl: String!
-      ) {
-        initializeEmptyBatch(
-          importedFromUrl: $importedFromUrl
-        ) {
+      mutation InitializeEmptyBatch($importedFromUrl: String!) {
+        initializeEmptyBatch(importedFromUrl: $importedFromUrl) {
           batchId
           workspaceId
           schemas {
@@ -102,19 +101,25 @@ export class ApiService {
       }
     `
 
-    return this.client.request(query, {
-      importedFromUrl: location.href
-    })
-      .then(({initializeEmptyBatch}) => {
+    return this.client
+      .request(query, {
+        importedFromUrl: location.href,
+      })
+      .then(({ initializeEmptyBatch }) => {
         emit('init', initializeEmptyBatch)
         return initializeEmptyBatch
       })
-      .catch(error => this.handleError(error))
+      .catch((error) => this.handleError(error))
   }
 
   // TODO: question
   // if upload takes too long, browser will block `window.open`
-  async upload(workspaceId: string, batchId: string, schemaId: string, file: File): Promise<{uploadId: string, viewId: string}> {
+  async upload(
+    workspaceId: string,
+    batchId: string,
+    schemaId: string,
+    file: File
+  ): Promise<{ uploadId: string; viewId: string }> {
     const query = gql`
       mutation InitializeBatchAndUpload(
         $schemaId: ID
@@ -142,19 +147,20 @@ export class ApiService {
         }
       }
     `
-    const {uploadId, signedUrl} = await this.client.request<IInitializeAndUploadResponse>(query, {
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-      schemaId,
-      workspaceId,
-      batchId
-    })
-      .then(({initializeBatchAndUpload}) => ({
+    const { uploadId, signedUrl } = await this.client
+      .request<IInitializeAndUploadResponse>(query, {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        schemaId,
+        workspaceId,
+        batchId,
+      })
+      .then(({ initializeBatchAndUpload }) => ({
         uploadId: initializeBatchAndUpload.upload.id,
-        signedUrl: initializeBatchAndUpload.signedUrl
+        signedUrl: initializeBatchAndUpload.signedUrl,
       }))
-      .catch(error => this.handleError(error))
+      .catch((error) => this.handleError(error))
 
     try {
       await axios({
@@ -164,8 +170,8 @@ export class ApiService {
         url: signedUrl,
         onUploadProgress: (progressEvent: any) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-          console.log({percentCompleted})
-        }
+          console.log({ percentCompleted })
+        },
       })
     } catch (e) {
       throw new Error(`Error uploading file data: ${e.message}`)
@@ -175,16 +181,16 @@ export class ApiService {
 
     emit('upload', {
       uploadId,
-      viewId
+      viewId,
     })
 
     return {
       uploadId,
-      viewId
+      viewId,
     }
   }
 
-  private async updateUploadStatus(uploadId: string): Promise<string>{
+  private async updateUploadStatus(uploadId: string): Promise<string> {
     const query = gql`
       mutation UpdateUploadStatus($uploadId: String!, $status: String!) {
         updateUploadStatus(uploadId: $uploadId, status: $status) {
@@ -200,17 +206,18 @@ export class ApiService {
       }
     `
 
-    const {viewId} = await this.client.request<IUpdateUploadStatusResponse>(query, {
-      uploadId,
-      status: 'uploaded'
-    })
-      .then(({updateUploadStatus}) => {
-        emit('upload', {uploadId: updateUploadStatus.upload.id})
+    const { viewId } = await this.client
+      .request<IUpdateUploadStatusResponse>(query, {
+        uploadId,
+        status: 'uploaded',
+      })
+      .then(({ updateUploadStatus }) => {
+        emit('upload', { uploadId: updateUploadStatus.upload.id })
         return {
           viewId: updateUploadStatus.view.id,
         }
       })
-      .catch(error => this.handleError(error))
+      .catch((error) => this.handleError(error))
 
     return viewId
   }
