@@ -1,12 +1,9 @@
+.idea
+.husky
 node_modules
 dist
-cypress
 __tests__
-.storybook
-public
-__sandbox__/docker/sandbox/
 
-__sandbox__/dev.index.tsx
 webpack.config.js
 webpack.dev.js
 webpack.base.js
