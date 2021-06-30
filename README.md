@@ -5,6 +5,10 @@
 npm install @flatfile/sdk --save
 ```
 
+## Development
+- Copy `.env.example` to `.env` and add an `API_TOKEN`
+- Run `npm start` to start the development environment
+
 ## Build
 A production bundle can be created via:
 ```

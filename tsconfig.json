@@ -9,13 +9,11 @@
     "moduleResolution": "node",
     "pretty": true,
     "target": "es5",
-    "jsx": "react",
+    "jsx": "react-jsx",
     "types": ["node", "jest"],
     "baseUrl": "./src",
     "isolatedModules": true
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": ["node_modules", "dist", "**/*.test.*", "**/*.spec.*"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.*", "**/*.spec.*", "__sandbox__"]
 }

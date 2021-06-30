@@ -1,3 +1,3 @@
 import { flatfileImporter } from './importer'
 
-export default flatfileImporter
+export { flatfileImporter }
