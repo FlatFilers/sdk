@@ -5,6 +5,15 @@
 npm install @flatfile/sdk --save
 ```
 
+## Development
+- Copy `.env.example` to `.env` and add an `API_TOKEN`
+  
+### Native
+- Run `npm start` to start the development environment. Once running, the app will be available at `localhost:8080`.
+
+### Docker
+- Run `docker compose up -d app` to start the docker container. Once running, the app will be available at `localhost:8080`.
+
 ## Build
 A production bundle can be created via:
 ```

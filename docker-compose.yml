@@ -1,0 +1,26 @@
+version: "3"
+
+# Serve source files
+services:
+    app:
+        image: node:16.3.0
+        container_name: sdk-development
+        user: node
+        working_dir: /app
+        volumes:
+            - ./node_modules:/app/node_modules
+            - ./public:/app/public
+            - ./package.json:/app/package.json
+            - ./tsconfig.json:/app/tsconfig.json
+            - ./webpack.base.js:/app/webpack.base.js
+            - ./webpack.dev.js:/app/webpack.dev.js
+            - ./.env:/app/.env
+            # use src files
+            - ./src:/app/src
+            - ./__sandbox__:/app/__sandbox__
+        environment:
+            PORT: 8080
+            HOST: 0.0.0.0
+        ports:
+            - 8080:8080
+        command: npm run start

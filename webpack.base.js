@@ -11,10 +11,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'index.js',
-    library: {
-      name: 'flatfileImporter',
-      type: 'umd',
-    },
+    library: 'umd',
   },
   bail: true,
   plugins: [new webpack.HotModuleReplacementPlugin()],
@@ -35,7 +32,23 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env', '@babel/preset-react', '@babel/preset-typescript'],
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets: {
+                    node: 'current',
+                  },
+                },
+              ],
+              [
+                '@babel/preset-react',
+                {
+                  runtime: 'automatic',
+                },
+              ],
+              '@babel/preset-typescript',
+            ],
             plugins: ['@babel/plugin-proposal-class-properties', '@babel/plugin-transform-runtime'],
           },
         },
