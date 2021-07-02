@@ -18,4 +18,7 @@ module.exports = merge(base, {
     hot: true,
     port: process.env.PORT || 8081,
   },
+  externals: {
+    crypto: 'crypto',
+  },
 })

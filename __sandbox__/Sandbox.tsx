@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
 import styled from 'styled-components'
 
-import { flatfileImporter } from '../src/index'
-import { sign } from './jwt'
+import { flatfileImporter } from '../src'
+import { sign } from './utils/jwt'
 
 const InputGroup = styled.div`
   margin-top: 2rem;
@@ -203,7 +203,6 @@ export function Sandbox(): any {
               onClick={() => {
                 ;(importerRef.current as any).close()
               }}
-
             >
               Close Importer
             </Button>

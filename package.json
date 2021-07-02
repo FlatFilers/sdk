@@ -58,7 +58,6 @@
     "@typescript-eslint/parser": "^4.28.0",
     "babel-jest": "^27.0.5",
     "babel-loader": "^8.2.2",
-    "crypto": "^1.0.1",
     "cz-conventional-changelog": "^3.3.0",
     "dotenv-webpack": "^7.0.3",
     "eslint": "^7.29.0",
