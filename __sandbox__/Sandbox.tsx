@@ -34,6 +34,7 @@ const Log = styled.div`
 `
 
 const Wrapper = styled.main`
+  background-color: #2f333d;
   min-height: 100vh;
   width: 100%;
   display: flex;
@@ -51,6 +52,7 @@ const Container = styled.div`
 
   p {
     margin: 0;
+    font-size: 1rem;
 
     &.placeholder {
       text-align: center;
@@ -188,7 +190,7 @@ export function Sandbox(): any {
         <ButtonGroup>
           <Button onClick={() => handleInit()}>Launch</Button>
           <Button onClick={() => handleInit(undefined, { newTab: true })}>Launch new tab</Button>
-          <FileButton htmlFor='file'>
+          {/* <FileButton htmlFor='file'>
             Launch with File
             <input
               accept='.csv'
@@ -196,7 +198,7 @@ export function Sandbox(): any {
               id='file'
               onChange={(e) => (e.target.files ? handleInit(e.target.files[0]) : {})}
             />
-          </FileButton>
+          </FileButton> */}
 
           {canClose && (
             <Button
