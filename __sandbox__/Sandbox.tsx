@@ -133,7 +133,7 @@ export function Sandbox(): any {
     ])
   }
 
-  const handleInit = (file?: File, configs = {}) => {
+  const handleInit = async (file?: File, configs = {}) => {
     if (!embedId || !endUserEmail) {
       return alert('Embed ID and End User Email are required.')
     }
@@ -141,7 +141,7 @@ export function Sandbox(): any {
     localStorage.setItem('embed_id', embedId)
     localStorage.setItem('end_user_email', endUserEmail)
 
-    const token = sign(
+    const token = await sign(
       {
         embed: embedId,
         sub: endUserEmail,
