@@ -30,9 +30,15 @@ interface ILaunchOptions {
 const createCSV = (source: string) =>
   new File([source], 'data.csv', { type: 'text/csv;charset=utf-8;' })
 
-export function flatfileImporter(token: string) {
+interface ILaunchResult {
+  on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void): void
+  close(): void
+}
+export function flatfileImporter(token: string): {
+  launch(o: ILaunchOptions): ILaunchResult
+} {
   const api = new ApiService(token)
-  const BASE_URL = 'http://localhost:8080/p/taycan/'
+  const BASE_URL = 'http://localhost:8080/e'
   // const BASE_URL = 'https://app.flatfile.io/embed/'
 
   const emitClose = () => {
