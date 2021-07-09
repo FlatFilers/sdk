@@ -9,6 +9,16 @@ const InputGroup = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  & > * {
+    width: 100%;
+    max-width: 32.5%;
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+  }
 `
 
 const Input = styled.input`
@@ -20,7 +30,6 @@ const Input = styled.input`
   color: white;
   padding: 0.5rem 1rem;
   font-size: 1rem;
-  max-width: 46%;
   outline: none;
 `
 
@@ -122,6 +131,7 @@ export function Sandbox(): any {
 
   const [embedId, setEmbedId] = useState(localStorage.getItem('embed_id') || '')
   const [endUserEmail, setEndUserEmail] = useState(localStorage.getItem('end_user_email') || '')
+  const [privateKey, setPrivateKey] = useState(localStorage.getItem('private_key') || '')
 
   const [log, setLog] = useState<{ event: string; payload: any }[]>([])
 
@@ -136,19 +146,20 @@ export function Sandbox(): any {
   }
 
   const handleInit = async (file?: File, configs = {}) => {
-    if (!embedId || !endUserEmail) {
-      return alert('Embed ID and End User Email are required.')
+    if (!embedId || !endUserEmail || !privateKey) {
+      return alert('Embed id, user email & private key are required fields.')
     }
 
     localStorage.setItem('embed_id', embedId)
     localStorage.setItem('end_user_email', endUserEmail)
+    localStorage.setItem('private_key', privateKey)
 
     const token = await sign(
       {
         embed: embedId,
         sub: endUserEmail,
       },
-      'qweqwe'
+      privateKey
     )
 
     const importer = flatfileImporter(token).launch({
@@ -175,16 +186,31 @@ export function Sandbox(): any {
     <Wrapper>
       <Container>
         <InputGroup>
-          <Input
-            placeholder='Embed ID'
-            value={embedId}
-            onChange={(e) => setEmbedId(e.target.value)}
-          />
-          <Input
-            placeholder='End User Email'
-            value={endUserEmail}
-            onChange={(e) => setEndUserEmail(e.target.value)}
-          />
+          <div>
+            <label>Embed ID</label>
+            <Input
+              placeholder='Enter embed ID'
+              value={embedId}
+              onChange={(e) => setEmbedId(e.target.value)}
+            />
+          </div>
+          <div>
+            <label>User Email</label>
+            <Input
+              placeholder='Enter user email'
+              value={endUserEmail}
+              onChange={(e) => setEndUserEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <label>Private key</label>
+            <Input
+              type='password'
+              placeholder='Enter private key'
+              value={privateKey}
+              onChange={(e) => setPrivateKey(e.target.value)}
+            />
+          </div>
         </InputGroup>
 
         <ButtonGroup>
