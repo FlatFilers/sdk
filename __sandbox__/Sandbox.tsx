@@ -40,6 +40,8 @@ const Log = styled.div`
   background-color: #404551;
   min-height: 300px;
   border-radius: 0.25rem;
+  max-height: 300px;
+  overflow-y: auto;
 `
 
 const Wrapper = styled.main`
@@ -162,7 +164,7 @@ export function Sandbox(): any {
       privateKey
     )
 
-    const importer = flatfileImporter(token).launch({
+    const importer = flatfileImporter(token, { env: 'development' }).launch({
       file,
       ...configs,
     })
