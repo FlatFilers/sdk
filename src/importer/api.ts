@@ -1,10 +1,11 @@
 import axios from 'axios'
 import { gql, GraphQLClient } from 'graphql-request'
 
+import { IConfig } from './config'
 import { emit } from './eventManager'
 
 const getSignedUrlHeaders = (signedUrl: string) => {
-  const headers: any = {}
+  const headers: Record<string, string> = {}
   // https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html
   const allowedHeaders = [
     'x-amz-acl',
@@ -68,18 +69,18 @@ interface IUpdateUploadStatusResponse {
 }
 
 export class ApiService {
-  private baseUrl = 'http://localhost:3000'
   private client: GraphQLClient
 
-  constructor(private token: string) {
-    this.client = new GraphQLClient(`${this.baseUrl}/graphql`, {
+  constructor(private token: string, private config: IConfig) {
+    this.client = new GraphQLClient(`${config.apiUrl}/graphql`, {
       headers: {
         Authorization: `Bearer ${this.token}`,
       },
     })
   }
 
-  private handleError(error: any): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private handleError(error: Error): any {
     // TODO: pretty handle error
     throw new Error(error.message)
   }
@@ -168,7 +169,7 @@ export class ApiService {
         headers: getSignedUrlHeaders(signedUrl),
         data: file,
         url: signedUrl,
-        onUploadProgress: (progressEvent: any) => {
+        onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
           console.log({ percentCompleted })
         },

@@ -1,6 +1,7 @@
 import { insertCss } from 'insert-css'
 
 import { ApiService } from './api'
+import { ENVIRONMENT, getConfigByEnv } from './config'
 import { cleanup, emit, IEvents, listen } from './eventManager'
 
 const addClass = (el: HTMLElement, className: string) => {
@@ -22,7 +23,7 @@ const removeClass = (el: HTMLElement, className: string): string | undefined => 
 interface ILaunchOptions {
   newTab?: boolean // opens in new tab
   attachTo?: HTMLElement // adds an iframe child to the element w/position absolute to fill the element
-  data?: Record<string, any>[] | string[] | string // data as string or array of objects
+  data?: Record<string, string | number | boolean | null>[] | string[] | string // data as string or array of objects
   file?: File // launch with file reference
   batchId?: string // resume prior session
 }
@@ -34,12 +35,18 @@ interface ILaunchResult {
   on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void): void
   close(): void
 }
-export function flatfileImporter(token: string): {
+interface IFlatfileImporterOptions {
+  env?: ENVIRONMENT
+}
+export function flatfileImporter(
+  token: string,
+  options: IFlatfileImporterOptions = {}
+): {
   launch(o: ILaunchOptions): ILaunchResult
 } {
-  const api = new ApiService(token)
-  const BASE_URL = 'http://localhost:8080/e'
-  // const BASE_URL = 'https://app.flatfile.io/embed/'
+  const config = getConfigByEnv(options.env)
+  const api = new ApiService(token, config)
+  const BASE_URL = `${config.mountUrl}/e`
 
   const emitClose = () => {
     emit('close')
@@ -179,7 +186,7 @@ export function flatfileImporter(token: string): {
 
   return {
     launch(options: ILaunchOptions = {}) {
-      let destroy: any
+      let destroy: () => void
       handleLaunch(options).then((_destroy) => {
         if (_destroy) {
           destroy = _destroy
