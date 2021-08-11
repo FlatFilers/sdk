@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { gql, GraphQLClient } from 'graphql-request'
+import { SubscriptionClient } from 'graphql-subscriptions-client'
 
 import { IConfig } from './config'
 import { emit } from './eventManager'
@@ -70,11 +71,22 @@ interface IUpdateUploadStatusResponse {
 
 export class ApiService {
   private client: GraphQLClient
+  private pubsub: SubscriptionClient
 
   constructor(private token: string, private config: IConfig) {
     this.client = new GraphQLClient(`${config.apiUrl}/graphql`, {
       headers: {
         Authorization: `Bearer ${this.token}`,
+      },
+    })
+    this.pubsub = new SubscriptionClient(`${config.ws}/graphql`, {
+      reconnect: true,
+      lazy: true,
+      connectionParams: {
+        isWebSocket: true,
+        headers: {
+          authorization: `Bearer ${this.token}`,
+        },
       },
     })
   }
@@ -113,8 +125,24 @@ export class ApiService {
       .catch((error) => this.handleError(error))
   }
 
-  // TODO: question
-  // if upload takes too long, browser will block `window.open`
+  subscribeBatchStatusEvents(batchId: string): any {
+    const query = gql`
+      subscription BatchStatusUpdated($batchId: UUID!) {
+        batchStatusUpdated(batchId: $batchId) {
+          id
+          status
+        }
+      }
+    `
+    return this.pubsub.request({
+      query,
+      variables: {
+        batchId,
+      },
+    })
+  }
+
+  // TODO: if upload takes too long, browser will block `window.open`
   async upload(
     workspaceId: string,
     batchId: string,
@@ -221,5 +249,20 @@ export class ApiService {
       .catch((error) => this.handleError(error))
 
     return viewId
+  }
+
+  async getData(batchId: string, limit = 1000): Promise<any> {
+    const query = gql`
+      query GetFinalDatabaseView($skip: Int, $batchId: UUID, $limit: Int!) {
+        getFinalDatabaseView(skip: $skip, limit: $limit, batchId: $batchId) {
+          validData
+          invalidData
+        }
+      }
+    `
+    return this.client
+      .request(query, { batchId, limit })
+      .then(({ getFinalDatabaseView }) => getFinalDatabaseView)
+      .catch((error) => this.handleError(error))
   }
 }

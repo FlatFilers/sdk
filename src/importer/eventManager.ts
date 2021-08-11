@@ -17,6 +17,10 @@ export interface IEvents {
   launch: {
     batchId: string
   }
+  complete: {
+    batchId: string
+    data: () => Promise<any>
+  }
   close: void
 }
 

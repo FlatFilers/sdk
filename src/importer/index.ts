@@ -151,31 +151,51 @@ export function flatfileImporter(
   // TODO: handle multiple launches
   const handleLaunch = async (options: ILaunchOptions): Promise<(() => void) | void> => {
     try {
-      let file: File | undefined = undefined
+      // let file: File | undefined = undefined
       const data = await api.init()
 
-      if (options.file) {
-        // check for extension
-        file = options.file
-      } else if (options.data && typeof options.data === 'string') {
-        file = createCSV(options.data)
-      }
+      // if (options.file) {
+      //   // check for extension
+      //   file = options.file
+      // } else if (options.data && typeof options.data === 'string') {
+      //   file = createCSV(options.data)
+      // }
 
-      if (file) {
-        const { uploadId, viewId } = await api.upload(
-          data.workspaceId,
-          data.batchId,
-          data.schemas[0].id,
-          file
-        )
-        console.log({ uploadId, viewId })
-      }
+      // if (file) {
+      //   const { uploadId, viewId } = await api.upload(
+      //     data.workspaceId,
+      //     data.batchId,
+      //     data.schemas[0].id,
+      //     file
+      //   )
+      //   console.log({ uploadId, viewId })
+      // }
+
+      const subscription = api.subscribeBatchStatusEvents(data.batchId)
+      subscription.subscribe({
+        next: ({ data, errors }: any) => {
+          if (errors) {
+            console.log({ errors })
+            return
+          }
+          if (data?.batchStatusUpdated?.id) {
+            const { id, status } = data.batchStatusUpdated
+
+            if (status === 'submitted') {
+              emit('complete', {
+                batchId: id,
+                data: () => api.getData(id),
+              })
+            }
+          }
+        },
+      })
 
       emit('launch', { batchId: data.batchId })
 
-      if (options.newTab) {
-        return openNewTab(data.batchId)
-      }
+      // if (options.newTab) {
+      //   return openNewTab(data.batchId)
+      // }
 
       return openInIframe(data.batchId)
     } catch ({ message }) {
