@@ -4,6 +4,18 @@ import styled from 'styled-components'
 import { flatfileImporter } from '../src'
 import { sign } from './utils/jwt'
 
+const Output = styled.textarea`
+  width: 100%;
+  margin-top: 3rem;
+  background-color: #404551;
+  padding: 1rem;
+  background-color: #404551;
+  min-height: 300px;
+  border-radius: 0.25rem;
+  max-height: 300px;
+  color: white;
+`
+
 const InputGroup = styled.div`
   margin-top: 2rem;
   display: flex;
@@ -31,17 +43,6 @@ const Input = styled.input`
   padding: 0.5rem 1rem;
   font-size: 1rem;
   outline: none;
-`
-
-const Log = styled.div`
-  margin-top: 3rem;
-  background-color: #404551;
-  padding: 1rem;
-  background-color: #404551;
-  min-height: 300px;
-  border-radius: 0.25rem;
-  max-height: 300px;
-  overflow-y: auto;
 `
 
 const Wrapper = styled.main`
@@ -129,23 +130,11 @@ const FileButton = styled.label`
 export function Sandbox(): any {
   const importerRef = useRef<any>()
 
-  const [canClose, setCanClose] = useState(false)
+  const [output, setOutput] = useState<string>()
 
   const [embedId, setEmbedId] = useState(localStorage.getItem('embed_id') || '')
   const [endUserEmail, setEndUserEmail] = useState(localStorage.getItem('end_user_email') || '')
   const [privateKey, setPrivateKey] = useState(localStorage.getItem('private_key') || '')
-
-  const [log, setLog] = useState<{ event: string; payload: any }[]>([])
-
-  const handleAddLog = (event: string, payload: any) => {
-    setLog((l) => [
-      ...l,
-      {
-        event,
-        payload,
-      },
-    ])
-  }
 
   const handleInit = async (file?: File, configs = {}) => {
     if (!embedId || !endUserEmail || !privateKey) {
@@ -169,16 +158,20 @@ export function Sandbox(): any {
       ...configs,
     })
 
-    importer.on('init', (payload: any) => handleAddLog('init', payload))
-    importer.on('upload', (payload: any) => handleAddLog('upload', payload))
-    importer.on('error', (payload: any) => handleAddLog('error', payload))
-    importer.on('launch', (payload: any) => {
-      handleAddLog('launch', payload)
-      setCanClose(true)
-    })
-    importer.on('close', (payload: any) => {
-      handleAddLog('close', payload)
-      setCanClose(false)
+    const handleLog = (type: string, data: any) => {
+      console.log({ type, data })
+    }
+
+    importer.on('init', (payload: any) => handleLog('init', payload))
+    importer.on('upload', (payload: any) => handleLog('upload', payload))
+    importer.on('error', (payload: any) => handleLog('error', payload))
+    importer.on('launch', (payload: any) => handleLog('launch', payload))
+    importer.on('close', (payload: any) => handleLog('close', payload))
+    importer.on('complete', async ({ payload }: any) => {
+      handleLog('complete', payload)
+
+      importer.close()
+      setOutput(JSON.stringify(await payload.data(), null, 4))
     })
 
     importerRef.current = importer
@@ -217,39 +210,9 @@ export function Sandbox(): any {
 
         <ButtonGroup>
           <Button onClick={() => handleInit()}>Launch</Button>
-          <Button onClick={() => handleInit(undefined, { newTab: true })}>Launch new tab</Button>
-          {/* <FileButton htmlFor='file'>
-            Launch with File
-            <input
-              accept='.csv'
-              type='file'
-              id='file'
-              onChange={(e) => (e.target.files ? handleInit(e.target.files[0]) : {})}
-            />
-          </FileButton> */}
-
-          {canClose && (
-            <Button
-              onClick={() => {
-                ;(importerRef.current as any).close()
-              }}
-            >
-              Close Importer
-            </Button>
-          )}
         </ButtonGroup>
 
-        <Log>
-          {log.length ? (
-            log.map((l, i) => (
-              <p key={i}>
-                {new Date().toLocaleString()} - {l.event} - {JSON.stringify(l.payload)}
-              </p>
-            ))
-          ) : (
-            <p className='placeholder'>Logs will appear here...</p>
-          )}
-        </Log>
+        <Output readOnly placeholder='Data will appear here...' value={output} />
       </Container>
     </Wrapper>
   )
