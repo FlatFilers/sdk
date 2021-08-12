@@ -255,8 +255,7 @@ export class ApiService {
     const query = gql`
       query GetFinalDatabaseView($skip: Int, $batchId: UUID, $limit: Int!) {
         getFinalDatabaseView(skip: $skip, limit: $limit, batchId: $batchId) {
-          validData
-          invalidData
+          rows
         }
       }
     `
