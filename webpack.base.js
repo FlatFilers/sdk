@@ -9,9 +9,10 @@ module.exports = {
     modules: true,
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
     filename: 'index.js',
-    library: 'umd',
+    library: {
+      type: 'umd',
+    },
   },
   bail: true,
   plugins: [new webpack.HotModuleReplacementPlugin()],
