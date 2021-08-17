@@ -1,24 +1,9 @@
 import { insertCss } from 'insert-css'
 
+import { addClass, removeClass } from '../utils/addRemoveClass'
 import { ApiService } from './api'
 import { ENVIRONMENT, getConfigByEnv } from './config'
 import { cleanup, emit, IEvents, listen } from './eventManager'
-
-const addClass = (el: HTMLElement, className: string) => {
-  if (el.className === '') return (el.className = className)
-  const classes = el.className.split(' ')
-  if (classes.indexOf(className) > -1) return
-  classes.push(className)
-  el.className = classes.join(' ')
-}
-
-const removeClass = (el: HTMLElement, className: string): string | undefined => {
-  if (el.className === '') return
-  const classes = el.className.split(' ')
-  const idx = classes.indexOf(className)
-  if (idx > -1) classes.splice(idx, 1)
-  el.className = classes.join(' ')
-}
 
 interface ILaunchOptions {
   newTab?: boolean // opens in new tab
@@ -27,9 +12,6 @@ interface ILaunchOptions {
   file?: File // launch with file reference
   batchId?: string // resume prior session
 }
-
-const createCSV = (source: string) =>
-  new File([source], 'data.csv', { type: 'text/csv;charset=utf-8;' })
 
 interface ILaunchResult {
   on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void): void
@@ -51,25 +33,6 @@ export function flatfileImporter(
   const emitClose = () => {
     emit('close')
     cleanup()
-  }
-
-  const openNewTab = (batchId?: string) => {
-    const o = window.open(
-      `${BASE_URL}?jwt=${encodeURI(token)}${batchId ? `&batchId=${batchId}` : ''}`,
-      '_blank'
-    )
-
-    const onClose = setInterval(() => {
-      if (o?.closed) {
-        clearInterval(onClose)
-        emitClose()
-      }
-    }, 500)
-
-    return () => {
-      o?.close()
-      emitClose()
-    }
   }
 
   const openInIframe = (batchId?: string) => {
@@ -148,56 +111,35 @@ export function flatfileImporter(
     }
   }
 
-  // TODO: handle multiple launches
-  const handleLaunch = async (options: ILaunchOptions): Promise<(() => void) | void> => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleLaunch = async (_options: ILaunchOptions = {}): Promise<(() => void) | void> => {
     try {
-      // let file: File | undefined = undefined
-      const data = await api.init()
+      const { batchId } = await api.init()
 
-      // if (options.file) {
-      //   // check for extension
-      //   file = options.file
-      // } else if (options.data && typeof options.data === 'string') {
-      //   file = createCSV(options.data)
-      // }
-
-      // if (file) {
-      //   const { uploadId, viewId } = await api.upload(
-      //     data.workspaceId,
-      //     data.batchId,
-      //     data.schemas[0].id,
-      //     file
-      //   )
-      //   console.log({ uploadId, viewId })
-      // }
-
-      const subscription = api.subscribeBatchStatusEvents(data.batchId)
-      subscription.subscribe({
+      api.subscribeBatchStatusUpdated(batchId).subscribe({
         next: ({ data, errors }: any) => {
           if (errors) {
+            // TODO: handle errors
             console.log({ errors })
             return
           }
           if (data?.batchStatusUpdated?.id) {
-            const { id, status } = data.batchStatusUpdated
-
-            if (status === 'submitted') {
-              emit('complete', {
-                batchId: id,
-                data: () => api.getData(id),
-              })
+            switch (data.batchStatusUpdated.status) {
+              case 'submitted': {
+                emit('complete', {
+                  batchId,
+                  data: () => api.getFinalDatabaseView(batchId),
+                })
+                break
+              }
             }
           }
         },
       })
 
-      emit('launch', { batchId: data.batchId })
+      emit('launch', { batchId })
 
-      // if (options.newTab) {
-      //   return openNewTab(data.batchId)
-      // }
-
-      return openInIframe(data.batchId)
+      return openInIframe(batchId)
     } catch ({ message }) {
       emit('error', message)
       cleanup()

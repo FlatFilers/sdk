@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { EventEmitter } from 'eventemitter3'
+
+import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 
 export interface IEvents {
   init: {
@@ -19,7 +22,7 @@ export interface IEvents {
   }
   complete: {
     batchId: string
-    data: () => Promise<any>
+    data: () => Promise<GetFinalDatabaseViewResponse['getFinalDatabaseView']>
   }
   close: void
 }
