@@ -19,7 +19,7 @@ export class ApiService {
   private client: GraphQLClient
   private pubsub: SubscriptionClient
 
-  constructor(private token: string, private config: IConfig) {
+  constructor(public token: string, private config: IConfig) {
     this.client = new GraphQLClient(`${config.apiUrl}/graphql`, {
       headers: {
         Authorization: `Bearer ${this.token}`,

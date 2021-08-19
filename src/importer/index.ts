@@ -1,6 +1,7 @@
 import { insertCss } from 'insert-css'
 
 import { addClass, removeClass } from '../utils/addRemoveClass'
+import { sign } from '../utils/jwt'
 import { ApiService } from './api'
 import { ENVIRONMENT, getConfigByEnv } from './config'
 import { cleanup, emit, IEvents, listen } from './eventManager'
@@ -11,6 +12,12 @@ interface ILaunchOptions {
   data?: Record<string, string | number | boolean | null>[] | string[] | string // data as string or array of objects
   file?: File // launch with file reference
   batchId?: string // resume prior session
+}
+
+interface IUnsafeGenerateTokenOptions {
+  endUserEmail: string
+  privateKey: string
+  embedId: string
 }
 
 interface ILaunchResult {
@@ -24,10 +31,11 @@ export function flatfileImporter(
   token: string,
   options: IFlatfileImporterOptions = {}
 ): {
+  __unsafeGenerateToken(o: IUnsafeGenerateTokenOptions): Promise<void>
   launch(o: ILaunchOptions): ILaunchResult
 } {
   const config = getConfigByEnv(options.env)
-  const api = new ApiService(token, config)
+  let api = new ApiService(token, config)
   const BASE_URL = `${config.mountUrl}/e`
 
   const emitClose = () => {
@@ -84,7 +92,7 @@ export function flatfileImporter(
     }
 
     const o = document.createElement('iframe')
-    o.src = `${BASE_URL}?jwt=${encodeURI(token)}${batchId ? `&batchId=${batchId}` : ''}`
+    o.src = `${BASE_URL}?jwt=${encodeURI(api.token)}${batchId ? `&batchId=${batchId}` : ''}`
 
     const close = document.querySelector('.flatfile-close') as HTMLElement
     const container = document.querySelector('.flatfile-sdk') as HTMLElement
@@ -114,6 +122,7 @@ export function flatfileImporter(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleLaunch = async (_options: ILaunchOptions = {}): Promise<(() => void) | void> => {
     try {
+      console.log('handle', api)
       const { batchId } = await api.init()
 
       api.subscribeBatchStatusUpdated(batchId).subscribe({
@@ -140,15 +149,34 @@ export function flatfileImporter(
       emit('launch', { batchId })
 
       return openInIframe(batchId)
-    } catch ({ message }) {
-      emit('error', message)
+    } catch (e) {
+      console.error(e)
+      emit('error', e.message)
       cleanup()
     }
   }
 
   return {
+    async __unsafeGenerateToken({ embedId, endUserEmail, privateKey }) {
+      if (!['development', 'staging'].includes(options.env || 'production')) {
+        throw new Error('Token cannot be generated in production environment.')
+      }
+
+      api = new ApiService(
+        await sign(
+          {
+            embed: embedId,
+            sub: endUserEmail,
+          },
+          privateKey
+        ),
+        config
+      )
+      console.log('new api', api)
+    },
     launch(options: ILaunchOptions = {}) {
       let destroy: () => void
+      console.log('handle', api)
       handleLaunch(options).then((_destroy) => {
         if (_destroy) {
           destroy = _destroy

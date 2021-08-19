@@ -1,14 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function sign(payload: Record<string, string>, key: string): Promise<string> {
   if (!key) {
     throw new Error('Key is required.')
   }
 
-  /* eslint-disable @typescript-eslint/no-explicit-any */
   const cryptoSubtle: SubtleCrypto =
     (window.crypto && crypto.subtle) ||
     (window.crypto && (crypto as any).webkitSubtle) ||
     ((window as any).msCrypto && (window as any).msCrypto.Subtle)
-  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   if (!cryptoSubtle) {
     throw new Error('Could not generate JWT (crypto.subtle is not found).')
@@ -62,7 +61,7 @@ export function sign(payload: Record<string, string>, key: string): Promise<stri
 }
 
 function base64Stringify(a: Uint8Array) {
-  return btoa(String.fromCharCode.apply(0, a))
+  return btoa(String.fromCharCode.apply(0, a as any))
     .replace(/=/g, '')
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
@@ -70,7 +69,7 @@ function base64Stringify(a: Uint8Array) {
 
 function base64Parse(a: string) {
   a = a.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '')
-  return new Uint8Array(Array.prototype.map.call(atob(a), (c: string) => c.charCodeAt(0)))
+  return new Uint8Array(Array.prototype.map.call(atob(a), (c: string) => c.charCodeAt(0)) as any)
 }
 
 function utf8ToUint8Array(str: string | number | boolean) {
