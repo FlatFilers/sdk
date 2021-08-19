@@ -2,7 +2,6 @@ import { useRef, useState } from 'react'
 import styled from 'styled-components'
 
 import { flatfileImporter } from '../src'
-import { sign } from './utils/jwt'
 
 const Output = styled.textarea`
   width: 100%;
@@ -145,15 +144,16 @@ export function Sandbox(): any {
     localStorage.setItem('end_user_email', endUserEmail)
     localStorage.setItem('private_key', privateKey)
 
-    const token = await sign(
-      {
-        embed: embedId,
-        sub: endUserEmail,
-      },
-      privateKey
-    )
 
-    const importer = flatfileImporter(token, { env: 'development' }).launch({
+    const imp = flatfileImporter('', { env: 'development' })
+
+    await imp.__unsafeGenerateToken({
+      embedId,
+      endUserEmail,
+      privateKey,
+    })
+
+    const importer = imp.launch({
       file,
       ...configs,
     })
