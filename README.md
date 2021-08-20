@@ -12,6 +12,8 @@ npm install @flatfile/sdk --save
 - Run `docker compose up -d app` to start the docker container. Once running, the app will be available at `localhost:8080`.
 
 ## Build
+
+### Production
 A production bundle can be created via:
 ```
 npm run build
@@ -29,6 +31,14 @@ import flatfileImporter from '@flatfile/sdk';
 // Script tag - available as a global variable: window.flatfileImporter 
 <script src="https://example.com/path/to/hosted/sdk.js" />
 ```
+
+### Sandbox
+A sandbox bundle can be created via:
+```shell
+npm run build:sandbox
+```
+
+This will generate static build of the sandbox environment in `__sandbox__/dist`.
 
 ## Publish
 Publishing only requires a single command, `npm publish`. This will automatically create a fresh production bundle, via 
