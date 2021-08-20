@@ -4,8 +4,4 @@ node_modules
 dist
 __tests__
 
-webpack.config.js
-webpack.dev.js
-webpack.base.js
-webpack.prod.js
-webpack.analyze.js
+webpack.*.js
