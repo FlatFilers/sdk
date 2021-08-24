@@ -144,18 +144,12 @@ export function Sandbox(): any {
     localStorage.setItem('end_user_email', endUserEmail)
     localStorage.setItem('private_key', privateKey)
 
+    const importer = flatfileImporter('', { env: 'development' })
 
-    const imp = flatfileImporter('', { env: 'development' })
-
-    await imp.__unsafeGenerateToken({
+    await importer.__unsafeGenerateToken({
       embedId,
       endUserEmail,
       privateKey,
-    })
-
-    const importer = imp.launch({
-      file,
-      ...configs,
     })
 
     const handleLog = (type: string, data: any) => {
@@ -163,15 +157,19 @@ export function Sandbox(): any {
     }
 
     importer.on('init', (payload: any) => handleLog('init', payload))
-    importer.on('upload', (payload: any) => handleLog('upload', payload))
-    importer.on('error', (payload: any) => handleLog('error', payload))
     importer.on('launch', (payload: any) => handleLog('launch', payload))
+    importer.on('error', (payload: any) => handleLog('error', payload))
     importer.on('close', (payload: any) => handleLog('close', payload))
     importer.on('complete', async ({ payload }: any) => {
       handleLog('complete', payload)
 
       importer.close()
       setOutput(JSON.stringify(await payload.data(), null, 4))
+    })
+
+    await importer.launch({
+      file,
+      ...configs,
     })
 
     importerRef.current = importer

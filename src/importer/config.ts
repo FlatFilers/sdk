@@ -10,7 +10,7 @@ export function getConfigByEnv(env: ENVIRONMENT = 'production'): IConfig {
       return {
         apiUrl: 'https://api.staging.flatfile.zone',
         mountUrl: 'https://app.staging.flatfile.zone',
-        ws: 'ws://api.staging.flatfile.zone',
+        ws: 'wss://api.staging.flatfile.zone',
       }
     }
     case 'development': {
@@ -25,7 +25,7 @@ export function getConfigByEnv(env: ENVIRONMENT = 'production'): IConfig {
       return {
         apiUrl: 'https://api.us.flatfile.io',
         mountUrl: 'https://app.flatfile.io',
-        ws: 'ws:api.us.flatfile.io',
+        ws: 'wss://api.us.flatfile.io',
       }
     }
   }
