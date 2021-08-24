@@ -20,7 +20,9 @@ interface IUnsafeGenerateTokenOptions {
   embedId: string
 }
 
-interface ILaunchResult {
+interface IFlatfileImporterResult {
+  __unsafeGenerateToken(o: IUnsafeGenerateTokenOptions): Promise<void>
+  launch(o: ILaunchOptions): Promise<{ batchId: string }>
   on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void): void
   close(): void
 }
@@ -30,13 +32,12 @@ interface IFlatfileImporterOptions {
 export function flatfileImporter(
   token: string,
   options: IFlatfileImporterOptions = {}
-): {
-  __unsafeGenerateToken(o: IUnsafeGenerateTokenOptions): Promise<void>
-  launch(o: ILaunchOptions): ILaunchResult
-} {
+): IFlatfileImporterResult {
   const config = getConfigByEnv(options.env)
   let api = new ApiService(token, config)
   const BASE_URL = `${config.mountUrl}/e`
+
+  let destroy: () => void
 
   const emitClose = () => {
     emit('close')
@@ -120,12 +121,12 @@ export function flatfileImporter(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleLaunch = async (_options: ILaunchOptions = {}): Promise<(() => void) | void> => {
+  const handleLaunch = async (_options: ILaunchOptions = {}): Promise<{ batchId: string }> => {
     try {
-      console.log('handle', api)
       const { batchId } = await api.init()
 
       api.subscribeBatchStatusUpdated(batchId).subscribe({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         next: ({ data, errors }: any) => {
           if (errors) {
             // TODO: handle errors
@@ -148,11 +149,15 @@ export function flatfileImporter(
 
       emit('launch', { batchId })
 
-      return openInIframe(batchId)
+      destroy = openInIframe(batchId)
+
+      return {
+        batchId,
+      }
     } catch (e) {
-      console.error(e)
       emit('error', e.message)
       cleanup()
+      throw new Error(e)
     }
   }
 
@@ -172,29 +177,19 @@ export function flatfileImporter(
         ),
         config
       )
-      console.log('new api', api)
     },
     launch(options: ILaunchOptions = {}) {
-      let destroy: () => void
-      console.log('handle', api)
-      handleLaunch(options).then((_destroy) => {
-        if (_destroy) {
-          destroy = _destroy
-        }
-      })
-
-      return {
-        on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void) {
-          listen(event, cb)
-        },
-        close() {
-          if (!destroy) {
-            console.error('Could not close the importer because it has not been launched.')
-            return
-          }
-          destroy()
-        },
+      return handleLaunch(options)
+    },
+    on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void) {
+      listen(event, cb)
+    },
+    close() {
+      if (!destroy) {
+        console.error('Could not close the importer because it has not been launched.')
+        return
       }
+      destroy()
     },
   }
 }
