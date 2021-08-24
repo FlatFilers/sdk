@@ -140,6 +140,7 @@ export function flatfileImporter(
                   batchId,
                   data: () => api.getFinalDatabaseView(batchId),
                 })
+                destroy?.()
                 break
               }
             }
