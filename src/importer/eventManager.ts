@@ -39,9 +39,7 @@ export function emit<
   K extends Diff<keyof IEvents, AllowedNames<IEvents, undefined>>,
   Attr extends IEvents[K]
 >(event: K, payload?: Attr | undefined) {
-  eventManager.emit(event, {
-    payload,
-  })
+  eventManager.emit(event, payload)
 }
 
 export function listen<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void) {

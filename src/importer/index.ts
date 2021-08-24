@@ -22,7 +22,7 @@ interface IUnsafeGenerateTokenOptions {
 
 interface IFlatfileImporterResult {
   __unsafeGenerateToken(o: IUnsafeGenerateTokenOptions): Promise<void>
-  launch(o: ILaunchOptions): Promise<{ batchId: string }>
+  launch(o?: ILaunchOptions): Promise<{ batchId: string }>
   on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void): void
   close(): void
 }
@@ -140,6 +140,7 @@ export function flatfileImporter(
                   batchId,
                   data: () => api.getFinalDatabaseView(batchId),
                 })
+                destroy?.()
                 break
               }
             }
