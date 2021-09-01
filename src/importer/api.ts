@@ -12,20 +12,19 @@ import {
   GetFinalDatabaseViewResponse,
 } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { BATCH_STATUS_UPDATED } from '../graphql/subscriptions/BATCH_STATUS_UPDATED'
-import { IConfig } from './config'
 import { emit } from './eventManager'
 
 export class ApiService {
   private client: GraphQLClient
   private pubsub: SubscriptionClient
 
-  constructor(public token: string, private config: IConfig) {
-    this.client = new GraphQLClient(`${config.apiUrl}/graphql`, {
+  constructor(public token: string) {
+    this.client = new GraphQLClient(`${process.env.API_URL}/graphql`, {
       headers: {
         Authorization: `Bearer ${this.token}`,
       },
     })
-    this.pubsub = new SubscriptionClient(`${config.ws}/graphql`, {
+    this.pubsub = new SubscriptionClient(`${process.env.WS_URL}/graphql`, {
       reconnect: true,
       lazy: true,
       connectionParams: {

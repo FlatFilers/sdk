@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useRef, useState } from 'react'
 import styled from 'styled-components'
 
@@ -104,28 +105,6 @@ const Button = styled.button`
   }
 `
 
-const FileButton = styled.label`
-  background-color: #794cff;
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: 0.25rem;
-  border: none;
-  outline: none;
-  box-shadow: none;
-  font-size: 1rem;
-  font-weight: bold;
-
-  &:hover {
-    background-color: #8c66ff;
-    cursor: pointer;
-  }
-
-  input[type='file'] {
-    width: 0;
-    height: 0;
-  }
-`
-
 export function Sandbox(): any {
   const importerRef = useRef<any>()
 
@@ -135,7 +114,7 @@ export function Sandbox(): any {
   const [endUserEmail, setEndUserEmail] = useState(localStorage.getItem('end_user_email') || '')
   const [privateKey, setPrivateKey] = useState(localStorage.getItem('private_key') || '')
 
-  const handleInit = async (file?: File, configs = {}) => {
+  const handleInit = async () => {
     if (!embedId || !endUserEmail || !privateKey) {
       return alert('Embed id, user email & private key are required fields.')
     }
@@ -144,7 +123,8 @@ export function Sandbox(): any {
     localStorage.setItem('end_user_email', endUserEmail)
     localStorage.setItem('private_key', privateKey)
 
-    const importer = flatfileImporter('', { env: 'development' })
+    // TOKEN has to be generated per user session on the server-side
+    const importer = flatfileImporter('')
 
     await importer.__unsafeGenerateToken({
       embedId,
@@ -152,25 +132,16 @@ export function Sandbox(): any {
       privateKey,
     })
 
-    const handleLog = (type: string, data: any) => {
-      console.log({ type, data })
-    }
-
-    importer.on('init', (payload: any) => handleLog('init', payload))
-    importer.on('launch', (payload: any) => handleLog('launch', payload))
-    importer.on('error', (payload: any) => handleLog('error', payload))
-    importer.on('close', (payload: any) => handleLog('close', payload))
-    importer.on('complete', async ({ payload }: any) => {
-      handleLog('complete', payload)
-
-      importer.close()
+    importer.on('error', (error) => {
+      console.error(error)
+    })
+    importer.on('complete', async (payload) => {
       setOutput(JSON.stringify(await payload.data(), null, 4))
     })
 
-    await importer.launch({
-      file,
-      ...configs,
-    })
+    const { batchId } = await importer.launch()
+
+    console.log(`${batchId} has been launched.`)
 
     importerRef.current = importer
   }
