@@ -18,7 +18,9 @@
   "scripts": {
     "analyze": "webpack --progress --config webpack.analyze.js",
     "prebuild": "rm -rf ./dist",
-    "build": "npm run build:types && npm run build:webpack",
+    "build": "npm run build:types && NODE_ENV=production npm run build:webpack",
+    "build:staging": "npm run build:types && NODE_ENV=staging npm run build:webpack",
+    "build:development": "npm run build:types && NODE_ENV=development npm run build:webpack",
     "build:types": "tsc --emitDeclarationOnly",
     "build:webpack": "webpack --progress --config webpack.prod.js",
     "lint": "eslint ./src --ext '.ts,.tsx'",

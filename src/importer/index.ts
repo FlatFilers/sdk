@@ -1,43 +1,14 @@
 import { insertCss } from 'insert-css'
 
+import { IFlatfileImporter } from '../types/interfaces'
 import { addClass, removeClass } from '../utils/addRemoveClass'
 import { sign } from '../utils/jwt'
 import { ApiService } from './api'
-import { ENVIRONMENT, getConfigByEnv } from './config'
 import { cleanup, emit, IEvents, listen } from './eventManager'
 
-interface ILaunchOptions {
-  newTab?: boolean // opens in new tab
-  attachTo?: HTMLElement // adds an iframe child to the element w/position absolute to fill the element
-  data?: Record<string, string | number | boolean | null>[] | string[] | string // data as string or array of objects
-  file?: File // launch with file reference
-  batchId?: string // resume prior session
-}
-
-interface IUnsafeGenerateTokenOptions {
-  endUserEmail: string
-  privateKey: string
-  embedId: string
-}
-
-interface IFlatfileImporterResult {
-  __unsafeGenerateToken(o: IUnsafeGenerateTokenOptions): Promise<void>
-  launch(o?: ILaunchOptions): Promise<{ batchId: string }>
-  on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void): void
-  close(): void
-}
-interface IFlatfileImporterOptions {
-  env?: ENVIRONMENT
-}
-export function flatfileImporter(
-  token: string,
-  options: IFlatfileImporterOptions = {}
-): IFlatfileImporterResult {
-  const config = getConfigByEnv(options.env)
-  let api = new ApiService(token, config)
-  const BASE_URL = `${config.mountUrl}/e`
-
+export function flatfileImporter(token: string): IFlatfileImporter {
   let destroy: () => void
+  let api = new ApiService(token)
 
   const emitClose = () => {
     emit('close')
@@ -93,7 +64,9 @@ export function flatfileImporter(
     }
 
     const o = document.createElement('iframe')
-    o.src = `${BASE_URL}?jwt=${encodeURI(api.token)}${batchId ? `&batchId=${batchId}` : ''}`
+    o.src = `${process.env.MOUNT_URL}/e?jwt=${encodeURI(api.token)}${
+      batchId ? `&batchId=${batchId}` : ''
+    }`
 
     const close = document.querySelector('.flatfile-close') as HTMLElement
     const container = document.querySelector('.flatfile-sdk') as HTMLElement
@@ -120,52 +93,12 @@ export function flatfileImporter(
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleLaunch = async (_options: ILaunchOptions = {}): Promise<{ batchId: string }> => {
-    try {
-      const { batchId } = await api.init()
-
-      api.subscribeBatchStatusUpdated(batchId).subscribe({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        next: ({ data, errors }: any) => {
-          if (errors) {
-            // TODO: handle errors
-            console.log({ errors })
-            return
-          }
-          if (data?.batchStatusUpdated?.id) {
-            switch (data.batchStatusUpdated.status) {
-              case 'submitted': {
-                emit('complete', {
-                  batchId,
-                  data: () => api.getFinalDatabaseView(batchId),
-                })
-                destroy?.()
-                break
-              }
-            }
-          }
-        },
-      })
-
-      emit('launch', { batchId })
-
-      destroy = openInIframe(batchId)
-
-      return {
-        batchId,
-      }
-    } catch (e) {
-      emit('error', e.message)
-      cleanup()
-      throw new Error(e)
-    }
-  }
-
   return {
     async __unsafeGenerateToken({ embedId, endUserEmail, privateKey }) {
-      if (!['development', 'staging'].includes(options.env || 'production')) {
-        throw new Error('Token cannot be generated in production environment.')
+      if (process.env.NODE_ENV === 'production') {
+        console.error(
+          'Using `.__unsafeGenerateToken()` is unsafe and would expose your private key.'
+        )
       }
 
       api = new ApiService(
@@ -175,12 +108,48 @@ export function flatfileImporter(
             sub: endUserEmail,
           },
           privateKey
-        ),
-        config
+        )
       )
     },
-    launch(options: ILaunchOptions = {}) {
-      return handleLaunch(options)
+    async launch(): Promise<{ batchId: string }> {
+      try {
+        const { batchId } = await api.init()
+
+        api.subscribeBatchStatusUpdated(batchId).subscribe({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          next: ({ data, errors }: any) => {
+            if (errors) {
+              // TODO: handle errors
+              console.log({ errors })
+              return
+            }
+            if (data?.batchStatusUpdated?.id) {
+              switch (data.batchStatusUpdated.status) {
+                case 'submitted': {
+                  emit('complete', {
+                    batchId,
+                    data: () => api.getFinalDatabaseView(batchId),
+                  })
+                  destroy?.()
+                  break
+                }
+              }
+            }
+          },
+        })
+
+        emit('launch', { batchId })
+
+        destroy = openInIframe(batchId)
+
+        return {
+          batchId,
+        }
+      } catch (e) {
+        emit('error', e.message)
+        cleanup()
+        throw new Error(e)
+      }
     },
     on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void) {
       listen(event, cb)
