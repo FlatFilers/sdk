@@ -1,4 +1,4 @@
-import { GraphQLClient } from 'graphql-request'
+import { ClientError, GraphQLClient } from 'graphql-request'
 import { SubscriptionClient } from 'graphql-subscriptions-client'
 
 import {
@@ -11,7 +11,10 @@ import {
   GetFinalDatabaseViewPayload,
   GetFinalDatabaseViewResponse,
 } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
-import { BATCH_STATUS_UPDATED } from '../graphql/subscriptions/BATCH_STATUS_UPDATED'
+import {
+  BATCH_STATUS_UPDATED,
+  BatchStatusUpdatedResponse,
+} from '../graphql/subscriptions/BATCH_STATUS_UPDATED'
 import { emit } from './eventManager'
 
 export class ApiService {
@@ -37,9 +40,19 @@ export class ApiService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private handleError(error: Error): any {
-    // TODO: pretty handle error
-    throw new Error(error.message)
+  private handleError(errors?: ClientError['response']['errors'], message?: string): any {
+    if (errors?.length) {
+      errors.forEach((e) => {
+        if (e.message === 'Unauthorized') {
+          throw new Error(
+            '[Flatfile SDK] Embed ID or Private Key is invalid. Please make sure your JWT contains valid credentials.'
+          )
+        }
+
+        throw new Error(`[Flatfile SDK]: Internal Server Error: "${e.message}"`)
+      })
+    }
+    throw new Error(`[Flatfile SDK]: ${message || 'Something went wrong'}`)
   }
 
   async init(): Promise<InitializeEmptyBatchResponse['initializeEmptyBatch']> {
@@ -51,7 +64,7 @@ export class ApiService {
         emit('init', initializeEmptyBatch)
         return initializeEmptyBatch
       })
-      .catch((error) => this.handleError(error))
+      .catch((error: ClientError) => this.handleError(error.response.errors, error.message))
   }
 
   async getFinalDatabaseView(
@@ -64,15 +77,30 @@ export class ApiService {
         limit,
       })
       .then(({ getFinalDatabaseView }) => getFinalDatabaseView)
-      .catch((error) => this.handleError(error))
+      .catch((error: ClientError) => this.handleError(error.response.errors, error.message))
   }
 
-  subscribeBatchStatusUpdated(batchId: string): ReturnType<SubscriptionClient['request']> {
-    return this.pubsub.request({
-      query: BATCH_STATUS_UPDATED,
-      variables: {
-        batchId,
-      },
-    })
+  subscribeBatchStatusUpdated(batchId: string, cb: (d: BatchStatusUpdatedResponse) => void): void {
+    this.pubsub
+      .request({
+        query: BATCH_STATUS_UPDATED,
+        variables: {
+          batchId,
+        },
+      })
+      .subscribe({
+        next: ({
+          data,
+          errors,
+        }: {
+          data: BatchStatusUpdatedResponse
+          errors: ClientError['response']['errors']
+        }) => {
+          if (errors) {
+            return this.handleError(errors)
+          }
+          cb(data)
+        },
+      })
   }
 }
