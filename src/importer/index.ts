@@ -115,27 +115,19 @@ export function flatfileImporter(token: string): IFlatfileImporter {
       try {
         const { batchId } = await api.init()
 
-        api.subscribeBatchStatusUpdated(batchId).subscribe({
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          next: ({ data, errors }: any) => {
-            if (errors) {
-              // TODO: handle errors
-              console.log({ errors })
-              return
-            }
-            if (data?.batchStatusUpdated?.id) {
-              switch (data.batchStatusUpdated.status) {
-                case 'submitted': {
-                  emit('complete', {
-                    batchId,
-                    data: () => api.getFinalDatabaseView(batchId),
-                  })
-                  destroy?.()
-                  break
-                }
+        api.subscribeBatchStatusUpdated(batchId, (data) => {
+          if (data?.batchStatusUpdated?.id) {
+            switch (data.batchStatusUpdated.status) {
+              case 'submitted': {
+                emit('complete', {
+                  batchId,
+                  data: () => api.getFinalDatabaseView(batchId),
+                })
+                destroy?.()
+                break
               }
             }
-          },
+          }
         })
 
         emit('launch', { batchId })
@@ -146,7 +138,6 @@ export function flatfileImporter(token: string): IFlatfileImporter {
           batchId,
         }
       } catch (e) {
-        emit('error', e.message)
         cleanup()
         throw new Error(e)
       }
@@ -156,8 +147,9 @@ export function flatfileImporter(token: string): IFlatfileImporter {
     },
     close() {
       if (!destroy) {
-        console.error('Could not close the importer because it has not been launched.')
-        return
+        throw new Error(
+          '[Flatfile SDK] Could not close the importer because it has not been launched.'
+        )
       }
       destroy()
     },
