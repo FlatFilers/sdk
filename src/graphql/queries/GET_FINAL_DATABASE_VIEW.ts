@@ -13,19 +13,21 @@ export interface GetFinalDatabaseViewResponse__rows {
 export interface GetFinalDatabaseViewResponse {
   getFinalDatabaseView: {
     rows: GetFinalDatabaseViewResponse__rows[]
+    totalRows: number
   }
 }
 
 export interface GetFinalDatabaseViewPayload {
   batchId: string
   limit: number
-  skip?: number
+  skip: number
 }
 
 export const GET_FINAL_DATABASE_VIEW = gql`
   query GetFinalDatabaseView($skip: Int, $batchId: UUID, $limit: Int!) {
     getFinalDatabaseView(skip: $skip, limit: $limit, batchId: $batchId) {
       rows
+      totalRows
     }
   }
 `

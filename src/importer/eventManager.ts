@@ -22,7 +22,7 @@ export interface IEvents {
   }
   complete: {
     batchId: string
-    data: () => Promise<GetFinalDatabaseViewResponse['getFinalDatabaseView']>
+    data: (sample?: boolean) => Promise<GetFinalDatabaseViewResponse['getFinalDatabaseView']>
   }
   close: void
 }

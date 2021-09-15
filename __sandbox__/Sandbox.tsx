@@ -136,7 +136,8 @@ export function Sandbox(): any {
       console.error(error)
     })
     importer.on('complete', async (payload) => {
-      setOutput(JSON.stringify(await payload.data(), null, 4))
+      const SAMPLE_DATA = true // if true, it'll fetch only the first 1000 rows from the API; otherwise it'll fetch everything
+      setOutput(JSON.stringify(await payload.data(SAMPLE_DATA), null, 4))
     })
 
     const { batchId } = await importer.launch()

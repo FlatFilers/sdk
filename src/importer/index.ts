@@ -121,7 +121,7 @@ export function flatfileImporter(token: string): IFlatfileImporter {
               case 'submitted': {
                 emit('complete', {
                   batchId,
-                  data: () => api.getFinalDatabaseView(batchId),
+                  data: (sample = false) => api.getFinalDatabaseView(batchId, 0, sample),
                 })
                 destroy?.()
                 break
@@ -139,7 +139,7 @@ export function flatfileImporter(token: string): IFlatfileImporter {
         }
       } catch (e) {
         cleanup()
-        throw new Error(e)
+        throw e
       }
     },
     on<K extends keyof IEvents>(event: K, cb: (e: IEvents[K]) => void) {
