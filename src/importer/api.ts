@@ -21,6 +21,8 @@ export class ApiService {
   private client: GraphQLClient
   private pubsub: SubscriptionClient
 
+  private PAGE_LIMIT = 1000
+
   constructor(public token: string) {
     this.client = new GraphQLClient(`${process.env.API_URL}/graphql`, {
       headers: {
@@ -69,14 +71,33 @@ export class ApiService {
 
   async getFinalDatabaseView(
     batchId: string,
-    limit = 1000
+    skip = 0,
+    sample = false
   ): Promise<GetFinalDatabaseViewResponse['getFinalDatabaseView']> {
     return this.client
       .request<GetFinalDatabaseViewResponse, GetFinalDatabaseViewPayload>(GET_FINAL_DATABASE_VIEW, {
         batchId,
-        limit,
+        skip,
+        limit: this.PAGE_LIMIT,
       })
       .then(({ getFinalDatabaseView }) => getFinalDatabaseView)
+      .then(async ({ rows, totalRows }) => {
+        if (!sample && skip + this.PAGE_LIMIT < totalRows) {
+          const { rows: nextRows } = await this.getFinalDatabaseView(
+            batchId,
+            skip + this.PAGE_LIMIT
+          )
+          return {
+            rows: rows.concat(nextRows),
+            totalRows,
+          }
+        }
+
+        return {
+          rows,
+          totalRows,
+        }
+      })
       .catch((error: ClientError) => this.handleError(error.response.errors, error.message))
   }
 
