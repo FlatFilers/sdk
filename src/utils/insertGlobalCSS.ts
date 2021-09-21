@@ -25,8 +25,9 @@ const GLOBAL_CSS = `
   }
   .flatfile-sdk .flatfile-close:after{
     display: inline-block;
-    content: "X";
+    content: '✕';
     color: white;
+    font-size: 20px;
   }
   .flatfile-sdk iframe {
     width: calc(100% - 80px);
