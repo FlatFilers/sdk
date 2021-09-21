@@ -5,38 +5,9 @@
 npm install @flatfile/sdk --save
 ```
 
-### Native
-- Run `npm start` to start the development environment. Once running, the app will be available at `localhost:8080`.
-
-### Docker
-- Run `docker compose up -d app` to start the docker container. Once running, the app will be available at `localhost:8080`.
-
-## Build
-A production bundle can be created via:
-```
-npm run build
-```
-The results of which can be found in the `dist` directory.
-
-Once bundled, the package can be consumed in the following ways:
-```js
-// CommonJS
-const flatfileImporter = require('@flatfile/sdk');
-
-// AMD
-import flatfileImporter from '@flatfile/sdk';
-
-// Script tag - available as a global variable: window.flatfileImporter 
-<script src="https://example.com/path/to/hosted/sdk.js" />
-```
-
-## Publish
-Publishing only requires a single command, `npm publish`. This will automatically create a fresh production bundle, via 
-the `prepack` script, before being submitted to NPM.
-
 ## Usage
 
-**flatfileImporter(**`**token**`** )**
+**flatfileImporter(**`**token**`**)**
 
 **(**[**GitHub**](https://github.com/FlatFilers/sdk/blob/a4ea4abef20c29339bc05cd4e06e27c7618896f1/src/types/interfaces.ts#L3)**)**
 
