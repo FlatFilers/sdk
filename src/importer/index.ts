@@ -53,6 +53,28 @@ export function flatfileImporter(token: string): IFlatfileImporter {
     }
   }
 
+  const handleSubscribe = (batchId: string) => {
+    api.subscribeBatchStatusUpdated(batchId, async (data) => {
+      if (data?.batchStatusUpdated?.id) {
+        switch (data.batchStatusUpdated.status) {
+          case 'submitted': {
+            emit('complete', {
+              batchId,
+              data: (sample = false) => api.getFinalDatabaseView(batchId, 0, sample),
+            })
+            destroy?.()
+            break
+          }
+          case 'cancelled': {
+            const { batchId: newBatchId } = await api.init()
+            handleSubscribe(newBatchId)
+            break
+          }
+        }
+      }
+    })
+  }
+
   return {
     async __unsafeGenerateToken({ embedId, endUserEmail, privateKey }) {
       console.error(
@@ -73,20 +95,7 @@ export function flatfileImporter(token: string): IFlatfileImporter {
       try {
         const { batchId } = await api.init()
 
-        api.subscribeBatchStatusUpdated(batchId, (data) => {
-          if (data?.batchStatusUpdated?.id) {
-            switch (data.batchStatusUpdated.status) {
-              case 'submitted': {
-                emit('complete', {
-                  batchId,
-                  data: (sample = false) => api.getFinalDatabaseView(batchId, 0, sample),
-                })
-                destroy?.()
-                break
-              }
-            }
-          }
-        })
+        handleSubscribe(batchId)
 
         emit('launch', { batchId })
 
