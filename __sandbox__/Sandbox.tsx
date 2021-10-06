@@ -89,7 +89,7 @@ const ButtonGroup = styled.div`
 `
 
 const Button = styled.button`
-  background-color: #794cff;
+  background-color: #3b2fc9;
   color: white;
   padding: 1rem 1.5rem;
   border-radius: 0.25rem;
@@ -100,7 +100,7 @@ const Button = styled.button`
   font-weight: bold;
 
   &:hover {
-    background-color: #8c66ff;
+    background-color: #002e70;
     cursor: pointer;
   }
 `
