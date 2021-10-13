@@ -1,9 +1,9 @@
-import { IFlatfileImporter } from '../types/interfaces'
+import { IEvents, IFlatfileImporter } from '../types/interfaces'
 import { addClass, removeClass } from '../utils/addRemoveClass'
 import { insertGlobalCSS } from '../utils/insertGlobalCSS'
 import { sign } from '../utils/jwt'
 import { ApiService } from './api'
-import { cleanup, emit, IEvents, listen } from './eventManager'
+import { cleanup, emit, listen } from './eventManager'
 
 export function flatfileImporter(token: string): IFlatfileImporter {
   let destroy: () => void
