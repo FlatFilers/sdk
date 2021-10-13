@@ -11,6 +11,7 @@ module.exports = {
   },
   output: {
     filename: 'index.js',
+    publicPath: '/',
     library: {
       type: 'umd',
     },
