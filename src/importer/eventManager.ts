@@ -1,31 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { EventEmitter } from 'eventemitter3'
 
-import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
-
-export interface IEvents {
-  init: {
-    batchId: string
-    schemas: {
-      id: string
-    }[]
-    workspaceId: string
-  }
-  upload: {
-    uploadId: string
-  }
-  error: {
-    error: Error
-  }
-  launch: {
-    batchId: string
-  }
-  complete: {
-    batchId: string
-    data: (sample?: boolean) => Promise<GetFinalDatabaseViewResponse['getFinalDatabaseView']>
-  }
-  close: void
-}
+import { IEvents } from '../types/interfaces'
 
 export const eventManager = new EventEmitter()
 
