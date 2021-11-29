@@ -10,7 +10,7 @@ export function flatfileImporter(
   config: IFlatfileImporterConfig = {}
 ): IFlatfileImporter {
   let destroy: () => void
-  let api = new ApiService(token, config.apiUrl || 'https://api.us.flatfile.io')
+  let api = new ApiService(token, config.apiUrl || (process.env.API_URL as string))
 
   const emitClose = () => {
     emit('close')
@@ -27,7 +27,7 @@ export function flatfileImporter(
     }
 
     const o = document.createElement('iframe')
-    o.src = `${config.mountUrl || 'https://app.flatfile.io'}/e?jwt=${encodeURI(api.token)}${
+    o.src = `${config.mountUrl || process.env.MOUNT_URL}/e?jwt=${encodeURI(api.token)}${
       batchId ? `&batchId=${batchId}` : ''
     }`
 
@@ -92,7 +92,7 @@ export function flatfileImporter(
           },
           privateKey
         ),
-        config.apiUrl || 'https://api.us.flatfile.io'
+        config.apiUrl || (process.env.API_URL as string)
       )
     },
     async launch(): Promise<{ batchId: string }> {
