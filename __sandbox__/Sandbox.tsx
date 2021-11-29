@@ -113,6 +113,8 @@ export function Sandbox(): any {
   const [embedId, setEmbedId] = useState(localStorage.getItem('embed_id') || '')
   const [endUserEmail, setEndUserEmail] = useState(localStorage.getItem('end_user_email') || '')
   const [privateKey, setPrivateKey] = useState(localStorage.getItem('private_key') || '')
+  const [mountUrl, setMountUrl] = useState(localStorage.getItem('mount_url') || '')
+  const [apiUrl, setApiUrl] = useState(localStorage.getItem('api_url') || '')
 
   const handleInit = async () => {
     if (!embedId || !endUserEmail || !privateKey) {
@@ -122,9 +124,15 @@ export function Sandbox(): any {
     localStorage.setItem('embed_id', embedId)
     localStorage.setItem('end_user_email', endUserEmail)
     localStorage.setItem('private_key', privateKey)
+    localStorage.setItem('mount_url', mountUrl)
+    localStorage.setItem('api_url', apiUrl)
 
     // TOKEN has to be generated per user session on the server-side
-    const importer = flatfileImporter('')
+
+    const importer = flatfileImporter('', {
+      ...(mountUrl ? { mountUrl } : {}),
+      ...(apiUrl ? { apiUrl } : {}),
+    })
 
     await importer.__unsafeGenerateToken({
       embedId,
@@ -174,6 +182,24 @@ export function Sandbox(): any {
               placeholder='Enter private key'
               value={privateKey}
               onChange={(e) => setPrivateKey(e.target.value)}
+            />
+          </div>
+        </InputGroup>
+        <InputGroup>
+          <div>
+            <label>Mount Url</label>
+            <Input
+              placeholder='e.g. https://app.flatfile.io'
+              value={mountUrl}
+              onChange={(e) => setMountUrl(e.target.value)}
+            />
+          </div>
+          <div>
+            <label>API Url</label>
+            <Input
+              placeholder='e.g. https://api.us.flatfile.io'
+              value={apiUrl}
+              onChange={(e) => setApiUrl(e.target.value)}
             />
           </div>
         </InputGroup>

@@ -20,11 +20,7 @@ module.exports = {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new Dotenv({
-      path: process.env.NODE_ENV === 'development'
-        ? './.env.development'
-        : process.env.NODE_ENV === 'staging'
-          ? './.env.staging'
-          : './.env'
+      path: './.env'
     })
   ],
   module: {

@@ -1,6 +1,6 @@
 {
   "name": "@flatfile/sdk",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Flatfile SDK",
   "private": false,
   "repository": {
@@ -19,15 +19,13 @@
   "scripts": {
     "analyze": "webpack --progress --config webpack.analyze.js",
     "prebuild": "rm -rf ./dist",
-    "build": "npm run build:types && NODE_ENV=production npm run build:webpack",
-    "build:staging": "npm run build:types && NODE_ENV=staging npm run build:webpack",
-    "build:development": "npm run build:types && NODE_ENV=development npm run build:webpack",
+    "build": "npm run build:types && npm run build:webpack",
     "build:types": "tsc --emitDeclarationOnly",
     "build:webpack": "webpack --progress --config webpack.prod.js",
     "lint": "eslint ./src --ext '.ts,.tsx'",
     "lint:fix": "eslint ./src --ext '.ts,.tsx' --fix",
     "prepack": "npm run build",
-    "start": "NODE_ENV=development webpack serve --progress --config webpack.dev.js",
+    "start": "webpack serve --progress --config webpack.dev.js",
     "test": "jest",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
