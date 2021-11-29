@@ -1,6 +1,5 @@
 const path = require('path')
 const webpack = require('webpack')
-const Dotenv = require('dotenv-webpack')
 
 module.exports = {
   entry: './src/index.ts',
@@ -19,13 +18,6 @@ module.exports = {
   bail: true,
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
-    new Dotenv({
-      path: process.env.NODE_ENV === 'development'
-        ? './.env.development'
-        : process.env.NODE_ENV === 'staging'
-          ? './.env.staging'
-          : './.env'
-    })
   ],
   module: {
     rules: [

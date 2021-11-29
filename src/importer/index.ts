@@ -1,13 +1,16 @@
-import { IEvents, IFlatfileImporter } from '../types/interfaces'
+import { IEvents, IFlatfileImporter, IFlatfileImporterConfig } from '../types/interfaces'
 import { addClass, removeClass } from '../utils/addRemoveClass'
 import { insertGlobalCSS } from '../utils/insertGlobalCSS'
 import { sign } from '../utils/jwt'
 import { ApiService } from './api'
 import { cleanup, emit, listen } from './eventManager'
 
-export function flatfileImporter(token: string): IFlatfileImporter {
+export function flatfileImporter(
+  token: string,
+  config: IFlatfileImporterConfig = {}
+): IFlatfileImporter {
   let destroy: () => void
-  let api = new ApiService(token)
+  let api = new ApiService(token, config.apiUrl || 'https://api.us.flatfile.io')
 
   const emitClose = () => {
     emit('close')
@@ -24,7 +27,7 @@ export function flatfileImporter(token: string): IFlatfileImporter {
     }
 
     const o = document.createElement('iframe')
-    o.src = `${process.env.MOUNT_URL}/e?jwt=${encodeURI(api.token)}${
+    o.src = `${config.mountUrl || 'https://app.flatfile.io'}/e?jwt=${encodeURI(api.token)}${
       batchId ? `&batchId=${batchId}` : ''
     }`
 
@@ -88,7 +91,8 @@ export function flatfileImporter(token: string): IFlatfileImporter {
             sub: endUserEmail,
           },
           privateKey
-        )
+        ),
+        config.apiUrl || 'https://api.us.flatfile.io'
       )
     },
     async launch(): Promise<{ batchId: string }> {

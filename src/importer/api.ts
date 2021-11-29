@@ -23,13 +23,13 @@ export class ApiService {
 
   private PAGE_LIMIT = 1000
 
-  constructor(public token: string) {
-    this.client = new GraphQLClient(`${process.env.API_URL}/graphql`, {
+  constructor(public token: string, public apiUrl: string) {
+    this.client = new GraphQLClient(`${apiUrl}/graphql`, {
       headers: {
         Authorization: `Bearer ${this.token}`,
       },
     })
-    this.pubsub = new SubscriptionClient(`${process.env.WS_URL}/graphql`, {
+    this.pubsub = new SubscriptionClient(`${apiUrl.replace(/^http/, 'ws')}/graphql`, {
       reconnect: true,
       lazy: true,
       connectionParams: {

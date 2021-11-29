@@ -7,6 +7,11 @@ export interface IFlatfileImporter {
   close(): void
 }
 
+export interface IFlatfileImporterConfig {
+  mountUrl?: string
+  apiUrl?: string
+}
+
 export interface IUnsafeGenerateTokenOptions {
   endUserEmail: string
   privateKey: string
