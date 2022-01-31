@@ -1,0 +1,14 @@
+
+src/importer/Flatfile.ts
+  line 32  TODO  meaningful error handling
+
+src/importer/Session.ts
+  line 41  TODO  make this less lines and more readable
+  line 55  TODO  handle this better
+  line 59  TODO  unsubscribe from old batch
+  line 70  TODO  fix the fact that the JWT is sent in raw query params
+
+src/importer/ImportFrame.ts
+  line 22  TODO  handle the close better, support cleaner transition
+
+ ✖ 6 todos/fixmes found

@@ -29,7 +29,8 @@
     "test": "jest",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "todo": "npx --no-install leasot src/**/*.ts > TODO"
   },
   "author": "Max Blank <max@flatfile.com>",
   "license": "ISC",
@@ -100,12 +101,16 @@
     "testPathIgnorePatterns": [
       "<rootdir>/node_modules/"
     ],
+    "testEnvironment": "jsdom",
     "moduleFileExtensions": [
       "js",
       "ts",
       "tsx",
       "json"
     ]
+  },
+  "ts-jest": {
+    "isolatedModules": false
   },
   "config": {
     "commitizen": {

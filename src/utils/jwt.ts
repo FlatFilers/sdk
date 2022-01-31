@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export function sign(payload: Record<string, string>, key: string): Promise<string> {
+export function sign(payload: Record<string, any>, key: string): Promise<string> {
   if (!key) {
     throw new Error('Key is required.')
   }

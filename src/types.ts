@@ -1,4 +1,4 @@
-import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
+import { GetFinalDatabaseViewResponse } from './graphql/queries/GET_FINAL_DATABASE_VIEW'
 
 export interface IFlatfileImporter {
   __unsafeGenerateToken(o: IUnsafeGenerateTokenOptions): Promise<void>
@@ -10,6 +10,11 @@ export interface IFlatfileImporter {
 export interface IFlatfileImporterConfig {
   mountUrl?: string
   apiUrl?: string
+}
+
+export interface IFlatfileConfig {
+  mountUrl: string
+  apiUrl: string
 }
 
 export interface IUnsafeGenerateTokenOptions {
@@ -41,3 +46,22 @@ export interface IEvents {
   }
   close: void
 }
+
+export interface IUser {
+  id: string | number
+  email: string
+  name: string
+}
+
+export interface IOrganization {
+  id: string | number
+  name: string
+}
+
+export interface IRawToken {
+  user?: IUser
+  org?: IOrganization
+  env?: Record<string, any>
+}
+
+export type JsonWebToken = string

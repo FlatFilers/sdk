@@ -3,7 +3,7 @@ const webpack = require('webpack')
 const Dotenv = require('dotenv-webpack')
 
 module.exports = {
-  entry: './src/index.ts',
+  entry: './src/flatfileImporter.ts',
   stats: {
     errorDetails: true,
     colors: true,

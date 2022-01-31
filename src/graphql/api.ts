@@ -5,23 +5,22 @@ import {
   INITIALIZE_EMPTY_BATCH,
   InitializeEmptyBatchPayload,
   InitializeEmptyBatchResponse,
-} from '../graphql/mutations/INITIALIZE_EMPTY_BATCH'
+} from './mutations/INITIALIZE_EMPTY_BATCH'
 import {
   GET_FINAL_DATABASE_VIEW,
   GetFinalDatabaseViewPayload,
   GetFinalDatabaseViewResponse,
-} from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
+} from './queries/GET_FINAL_DATABASE_VIEW'
 import {
   BATCH_STATUS_UPDATED,
   BatchStatusUpdatedResponse,
-} from '../graphql/subscriptions/BATCH_STATUS_UPDATED'
-import { emit } from './eventManager'
+} from './subscriptions/BATCH_STATUS_UPDATED'
 
 export class ApiService {
-  private client: GraphQLClient
-  private pubsub: SubscriptionClient
+  public client: GraphQLClient
+  public pubsub: SubscriptionClient
 
-  private PAGE_LIMIT = 1000
+  public PAGE_LIMIT = 1000
 
   constructor(public token: string, public apiUrl: string) {
     this.client = new GraphQLClient(`${apiUrl}/graphql`, {
@@ -63,7 +62,6 @@ export class ApiService {
         importedFromUrl: location.href,
       })
       .then(({ initializeEmptyBatch }) => {
-        emit('init', initializeEmptyBatch)
         return initializeEmptyBatch
       })
       .catch((error: ClientError) => this.handleError(error.response.errors, error.message))

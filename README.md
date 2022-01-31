@@ -84,7 +84,7 @@ Returns a `batchId` unique to the end user the token was generated for. This all
 
 ```php
 importer.on('init', ({ batchId }) => {
-  console.log(`Batch ${batchId} has been initialized.`)
+  console.log(`Session ${batchId} has been initialized.`)
 })
 ```
 
@@ -94,7 +94,7 @@ Returns the same `batchId` generated during initialization (see above) that is u
 
 ```javascript
 importer.on("launch", ({ batchId }) => {
-  console.log(`Batch ${batchId} has been launched.`);
+  console.log(`Session ${batchId} has been launched.`);
 });
 ```
 

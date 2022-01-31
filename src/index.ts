@@ -1,5 +1,7 @@
-import { flatfileImporter } from './importer'
-
-export * from './types/interfaces'
-
-export { flatfileImporter }
+export * from './types'
+export * from './graphql/api'
+export * from './importer/DeprecatedImporter'
+export * from './importer/ImportFrame'
+export * from './importer/Session'
+export * from './Flatfile'
+export * from './importer/flatfileImporter'

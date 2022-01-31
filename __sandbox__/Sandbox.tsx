@@ -2,14 +2,13 @@
 import { useRef, useState } from 'react'
 import styled from 'styled-components'
 
-import { flatfileImporter } from '../src'
+import { Flatfile } from '../src'
 
 const Output = styled.textarea`
   width: 100%;
   margin-top: 3rem;
   background-color: #404551;
   padding: 1rem;
-  background-color: #404551;
   min-height: 300px;
   border-radius: 0.25rem;
   max-height: 300px;
@@ -116,43 +115,90 @@ export function Sandbox(): any {
   const [mountUrl, setMountUrl] = useState(localStorage.getItem('mount_url') || '')
   const [apiUrl, setApiUrl] = useState(localStorage.getItem('api_url') || '')
 
-  const handleInit = async () => {
-    if (!embedId || !endUserEmail || !privateKey) {
-      return alert('Embed id, user email & private key are required fields.')
-    }
-
+  const handleInit = async (newWindow = false) => {
     localStorage.setItem('embed_id', embedId)
     localStorage.setItem('end_user_email', endUserEmail)
     localStorage.setItem('private_key', privateKey)
     localStorage.setItem('mount_url', mountUrl)
     localStorage.setItem('api_url', apiUrl)
 
-    // TOKEN has to be generated per user session on the server-side
-
-    const importer = flatfileImporter('', {
-      ...(mountUrl ? { mountUrl } : {}),
-      ...(apiUrl ? { apiUrl } : {}),
-    })
-
-    await importer.__unsafeGenerateToken({
+    if (!embedId || !endUserEmail || !privateKey) {
+      return alert('Embed id, user email & private key are required fields.')
+    }
+    const token = await Flatfile.getDevelopmentToken(
       embedId,
-      endUserEmail,
-      privateKey,
+      {
+        user: {
+          id: 99,
+          email: endUserEmail,
+          name: 'John Doe',
+        },
+      },
+      privateKey
+    )
+    // TOKEN has to be generated per user session on the server-side
+    const flatfile = new Flatfile(token, {
+      mountUrl,
+      apiUrl,
     })
 
-    importer.on('error', (error) => {
+    const session = await flatfile.startOrResumeSession()
+
+    session.on('error', (error) => {
       console.error(error)
     })
-    importer.on('complete', async (payload) => {
-      const SAMPLE_DATA = true // if true, it'll fetch only the first 1000 rows from the API; otherwise it'll fetch everything
-      setOutput(JSON.stringify(await payload.data(SAMPLE_DATA), null, 4))
+
+    // can be triggered n times
+    session.on('submit', async () => {
+      // display my on processing dialog
+      await session.processPendingRecords(
+        (records, finishChunk) => {
+          setOutput(
+            JSON.stringify(
+              records.map((r) => r.data),
+              null,
+              4
+            )
+          )
+          // api call
+          // succesfuly load
+          // reject remaining records
+
+          const serverResponse = [
+            {
+              id: 99,
+              data: { fname: 'new value' },
+              messages: [{ level: 'error', message: 'Could not save this record.' }],
+            },
+          ] //...
+
+          const rejected = serverResponse.map((r) => {
+            new RecordFailure(r.id, r.messages, r.data)
+          })
+
+
+          // update records
+          // approve records
+          session.updateRecords(recordsWithErrors)
+          finishChunk(errors)
+        },
+        { chunkSize: 100 }
+      )
+
+      session.done()
+
+      // todo: handling of submit progress
+
+      // done
     })
 
-    const { batchId } = await importer.launch()
+    const batchId = session.batchId
+
+    newWindow ? await session.openInNewWindow() : await session.openInEmbeddedIframe()
 
     console.log(`${batchId} has been launched.`)
 
-    importerRef.current = importer
+    importerRef.current = session
   }
 
   return (
@@ -205,7 +251,8 @@ export function Sandbox(): any {
         </InputGroup>
 
         <ButtonGroup>
-          <Button onClick={() => handleInit()}>Launch</Button>
+          <Button onClick={() => handleInit()}>Launch as PopUp</Button>
+          <Button onClick={() => handleInit(true)}>Launch as New Tab</Button>
         </ButtonGroup>
 
         <Output readOnly placeholder='Data will appear here...' value={output} />
