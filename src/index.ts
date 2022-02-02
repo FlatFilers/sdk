@@ -1,5 +1,14 @@
-import { flatfileImporter } from './importer'
+export * from './types'
+export * from './importer/DeprecatedImporter'
+export * from './importer/ImportFrame'
+export * from './importer/ImportSession'
+export * from './Flatfile'
+export * from './importer/flatfileImporter'
 
-export * from './types/interfaces'
-
-export { flatfileImporter }
+export * from './graphql/api'
+export * from './graphql/service/ClientResponse'
+export * from './graphql/service/FlatfileRecord'
+export * from './graphql/service/PartialRejection'
+export * from './graphql/service/RecordError'
+export * from './graphql/service/RecordMutation'
+export * from './graphql/service/RecordsChunk'

@@ -12,7 +12,7 @@ const GLOBAL_CSS = `
     padding: 40px;
     background-color: rgba(0,0,0,0.15);
   }
-  .flatfile-sdk .flatfile-close{
+  .flatfile-sdk .flatfile-close {
     position: absolute;
     right: 20px;
     top: 15px;
@@ -23,7 +23,7 @@ const GLOBAL_CSS = `
     box-shadow: none;
     cursor: pointer;
   }
-  .flatfile-sdk .flatfile-close:after{
+  .flatfile-sdk .flatfile-close:after {
     display: inline-block;
     content: '✕';
     color: white;
@@ -39,6 +39,9 @@ const GLOBAL_CSS = `
   body.flatfile-active {
     overflow: hidden;
     overscroll-behavior-x: none;
+  }
+  body.flatfile-active .flatfile-sdk {
+    display: block;
   }
 `
 
