@@ -1,14 +1,16 @@
 import { ApiService } from '../api'
 import { IRowResponse } from '../queries/GET_FINAL_DATABASE_VIEW'
+import { RecordMutation } from './RecordMutation'
 
 export class FlatfileRecord {
   public readonly data: TRecordData
-  public readonly id: number
-  private $info: IRecordInfo[] = []
+  public readonly recordId: number
+  private readonly $info: IRecordMessage[]
 
   constructor(private api: ApiService, private $raw: IRowResponse) {
     this.data = $raw.data
-    this.id = $raw.id
+    this.recordId = $raw.id
+    this.$info = this.$raw.info.map((i) => ({ level: i.level, field: i.key, message: i.message }))
   }
 
   public get valid(): boolean {
@@ -19,72 +21,24 @@ export class FlatfileRecord {
     return this.$raw.status
   }
 
-  public get allMessages(): IRecordInfo[] {
-    return this.$raw.info
+  public get allMessages(): IRecordMessage[] {
+    return this.$info
   }
 
-  public get errors(): IRecordInfo[] {
-    return this.$raw.info.filter((m) => m.level === ELevel.ERROR)
+  public get errors(): IRecordMessage[] {
+    return this.$info.filter((m) => m.level === ELevel.ERROR)
   }
 
-  public get warnings(): IRecordInfo[] {
-    return this.$raw.info.filter((m) => m.level === ELevel.WARN)
+  public get warnings(): IRecordMessage[] {
+    return this.$info.filter((m) => m.level === ELevel.WARN)
   }
 
-  public get info(): IRecordInfo[] {
-    return this.$raw.info.filter((m) => m.level === ELevel.INFO)
+  public get info(): IRecordMessage[] {
+    return this.$info.filter((m) => m.level === ELevel.INFO)
   }
 
-  public set(field: string, value: TPrimitive) {
-    if (!this.verifyField(field)) {
-      return this
-    }
-
-    Object.defineProperty(this.data, field, {
-      value,
-    })
-
-    return this
-  }
-
-  public addInfo(fields: string | string[], message: string): this {
-    return this.pushMessage(fields, message, ELevel.INFO)
-  }
-
-  public addError(fields: string | string[], message: string): this {
-    return this.pushMessage(fields, message, ELevel.ERROR)
-  }
-
-  public addWarning(fields: string | string[], message: string): this {
-    return this.pushMessage(fields, message, ELevel.WARN)
-  }
-
-  private pushMessage(
-    fields: string | string[],
-    message: string,
-    level: IRecordInfo['level']
-  ): this {
-    fields = Array.isArray(fields) ? fields : [fields]
-
-    fields.forEach((key) => {
-      if (this.verifyField(key)) {
-        this.$info.push({
-          key,
-          message,
-          level,
-        })
-      }
-    })
-    return this
-  }
-
-  private verifyField(field: string): boolean {
-    if (!this.data.hasOwnProperty(field)) {
-      // TODO: make sure user's aware of this message
-      console.error(`Record does not have field "${field}".`)
-      return false
-    }
-    return true
+  public getMutation(): RecordMutation {
+    return new RecordMutation(this)
   }
 }
 
@@ -100,6 +54,12 @@ export enum ELevel {
 export interface IRecordInfo<L extends ELevel = ELevel> {
   level: L
   key: string
+  message: string
+}
+
+export interface IRecordMessage<L extends ELevel = ELevel> {
+  level: L
+  field: string
   message: string
 }
 export enum ERecordStatus {

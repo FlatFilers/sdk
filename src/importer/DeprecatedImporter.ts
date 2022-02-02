@@ -1,14 +1,14 @@
 import { Flatfile } from '../Flatfile'
 import { IEvents } from '../types'
 import { TypedEventManager } from '../utils/TypedEventManager'
-import { Session } from './Session'
+import { ImportSession } from './ImportSession'
 
 export class DeprecatedImporter extends TypedEventManager<IEvents> {
   /**
    * Reference to instance of initialized importer
    * @private
    */
-  private importer?: Session
+  private importer?: ImportSession
 
   constructor(public ff: Flatfile) {
     super()
@@ -31,9 +31,8 @@ export class DeprecatedImporter extends TypedEventManager<IEvents> {
       '[Flatfile SDK]: Using `.__unsafeGenerateToken()` is unsafe and would expose your private key.'
     )
     const token = await Flatfile.getDevelopmentToken(
+      embedId,
       {
-        embed: embedId,
-        sub: endUserEmail,
         user: { id: endUserEmail, email: endUserEmail, name: 'Unknown' },
         org: { id: endUserEmail, name: 'Unknown' },
         env: {
@@ -50,7 +49,7 @@ export class DeprecatedImporter extends TypedEventManager<IEvents> {
    */
   async launch(mode: 'iframe' | 'window' = 'iframe'): Promise<{ batchId: string }> {
     try {
-      const importer = await this.ff.startOrResumeSession({ open: mode })
+      const importer = await this.ff.startOrResumeImportSession({ open: mode })
       importer.proxyTo(this)
       this.importer = importer
       return {

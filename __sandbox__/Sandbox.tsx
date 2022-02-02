@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import styled from 'styled-components'
 
 import { Flatfile } from '../src'
+import { RecordError } from '../src/graphql/service/RecordError'
+import { PartialRejection } from '../src/graphql/service/PartialRejection'
 
 const Output = styled.textarea`
   width: 100%;
@@ -107,7 +109,7 @@ const Button = styled.button`
 export function Sandbox(): any {
   const importerRef = useRef<any>()
 
-  const [output, setOutput] = useState<string>()
+  const [output, setOutput] = useState<string>('')
 
   const [embedId, setEmbedId] = useState(localStorage.getItem('embed_id') || '')
   const [endUserEmail, setEndUserEmail] = useState(localStorage.getItem('end_user_email') || '')
@@ -115,91 +117,76 @@ export function Sandbox(): any {
   const [mountUrl, setMountUrl] = useState(localStorage.getItem('mount_url') || '')
   const [apiUrl, setApiUrl] = useState(localStorage.getItem('api_url') || '')
 
-  const handleInit = async (newWindow = false) => {
-    localStorage.setItem('embed_id', embedId)
-    localStorage.setItem('end_user_email', endUserEmail)
-    localStorage.setItem('private_key', privateKey)
-    localStorage.setItem('mount_url', mountUrl)
-    localStorage.setItem('api_url', apiUrl)
+  const handleInit = useCallback(
+    async (newWindow = false) => {
+      localStorage.setItem('embed_id', embedId)
+      localStorage.setItem('end_user_email', endUserEmail)
+      localStorage.setItem('private_key', privateKey)
+      localStorage.setItem('mount_url', mountUrl)
+      localStorage.setItem('api_url', apiUrl)
 
-    if (!embedId || !endUserEmail || !privateKey) {
-      return alert('Embed id, user email & private key are required fields.')
-    }
-    const token = await Flatfile.getDevelopmentToken(
-      embedId,
-      {
-        user: {
-          id: 99,
-          email: endUserEmail,
-          name: 'John Doe',
+      if (!embedId || !endUserEmail || !privateKey) {
+        return alert('Embed id, user email & private key are required fields.')
+      }
+      const token = await Flatfile.getDevelopmentToken(
+        embedId,
+        {
+          user: {
+            id: 99,
+            email: endUserEmail,
+            name: 'John Doe',
+          },
         },
-      },
-      privateKey
-    )
-    // TOKEN has to be generated per user session on the server-side
-    const flatfile = new Flatfile(token, {
-      mountUrl,
-      apiUrl,
-    })
-
-    const session = await flatfile.startOrResumeSession()
-
-    session.on('error', (error) => {
-      console.error(error)
-    })
-
-    // can be triggered n times
-    session.on('submit', async () => {
-      // display my on processing dialog
-      await session.processPendingRecords(
-        (records, finishChunk) => {
-          setOutput(
-            JSON.stringify(
-              records.map((r) => r.data),
-              null,
-              4
-            )
-          )
-          // api call
-          // succesfuly load
-          // reject remaining records
-
-          const serverResponse = [
-            {
-              id: 99,
-              data: { fname: 'new value' },
-              messages: [{ level: 'error', message: 'Could not save this record.' }],
-            },
-          ] //...
-
-          const rejected = serverResponse.map((r) => {
-            new RecordFailure(r.id, r.messages, r.data)
-          })
-
-
-          // update records
-          // approve records
-          session.updateRecords(recordsWithErrors)
-          finishChunk(errors)
-        },
-        { chunkSize: 100 }
+        privateKey
       )
+      // TOKEN has to be generated per user session on the server-side
+      const flatfile = new Flatfile(token, {
+        mountUrl,
+        apiUrl,
+      })
 
-      session.done()
+      const session = await flatfile.startOrResumeImportSession()
 
-      // todo: handling of submit progress
+      session.on('error', (error) => {
+        console.error(error)
+      })
 
-      // done
-    })
+      // can be triggered n times
+      session.on('submit', async () => {
+        // display my on processing dialog
+        await session.processPendingRecords(
+          (chunk, next) => {
+            setOutput(
+              output +
+                `\n\n CHUNK ${chunk.currentChunkIndex} ------\n` +
+                JSON.stringify(
+                  chunk.records.map((r) => r.data),
+                  null,
+                  4
+                )
+            )
 
-    const batchId = session.batchId
+            next(
+              new PartialRejection(
+                new RecordError(1, [{ field: 'full_name', message: 'This person already exists.' }])
+              )
+            )
+          },
+          { chunkSize: 10 }
+        )
+        // todo: handling of submit progress
+      })
 
-    newWindow ? await session.openInNewWindow() : await session.openInEmbeddedIframe()
+      const batchId = session.batchId
 
-    console.log(`${batchId} has been launched.`)
+      newWindow ? await session.openInNewWindow() : await session.openInEmbeddedIframe()
 
-    importerRef.current = session
-  }
+      console.log(`${batchId} has been launched.`)
+
+      importerRef.current = session
+    },
+    [output]
+  )
 
   return (
     <Wrapper>

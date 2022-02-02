@@ -1,5 +1,5 @@
 import { Flatfile } from '../Flatfile'
-import { IFlatfileImporter, IFlatfileImporterConfig } from '../types'
+import { IFlatfileImporterConfig } from '../types'
 import { DeprecatedImporter } from './DeprecatedImporter'
 
 /**

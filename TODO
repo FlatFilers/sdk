@@ -1,14 +1,19 @@
 
-src/importer/Flatfile.ts
-  line 32  TODO  meaningful error handling
+src/Flatfile.ts
+  line 51   TODO  meaningful error handling
+  line 75   TODO  move these defaults somewhere better
 
-src/importer/Session.ts
-  line 41  TODO  make this less lines and more readable
-  line 55  TODO  handle this better
-  line 59  TODO  unsubscribe from old batch
-  line 70  TODO  fix the fact that the JWT is sent in raw query params
+src/graphql/service/PartialRejection.ts
+  line 28   TODO  proper handling of errors here
 
 src/importer/ImportFrame.ts
-  line 22  TODO  handle the close better, support cleaner transition
+  line 22   TODO  handle the close better, support cleaner transition
 
- ✖ 6 todos/fixmes found
+src/importer/ImportSession.ts
+  line 21   TODO  move launch event out of iframe helper
+  line 93   TODO  make this less lines and more readable
+  line 107  TODO  handle this better
+  line 113  TODO  unsubscribe from old batch
+  line 124  TODO  fix the fact that the JWT is sent in raw query params
+
+ ✖ 9 todos/fixmes found

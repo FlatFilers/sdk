@@ -1,5 +1,5 @@
 import { ApiService } from './graphql/api'
-import { Session } from './importer/Session'
+import { ImportSession } from './importer/ImportSession'
 import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebToken } from './types'
 import { sign } from './utils/jwt'
 import { TypedEventManager } from './utils/TypedEventManager'
@@ -31,21 +31,22 @@ export class Flatfile extends TypedEventManager<IEvents> {
   /**
    * Start a new import or resume the one that's currently in progress
    */
-  public async startOrResumeSession(options?: { open?: 'iframe' | 'window' }): Promise<Session> {
+  public async startOrResumeImportSession(options?: {
+    open?: 'iframe' | 'window'
+  }): Promise<ImportSession> {
     try {
-      const emptyBatch = await this.api.init()
-      const { batchId } = emptyBatch
+      const importMeta = await this.api.init()
 
-      this.emit('launch', { batchId }) // todo - should this happen here
-      const importer = new Session(this, batchId)
-      importer.emit('init', emptyBatch)
+      this.emit('launch', { batchId: importMeta.batchId }) // todo - should this happen here
+      const session = new ImportSession(this, importMeta)
+      session.emit('init', importMeta)
       if (options?.open === 'iframe') {
-        importer.openInEmbeddedIframe()
+        session.openInEmbeddedIframe()
       }
       if (options?.open === 'window') {
-        importer.openInNewWindow()
+        session.openInNewWindow()
       }
-      return importer
+      return session
     } catch (e) {
       // todo: meaningful error handling
       this.cleanup()

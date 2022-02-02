@@ -1,10 +1,10 @@
 import { $, addClass, removeClass } from '../utils/html'
 import { insertGlobalCSS } from '../utils/insertGlobalCSS'
-import { Session } from './Session'
+import { ImportSession } from './ImportSession'
 
 export class ImportFrame {
   private $iframe?: HTMLIFrameElement
-  constructor(private batch: Session) {}
+  constructor(private batch: ImportSession) {}
 
   public open(): this {
     this.initializeFlatfileWrapper()
