@@ -158,12 +158,12 @@ export function Sandbox(): any {
           (chunk, next) => {
             setOutput(
               output +
-                `\n\n CHUNK ${chunk.currentChunkIndex} ------\n` +
-                JSON.stringify(
-                  chunk.records.map((r) => r.data),
-                  null,
-                  4
-                )
+              `\n\n CHUNK ${chunk.currentChunkIndex} ------\n` +
+              JSON.stringify(
+                chunk.records.map((r) => r.data),
+                null,
+                4
+              )
             )
 
             next(
@@ -179,7 +179,12 @@ export function Sandbox(): any {
 
       const batchId = session.batchId
 
-      newWindow ? await session.openInNewWindow() : await session.openInEmbeddedIframe()
+      if (newWindow) {
+        session.openInNewWindow()
+      }
+      else {
+        session.openInEmbeddedIframe()
+      }
 
       console.log(`${batchId} has been launched.`)
 

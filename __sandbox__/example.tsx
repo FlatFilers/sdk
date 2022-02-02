@@ -15,22 +15,22 @@ const test = async () => {
     // show in a dialog
   }, ['ERROR1', 'ERROR2'])
 
-  const batch = await flatfile.startOrResumeBatch({ openIframe: true })
+  const importSession = await flatfile.startOrResumeImportSession({ openIframe: true })
 
-  batch.on('complete', (payload) => {
-    batch.approveRows()
-    batch.iframe.close()
+  importSession.on('complete', (payload) => {
+    importSession.approveRows()
+    importSession.iframe.close()
     // do server setuff
-    batch.updateRecords(/*...*/)
-    batch.iframe.open()
+    importSession.updateRecords(/*...*/)
+    importSession.iframe.open()
   })
 
-  batch.on('record:update', () => {
+  importSession.on('record:update', () => {
     // do something with the updated record
-    batch.updateRecords({ id: '123', foo: 'bar' })
+    importSession.updateRecords({ id: '123', foo: 'bar' })
   })
 
-  batch.on('record:create', () => {
+  importSession.on('record:create', () => {
     // do something with the created record
   })
 }
