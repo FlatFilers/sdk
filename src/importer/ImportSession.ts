@@ -1,3 +1,5 @@
+import { GraphQLClient } from 'graphql-request'
+
 import { Flatfile } from '../Flatfile'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { ERecordStatus } from '../graphql/service/FlatfileRecord'
@@ -30,6 +32,12 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
   public get iframe(): ImportFrame {
     return useOrInit(this.$iframe, () => (this.$iframe = new ImportFrame(this)))
   }
+  //
+  // public registerSessionHookCode(fn: (...args: any[]) => any): this {
+  //   const fnString = serializeFn(fn)
+  //   // attach to environment
+  //   // resolve
+  // }
 
   /**
    * Chunk and handle data response
@@ -127,6 +135,10 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
     const MOUNT_URL = this.flatfile.config.mountUrl
     const TOKEN = encodeURI(this.flatfile.token)
     return `${MOUNT_URL}/e?jwt=${TOKEN}${this.batchId ? `&batchId=${this.batchId}` : ''}`
+  }
+
+  public get client(): GraphQLClient {
+    return this.flatfile.api.client
   }
 }
 

@@ -38,7 +38,8 @@
     "eventemitter3": "^4.0.7",
     "graphql": "^15.5.0",
     "graphql-request": "^3.4.0",
-    "graphql-subscriptions-client": "^0.16.0"
+    "graphql-subscriptions-client": "^0.16.0",
+    "transferable-function": "^1.0.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.5",
@@ -52,6 +53,7 @@
     "@commitlint/config-conventional": "^12.1.4",
     "@types/backo2": "^1.0.1",
     "@types/jest": "^26.0.23",
+    "@types/nock": "^11.1.0",
     "@types/react": "^17.0.11",
     "@types/react-dom": "^17.0.8",
     "@types/styled-components": "^5.1.10",
@@ -68,6 +70,7 @@
     "husky": "^6.0.0",
     "jest": "^27.0.3",
     "lint-staged": "^11.0.0",
+    "nock": "^13.2.2",
     "nqr": "^1.0.0",
     "prettier": "^2.3.1",
     "react": "^17.0.2",

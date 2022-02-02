@@ -157,7 +157,7 @@ export class ApiService {
         .then(({ getFinalDatabaseView }) => getFinalDatabaseView)
       return new RecordsChunk(
         session,
-        res.rows.map((r) => new FlatfileRecord(this, r)),
+        res.rows.map((r) => new FlatfileRecord(r)),
         {
           status,
           skip: skip,
