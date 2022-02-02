@@ -1,4 +1,3 @@
-import { ApiService } from '../api'
 import { IRowResponse } from '../queries/GET_FINAL_DATABASE_VIEW'
 import { RecordMutation } from './RecordMutation'
 
@@ -7,7 +6,7 @@ export class FlatfileRecord {
   public readonly recordId: number
   private readonly $info: IRecordMessage[]
 
-  constructor(private api: ApiService, private $raw: IRowResponse) {
+  constructor(private $raw: IRowResponse) {
     this.data = $raw.data
     this.recordId = $raw.id
     this.$info = this.$raw.info.map((i) => ({ level: i.level, field: i.key, message: i.message }))
