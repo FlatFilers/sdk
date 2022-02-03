@@ -5,6 +5,7 @@ import { RecordError } from './RecordError'
 describe('RecordError', () => {
   let record: FlatfileRecord
   let err: RecordError
+
   beforeEach(() => {
     record = new FlatfileRecord(BASE_RECORD)
     err = new RecordError(record, [{ field: 'full_name', message: 'test error' }])
@@ -18,6 +19,7 @@ describe('RecordError', () => {
   test('can initialize properly with a record object', () => {
     expect(err.recordId).toBe(9)
   })
+
   test('errors passed in the initialization are staged as errors', () => {
     err.addInfo('full_name', 'Nice name bro')
     expect(err.toGraphQLEdits().messages.find((m) => m.error === 'error')?.message).toEqual(
