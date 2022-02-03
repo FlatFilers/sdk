@@ -1,5 +1,3 @@
-import { GraphQLClient } from 'graphql-request'
-
 import { Flatfile } from '../Flatfile'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { ERecordStatus } from '../graphql/service/FlatfileRecord'
@@ -135,10 +133,6 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
     const MOUNT_URL = this.flatfile.config.mountUrl
     const TOKEN = encodeURI(this.flatfile.token)
     return `${MOUNT_URL}/e?jwt=${TOKEN}${this.batchId ? `&batchId=${this.batchId}` : ''}`
-  }
-
-  public get client(): GraphQLClient {
-    return this.flatfile.api.client
   }
 }
 
