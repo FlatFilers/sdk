@@ -37,7 +37,7 @@ export class RecordsChunk {
    * How many chunks are there to process in total
    */
   public get totalChunks(): number {
-    return Math.floor(this.meta.totalRecords / this.meta.limit)
+    return Math.ceil(this.meta.totalRecords / this.meta.limit)
   }
 
   /**
