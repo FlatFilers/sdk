@@ -1,8 +1,7 @@
-import nock from 'nock'
-
 import { RequestError } from '../../errors/RequestError'
 import { Flatfile } from '../../Flatfile'
 import { ImportSession } from '../../importer/ImportSession'
+import { mockOneGraphQLRequest } from '../../utils/test-helper'
 import { FlatfileRecord } from './FlatfileRecord'
 import { BASE_RECORD } from './FlatfileRecord.spec'
 import { PartialRejection } from './PartialRejection'
@@ -54,30 +53,12 @@ describe('PartialRejection', () => {
       })
     })
     test('sends a graphql bulk edit update', async () => {
-      nock(/.+/)
-        .post('/graphql')
-        .once()
-        .reply(200, {
-          data: {
-            updateWorkbookRows: {
-              rows: [],
-            },
-          },
-        })
+      mockOneGraphQLRequest('updateWorkbookRows', 200, { rows: [] })
       await rejection.executeResponse(session)
     })
 
     test('handles a network failure', async () => {
-      nock(/.+/)
-        .post('/graphql')
-        .once()
-        .reply(500, {
-          data: {
-            updateWorkbookRows: {
-              rows: [],
-            },
-          },
-        })
+      mockOneGraphQLRequest('updateWorkbookRows', 500, { rows: [] })
       await expect(rejection.executeResponse(session)).rejects.toThrow(RequestError)
     })
   })

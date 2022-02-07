@@ -1,3 +1,5 @@
+import 'bulma/css/bulma.css'
+
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { createGlobalStyle } from 'styled-components'
@@ -9,6 +11,7 @@ const rootElement = document.getElementById('root')
 const GlobalStyles = createGlobalStyle`
   html, body {
     font-size: 16px;
+    background-color: #1f2330;
   }
 `
 
