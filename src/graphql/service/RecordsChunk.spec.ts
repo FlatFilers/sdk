@@ -1,7 +1,6 @@
-import nock from 'nock'
-
 import { Flatfile } from '../../Flatfile'
 import { ImportSession } from '../../importer/ImportSession'
+import { mockOneGraphQLRequest } from '../../utils/test-helper'
 import { ERecordStatus, FlatfileRecord } from './FlatfileRecord'
 import { BASE_RECORD } from './FlatfileRecord.spec'
 import { RecordsChunk } from './RecordsChunk'
@@ -31,17 +30,11 @@ describe('RecordsChunk', function () {
 
   describe('getNextChunk', () => {
     test('increments properly', async () => {
-      nock(/.+/)
-        .post('/graphql')
-        .once()
-        .reply(200, {
-          data: {
-            getFinalDatabaseView: {
-              rows: [],
-              totalRows: 100,
-            },
-          },
-        })
+      mockOneGraphQLRequest('getFinalDatabaseView', 200, {
+        rows: [],
+        totalRows: 100,
+      })
+
       const nextChunk = await chunk.getNextChunk()
       expect(nextChunk?.currentChunkIndex).toEqual(1)
       const nullChunk = await nextChunk?.getNextChunk()

@@ -1,6 +1,6 @@
 import { Flatfile } from '../Flatfile'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
-import { ERecordStatus } from '../graphql/service/FlatfileRecord'
+import { ERecordStatus, TPrimitive } from '../graphql/service/FlatfileRecord'
 import { PartialRejection } from '../graphql/service/PartialRejection'
 import { RecordsChunk } from '../graphql/service/RecordsChunk'
 import { useOrInit } from '../utils/general'
@@ -30,12 +30,14 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
   public get iframe(): ImportFrame {
     return useOrInit(this.$iframe, () => (this.$iframe = new ImportFrame(this)))
   }
-  //
-  // public registerSessionHookCode(fn: (...args: any[]) => any): this {
-  //   const fnString = serializeFn(fn)
-  //   // attach to environment
-  //   // resolve
-  // }
+
+  /**
+   * Update the environment with unsigned values
+   * @param env
+   */
+  public async updateEnvironment(env: Record<string, TPrimitive>): Promise<void> {
+    await this.flatfile.api.updateWorkspaceEnv(this, env)
+  }
 
   /**
    * Chunk and handle data response

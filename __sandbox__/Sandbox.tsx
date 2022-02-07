@@ -1,121 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useRef, useState } from 'react'
-import styled from 'styled-components'
+import { Button, Columns, Container, Form } from 'react-bulma-components'
 
-import { Flatfile } from '../src'
-import { RecordError } from '../src/graphql/service/RecordError'
-import { PartialRejection } from '../src/graphql/service/PartialRejection'
-
-const Output = styled.textarea`
-  width: 100%;
-  margin-top: 3rem;
-  background-color: #404551;
-  padding: 1rem;
-  min-height: 300px;
-  border-radius: 0.25rem;
-  max-height: 300px;
-  color: white;
-`
-
-const InputGroup = styled.div`
-  margin-top: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  & > * {
-    width: 100%;
-    max-width: 32.5%;
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-  }
-`
-
-const Input = styled.input`
-  background-color: #404551;
-  width: 100%;
-  flex: 1;
-  border: none;
-  border-radius: 0.25rem;
-  color: white;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  outline: none;
-`
-
-const Wrapper = styled.main`
-  background-color: #2f333d;
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
-`
-
-const Container = styled.div`
-  max-width: 1024px;
-  overflow-y: auto;
-  width: 100%;
-  margin: auto;
-
-  p {
-    margin: 0;
-    font-size: 1rem;
-
-    &.placeholder {
-      text-align: center;
-      opacity: 0.35;
-    }
-  }
-`
-
-const ButtonGroup = styled.div`
-  margin-top: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  & > * {
-    margin-right: 2rem;
-
-    &:last-child {
-      margin-right: 0;
-    }
-  }
-`
-
-const Button = styled.button`
-  background-color: #3b2fc9;
-  color: white;
-  padding: 1rem 1.5rem;
-  border-radius: 0.25rem;
-  border: none;
-  outline: none;
-  box-shadow: none;
-  font-size: 1rem;
-  font-weight: bold;
-
-  &:hover {
-    background-color: #002e70;
-    cursor: pointer;
-  }
-`
+import { Flatfile, PartialRejection, RecordError } from '../src'
+import { BrowserFrame } from './BrowserFrame'
+import { serializeFunction } from '../src/utils/serializeHook'
 
 export function Sandbox(): any {
   const importerRef = useRef<any>()
 
   const [output, setOutput] = useState<string>('')
+  const [workspaceId, setWorkspaceId] = useState<string>('')
+  const [batchId, setBatchId] = useState<string>('')
 
   const [embedId, setEmbedId] = useState(localStorage.getItem('embed_id') || '')
   const [endUserEmail, setEndUserEmail] = useState(localStorage.getItem('end_user_email') || '')
   const [privateKey, setPrivateKey] = useState(localStorage.getItem('private_key') || '')
   const [mountUrl, setMountUrl] = useState(localStorage.getItem('mount_url') || '')
   const [apiUrl, setApiUrl] = useState(localStorage.getItem('api_url') || '')
+  const [frameUrl, setFrameUrl] = useState<string>()
 
   const handleInit = useCallback(
     async (newWindow = false) => {
@@ -146,6 +49,16 @@ export function Sandbox(): any {
       })
 
       const session = await flatfile.startOrResumeImportSession()
+      setWorkspaceId(session.meta.workspaceId)
+      setBatchId(session.batchId)
+      const HOOK_HELPER = serializeFunction(function (a: number, b: number) {
+        return a + b
+      })
+      await session.updateEnvironment({
+        HOOK_HELPER,
+      })
+
+      setFrameUrl(session.signedImportUrl)
 
       session.on('error', (error) => {
         console.error(error)
@@ -158,12 +71,12 @@ export function Sandbox(): any {
           (chunk, next) => {
             setOutput(
               output +
-              `\n\n CHUNK ${chunk.currentChunkIndex} ------\n` +
-              JSON.stringify(
-                chunk.records.map((r) => r.data),
-                null,
-                4
-              )
+                `\n\n CHUNK ${chunk.currentChunkIndex} ------\n` +
+                JSON.stringify(
+                  chunk.records.map((r) => r.data),
+                  null,
+                  4
+                )
             )
 
             next(
@@ -181,74 +94,86 @@ export function Sandbox(): any {
 
       if (newWindow) {
         session.openInNewWindow()
-      }
-      else {
-        session.openInEmbeddedIframe()
+      } else {
+        // session.openInEmbeddedIframe()
       }
 
       console.log(`${batchId} has been launched.`)
 
       importerRef.current = session
     },
-    [output]
+    [output, embedId, endUserEmail, privateKey, mountUrl, apiUrl]
   )
-
   return (
-    <Wrapper>
-      <Container>
-        <InputGroup>
-          <div>
-            <label>Embed ID</label>
-            <Input
-              placeholder='Enter embed ID'
-              value={embedId}
-              onChange={(e) => setEmbedId(e.target.value)}
-            />
-          </div>
-          <div>
-            <label>User Email</label>
-            <Input
-              placeholder='Enter user email'
-              value={endUserEmail}
-              onChange={(e) => setEndUserEmail(e.target.value)}
-            />
-          </div>
-          <div>
-            <label>Private key</label>
-            <Input
-              type='password'
-              placeholder='Enter private key'
-              value={privateKey}
-              onChange={(e) => setPrivateKey(e.target.value)}
-            />
-          </div>
-        </InputGroup>
-        <InputGroup>
-          <div>
-            <label>Mount Url</label>
-            <Input
-              placeholder='e.g. https://app.flatfile.io'
-              value={mountUrl}
-              onChange={(e) => setMountUrl(e.target.value)}
-            />
-          </div>
-          <div>
-            <label>API Url</label>
-            <Input
-              placeholder='e.g. https://api.us.flatfile.io'
-              value={apiUrl}
-              onChange={(e) => setApiUrl(e.target.value)}
-            />
-          </div>
-        </InputGroup>
-
-        <ButtonGroup>
-          <Button onClick={() => handleInit()}>Launch as PopUp</Button>
-          <Button onClick={() => handleInit(true)}>Launch as New Tab</Button>
-        </ButtonGroup>
-
-        <Output readOnly placeholder='Data will appear here...' value={output} />
+    <div style={{ padding: '45px 13px' }}>
+      <Container breakpoint='fluid'>
+        <Columns>
+          <Columns.Column size='one-quarter' style={{ paddingRight: '2rem' }}>
+            <h1 className='title has-text-light'>Flatfile SDK</h1>
+            <p className='subtitle has-text-light'>Quickly configure and test the Flatfile SDK</p>
+            <Form.Field>
+              <Form.Label className='has-text-light'>Embed ID</Form.Label>
+              <Form.Input
+                placeholder='Enter embed ID'
+                value={embedId}
+                onChange={(e) => setEmbedId(e.target.value)}
+              />
+            </Form.Field>
+            <Form.Field>
+              <Form.Label className='has-text-light'>User Email</Form.Label>
+              <Form.Input
+                placeholder='Enter user email'
+                value={endUserEmail}
+                onChange={(e) => setEndUserEmail(e.target.value)}
+              />
+            </Form.Field>
+            <Form.Field>
+              <Form.Label className='has-text-light'>Private key</Form.Label>
+              <Form.Input
+                type='password'
+                placeholder='Enter private key'
+                value={privateKey}
+                onChange={(e) => setPrivateKey(e.target.value)}
+              />
+            </Form.Field>
+            <Form.Field>
+              <Form.Label className='has-text-light'>Mount Url</Form.Label>
+              <Form.Input
+                placeholder='e.g. https://app.flatfile.io'
+                value={mountUrl}
+                onChange={(e) => setMountUrl(e.target.value)}
+              />
+            </Form.Field>
+            <Form.Field>
+              <Form.Label className='has-text-light'>API Url</Form.Label>
+              <Form.Input
+                placeholder='e.g. https://api.us.flatfile.io'
+                value={apiUrl}
+                onChange={(e) => setApiUrl(e.target.value)}
+              />
+            </Form.Field>
+            <Form.Field style={{ marginTop: '30px' }}>
+              <Form.Control>
+                <Button color={'primary'} onClick={() => handleInit()}>
+                  Start
+                </Button>
+              </Form.Control>
+            </Form.Field>
+            <hr />
+            <Form.Field>
+              <Form.Label className='has-text-light'>Workspace ID</Form.Label>
+              <Form.Input placeholder='... after start' value={workspaceId} readOnly={true} />
+            </Form.Field>
+            <Form.Field>
+              <Form.Label className='has-text-light'>Batch ID</Form.Label>
+              <Form.Input placeholder='... after start' value={batchId} readOnly={true} />
+            </Form.Field>
+          </Columns.Column>
+          <Columns.Column>
+            <BrowserFrame url={frameUrl} />
+          </Columns.Column>
+        </Columns>
       </Container>
-    </Wrapper>
+    </div>
   )
 }

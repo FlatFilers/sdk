@@ -7,6 +7,7 @@ import {
   InitializeEmptyBatchPayload,
   InitializeEmptyBatchResponse,
 } from './mutations/INITIALIZE_EMPTY_BATCH'
+import { UPDATE_WORKSPACE_ENV } from './mutations/UPDATE_WORKSPACE_ENV'
 import {
   GET_FINAL_DATABASE_VIEW,
   GetFinalDatabaseViewPayload,
@@ -14,7 +15,7 @@ import {
 } from './queries/GET_FINAL_DATABASE_VIEW'
 import { PREFLIGHT_BATCH } from './queries/PREFLIGHT_BATCH'
 import { UPDATE_RECORD_STATUS } from './queries/UPDATE_RECORDS_STATUS'
-import { ERecordStatus, FlatfileRecord } from './service/FlatfileRecord'
+import { ERecordStatus, FlatfileRecord, TPrimitive } from './service/FlatfileRecord'
 import { RecordsChunk } from './service/RecordsChunk'
 import {
   BATCH_STATUS_UPDATED,
@@ -166,6 +167,8 @@ export class ApiService {
         }
       )
     } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       throw this.handleError(e.response.errors, e.message)
     }
   }
@@ -180,6 +183,16 @@ export class ApiService {
       schemaId: parseInt(session.meta.schemaIds[0], 10),
       validationState: status,
       rowIds: recordIds,
+    })
+  }
+
+  public updateWorkspaceEnv(
+    session: ImportSession,
+    env: Record<string, TPrimitive>
+  ): Promise<void> {
+    return this.client.request(UPDATE_WORKSPACE_ENV, {
+      workspaceId: session.meta.workspaceId,
+      env,
     })
   }
 
