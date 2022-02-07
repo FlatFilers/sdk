@@ -3,8 +3,8 @@ import { useCallback, useRef, useState } from 'react'
 import { Button, Columns, Container, Form } from 'react-bulma-components'
 
 import { Flatfile, PartialRejection, RecordError } from '../src'
+import { serializeFunction } from '../src'
 import { BrowserFrame } from './BrowserFrame'
-import { serializeFunction } from '../src/utils/serializeHook'
 
 export function Sandbox(): any {
   const importerRef = useRef<any>()
@@ -52,7 +52,7 @@ export function Sandbox(): any {
       setWorkspaceId(session.meta.workspaceId)
       setBatchId(session.batchId)
       const HOOK_HELPER = serializeFunction(function (a: number, b: number) {
-        return a + b
+        return a * b * 4
       })
       await session.updateEnvironment({
         HOOK_HELPER,
