@@ -30,4 +30,10 @@ jobs:
       run: echo "//registry.npmjs.org/:_authToken=${{secrets.NPM_AUTH_TOKEN}}" > .npmrc
     - run: npm ci
     - run: npm run build --if-present
-    - run: npm test
+    - name: Test & publish code coverage
+      uses: paambaati/codeclimate-action@v3.0.0
+      env:
+        CC_TEST_REPORTER_ID: ${{secrets.CC_TEST_REPORTER_ID}}
+      with:
+        coverageCommand: npm run test -- --coverage
+        debug: true
