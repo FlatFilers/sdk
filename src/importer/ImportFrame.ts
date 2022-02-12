@@ -1,5 +1,5 @@
-import { $, addClass, removeClass } from '../utils/html'
-import { insertGlobalCSS } from '../utils/insertGlobalCSS'
+import { $, addClass, removeClass } from '../lib/html'
+import { insertGlobalCSS } from '../lib/insertGlobalCSS'
 import { ImportSession } from './ImportSession'
 
 export class ImportFrame {

@@ -1,7 +1,7 @@
-import { Flatfile } from '../../Flatfile'
-import { ImportSession } from '../../importer/ImportSession'
-import { mockOneGraphQLRequest } from '../../utils/test-helper'
-import { ERecordStatus, FlatfileRecord } from './FlatfileRecord'
+import { Flatfile } from '../Flatfile'
+import { ImportSession } from '../importer/ImportSession'
+import { createChunk, mockGraphQLRequest } from '../lib/test-helper'
+import { FlatfileRecord } from './FlatfileRecord'
 import { BASE_RECORD } from './FlatfileRecord.spec'
 import { RecordsChunk } from './RecordsChunk'
 
@@ -30,7 +30,7 @@ describe('RecordsChunk', function () {
 
   describe('getNextChunk', () => {
     test('increments properly', async () => {
-      mockOneGraphQLRequest('getFinalDatabaseView', 200, {
+      mockGraphQLRequest('getFinalDatabaseView', 200, {
         rows: [],
         totalRows: 100,
       })
@@ -66,17 +66,3 @@ describe('RecordsChunk', function () {
     })
   })
 })
-
-function createChunk(
-  session: ImportSession,
-  records: FlatfileRecord[],
-  totalRecords = 100,
-  skip = 0
-) {
-  return new RecordsChunk(session, records, {
-    status: ERecordStatus.REVIEW,
-    skip,
-    totalRecords,
-    limit: 50,
-  })
-}

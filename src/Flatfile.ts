@@ -1,8 +1,8 @@
-import { ApiService } from './graphql/api'
+import { ApiService } from './graphql/ApiService'
 import { ImportSession } from './importer/ImportSession'
+import { sign } from './lib/jwt'
+import { TypedEventManager } from './lib/TypedEventManager'
 import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebToken } from './types'
-import { sign } from './utils/jwt'
-import { TypedEventManager } from './utils/TypedEventManager'
 
 export class Flatfile extends TypedEventManager<IEvents> {
   /**

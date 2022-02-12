@@ -1,10 +1,9 @@
 import { Flatfile } from '../Flatfile'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
-import { ERecordStatus, TPrimitive } from '../graphql/service/FlatfileRecord'
-import { PartialRejection } from '../graphql/service/PartialRejection'
-import { RecordsChunk } from '../graphql/service/RecordsChunk'
-import { useOrInit } from '../utils/general'
-import { TypedEventManager } from '../utils/TypedEventManager'
+import { useOrInit } from '../lib/general'
+import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
+import { TypedEventManager } from '../lib/TypedEventManager'
+import { TPrimitive } from '../service/FlatfileRecord'
 import { ImportFrame } from './ImportFrame'
 
 export class ImportSession extends TypedEventManager<IBatchEvents> {
@@ -35,8 +34,8 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * Update the environment with unsigned values
    * @param env
    */
-  public async updateEnvironment(env: Record<string, TPrimitive>): Promise<void> {
-    await this.flatfile.api.updateWorkspaceEnv(this, env)
+  public async updateEnvironment(env: Record<string, TPrimitive>): Promise<{ success: boolean }> {
+    return this.flatfile.api.updateSesssionEnv(this, env)
   }
 
   /**
@@ -45,44 +44,13 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * @param options
    */
   public async processPendingRecords(
-    cb: (chunk: RecordsChunk, next: (res?: PartialRejection) => void) => Promise<void> | void,
+    cb: IteratorCallback,
     options?: { chunkSize?: number }
-  ): Promise<this> {
+  ): Promise<void> {
     // temp hack because workbook ID is not available during init yet
     this.meta.workbookId = await this.flatfile.api.getWorkbookId(this.batchId)
-    return new Promise(async (resolve, reject) => {
-      const api = this.flatfile.api
-      let chunk = await api.getRecordsByStatus(this, ERecordStatus.REVIEW, 0, options?.chunkSize)
-      let approveIds: number[] = []
-      const next = async (err?: PartialRejection) => {
-        approveIds = approveIds.concat(chunk.recordIds)
-        if (err) {
-          if ('executeResponse' in err) {
-            approveIds = approveIds.filter((recordId) => !err.recordIds.includes(recordId))
-            await err.executeResponse(this)
-          } else {
-            console.error(err)
-            reject(
-              'Invalid Error payload interrupted execution. Must be instance of ClientResponse. ' +
-                'View console error to see skipped error.'
-            )
-          }
-        }
-        const newChunk = await chunk.getNextChunk()
 
-        if (newChunk) {
-          chunk = newChunk
-          cb(chunk, next)
-        } else {
-          if (approveIds.length > 0) {
-            await api.updateRecordStatus(this, approveIds, ERecordStatus.ACCEPTED)
-          }
-          resolve(this)
-        }
-      }
-
-      cb(chunk, next)
-    })
+    await new RecordChunkIterator(this, cb, { chunkSize: options?.chunkSize || 100 }).process()
   }
 
   /**
@@ -160,6 +128,6 @@ export interface IBatchEvents {
 export interface IImportMeta {
   batchId: string
   workspaceId: string
-  workbookId: string
+  workbookId?: string
   schemaIds: string[]
 }

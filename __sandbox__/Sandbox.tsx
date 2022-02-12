@@ -69,6 +69,10 @@ export function Sandbox(): any {
         // display my on processing dialog
         await session.processPendingRecords(
           (chunk, next) => {
+            console.log(
+              `CHUNK ${chunk.currentChunkIndex}`,
+              chunk.records.map((r) => r.data)
+            )
             setOutput(
               output +
                 `\n\n CHUNK ${chunk.currentChunkIndex} ------\n` +
@@ -87,6 +91,7 @@ export function Sandbox(): any {
           },
           { chunkSize: 10 }
         )
+        console.log('done')
         // todo: handling of submit progress
       })
 

@@ -1,12 +1,15 @@
 
+src/graphql/ApiService.ts
+  line 126  TODO  clean up validation status vs stage and support both
+
 src/importer/ImportFrame.ts
   line 22   TODO  handle the close better, support cleaner transition
 
 src/importer/ImportSession.ts
-  line 21   TODO  move launch event out of iframe helper
-  line 101  TODO  make this less lines and more readable
-  line 115  TODO  handle this better
-  line 121  TODO  unsubscribe from old batch
-  line 132  TODO  fix the fact that the JWT is sent in raw query params
+  line 20   TODO  move launch event out of iframe helper
+  line 69   TODO  make this less lines and more readable
+  line 83   TODO  handle this better
+  line 89   TODO  unsubscribe from old batch
+  line 100  TODO  fix the fact that the JWT is sent in raw query params
 
- ✖ 6 todos/fixmes found
+ ✖ 7 todos/fixmes found

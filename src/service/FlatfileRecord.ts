@@ -1,4 +1,4 @@
-import { IRowResponse } from '../queries/GET_FINAL_DATABASE_VIEW'
+import { IRowResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { RecordMutation } from './RecordMutation'
 
 export class FlatfileRecord {
