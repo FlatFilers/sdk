@@ -1,6 +1,7 @@
 import { ClientError, GraphQLClient } from 'graphql-request'
 import { SubscriptionClient } from 'graphql-subscriptions-client'
 
+import { FlatfileError } from '../errors/FlatfileError'
 import { RequestError } from '../errors/RequestError'
 import { UnauthorizedError } from '../errors/UnauthorizedError'
 import { IImportMeta, ImportSession } from '../importer/ImportSession'
@@ -224,8 +225,18 @@ export class ApiService {
     })
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public handleError(errors?: ClientError['response']['errors'], message?: string): any {
+  public handleRawError(error?: ClientError | Error | string): void {
+    const isError = error && typeof error === 'object' && 'message' in error
+    if (isError && (error instanceof ClientError || 'response' in error)) {
+      const errors = error['response']['errors']
+      const message = 'message' in error ? error.message : undefined
+      this.handleError(errors, message)
+    } else {
+      throw new FlatfileError(isError ? error.message : 'Unknown network error')
+    }
+  }
+
+  public handleError(errors?: ClientError['response']['errors'], message?: string): void {
     if (errors?.length) {
       errors.forEach((e) => {
         if (e.message === 'Unauthorized') {
@@ -247,7 +258,8 @@ export class ApiService {
       return res[queryName]
     } catch (error) {
       const err: ClientError = error as ClientError
-      return this.handleError(err.response.errors, err.message)
+      this.handleRawError(err)
+      throw new Error('Unhandled error')
     }
   }
 }

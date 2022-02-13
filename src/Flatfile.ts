@@ -1,3 +1,4 @@
+import { FlatfileError } from './errors/FlatfileError'
 import { ApiService } from './graphql/ApiService'
 import { ImportSession } from './importer/ImportSession'
 import { sign } from './lib/jwt'
@@ -48,9 +49,17 @@ export class Flatfile extends TypedEventManager<IEvents> {
       }
       return session
     } catch (e) {
-      // todo: meaningful error handling
+      this.handleError(e as FlatfileError)
       this.cleanup()
       throw e
+    }
+  }
+
+  public handleError(error: FlatfileError): void {
+    if (this.hasListener('error')) {
+      this.emit('error', { error })
+    } else {
+      alert(`[${error.code}] ${error.userMessage}`)
     }
   }
 

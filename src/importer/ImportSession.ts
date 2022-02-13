@@ -12,6 +12,7 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
   constructor(public flatfile: Flatfile, public meta: IImportMeta) {
     super()
     this.batchId = meta.batchId
+    setTimeout(() => this.emit('init', meta))
     this.subscribeToBatchStatus() // todo this shouldn't happen here
   }
 
