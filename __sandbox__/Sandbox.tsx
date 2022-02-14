@@ -76,6 +76,8 @@ export function Sandbox(): any {
         setError(error)
       })
 
+      // flatfile.requestDataFromUser(recordCallback, { open: 'iframe' })
+
       const HOOK_HELPER = serializeFunction(function (a: number, b: number) {
         return a * b * 4
       })
@@ -103,12 +105,12 @@ export function Sandbox(): any {
       if (newWindow) {
         session.openInNewWindow()
       } else {
-        // session.openInEmbeddedIframe()
+        session.openInEmbeddedIframe()
       }
 
       console.log(`${batchId} has been launched.`)
 
-      importerRef.current = session
+      // importerRef.current = session
     },
     [output, embedId, endUserEmail, privateKey, mountUrl, apiUrl]
   )

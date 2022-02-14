@@ -1,7 +1,8 @@
 import { FlatfileError } from './errors/FlatfileError'
 import { ApiService } from './graphql/ApiService'
-import { ImportSession } from './importer/ImportSession'
+import { IChunkOptions, ImportSession } from './importer/ImportSession'
 import { sign } from './lib/jwt'
+import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
 import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebToken } from './types'
 
@@ -32,9 +33,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
   /**
    * Start a new import or resume the one that's currently in progress
    */
-  public async startOrResumeImportSession(options?: {
-    open?: 'iframe' | 'window'
-  }): Promise<ImportSession> {
+  public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
     try {
       const importMeta = await this.api.init()
 
@@ -53,6 +52,36 @@ export class Flatfile extends TypedEventManager<IEvents> {
       this.cleanup()
       throw e
     }
+  }
+
+  /**
+   * Simple function that abstracts away some of the complexity for a single line call
+   * also provides some level of backwards compatability
+   */
+  public requestDataFromUser(): this
+  public requestDataFromUser(opts: DataReqOptions): this
+  public requestDataFromUser(callback: IteratorCallback, opts?: DataReqOptions): this
+  public requestDataFromUser(
+    cbOpts?: IteratorCallback | DataReqOptions,
+    opts?: DataReqOptions
+  ): this {
+    let callback: IteratorCallback | undefined
+    let options: DataReqOptions = { open: 'window' }
+    if (typeof cbOpts === 'function') {
+      callback = cbOpts
+      options = opts ? { ...options, ...opts } : options
+    } else if (typeof cbOpts === 'object') {
+      options = { ...options, ...cbOpts }
+    }
+
+    this.startOrResumeImportSession(options).then((session) => {
+      session.on('submit', () => {
+        if (callback) {
+          session.processPendingRecords(callback, options)
+        }
+      })
+    })
+    return this
   }
 
   public handleError(error: FlatfileError): void {
@@ -113,3 +142,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
     }
   }
 }
+
+interface IOpenOptions {
+  open?: 'iframe' | 'window'
+}
+
+type DataReqOptions = IOpenOptions & IChunkOptions

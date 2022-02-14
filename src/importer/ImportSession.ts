@@ -44,10 +44,7 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * @param cb
    * @param options
    */
-  public async processPendingRecords(
-    cb: IteratorCallback,
-    options?: { chunkSize?: number }
-  ): Promise<void> {
+  public async processPendingRecords(cb: IteratorCallback, options?: IChunkOptions): Promise<void> {
     // temp hack because workbook ID is not available during init yet
     this.meta.workbookId = await this.flatfile.api.getWorkbookId(this.batchId)
 
@@ -131,4 +128,8 @@ export interface IImportMeta {
   workspaceId: string
   workbookId?: string
   schemaIds: string[]
+}
+
+export interface IChunkOptions {
+  chunkSize?: number
 }
