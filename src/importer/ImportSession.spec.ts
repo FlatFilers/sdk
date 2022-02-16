@@ -53,8 +53,8 @@ describe('ImportSession', () => {
   })
 
   test('signedImportUrl', async () => {
-    expect(session.signedImportUrl).toContain('batchId=abc')
-    expect(session.signedImportUrl).toContain('jwt=asdf')
+    expect(session.signedImportUrl()).toContain('batchId=abc')
+    expect(session.signedImportUrl()).toContain('jwt=asdf')
   })
 
   test('processPendingRecords', async () => {
@@ -63,7 +63,7 @@ describe('ImportSession', () => {
 
   describe('updateEnvironment', () => {
     test('calls api with payload', async () => {
-      const spy = jest.spyOn(session.flatfile.api, 'updateSesssionEnv')
+      const spy = jest.spyOn(session.flatfile.api, 'updateSessionEnv')
       await session.updateEnvironment({ foo: 'bar' })
       expect(spy).toHaveBeenCalledWith(session, { foo: 'bar' })
     })

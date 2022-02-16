@@ -149,7 +149,7 @@ describe('ApiService', () => {
   })
 
   describe('updateSessionEnv', () => {
-    const req = () => api.updateSesssionEnv(session, { foo: 'bar' })
+    const req = () => api.updateSessionEnv(session, { foo: 'bar' })
 
     test('resolves successfully', async () => {
       const payload = { success: true }

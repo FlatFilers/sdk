@@ -192,7 +192,7 @@ export class ApiService {
    * @param session
    * @param env
    */
-  public updateSesssionEnv(
+  public updateSessionEnv(
     session: ImportSession,
     env: Record<string, TPrimitive>
   ): Promise<{ success: boolean }> {
@@ -257,7 +257,7 @@ export class ApiService {
       const res = await query
       return res[queryName]
     } catch (error) {
-      const err: ClientError = error as ClientError
+      const err = error as ClientError
       this.handleRawError(err)
       throw new Error('Unhandled error')
     }

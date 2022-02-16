@@ -41,10 +41,10 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const session = new ImportSession(this, importMeta)
       session.emit('init', importMeta)
       if (options?.open === 'iframe') {
-        session.openInEmbeddedIframe()
+        session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
       }
       if (options?.open === 'window') {
-        session.openInNewWindow()
+        session.openInNewWindow({ autoContinue: options?.autoContinue })
       }
       return session
     } catch (e) {
@@ -145,6 +145,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
 
 interface IOpenOptions {
   open?: 'iframe' | 'window'
+  autoContinue?: boolean
 }
 
 type DataReqOptions = IOpenOptions & IChunkOptions

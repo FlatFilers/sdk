@@ -18,6 +18,7 @@ export function Sandbox(): any {
   const [workspaceId, setWorkspaceId] = useState<string>('')
   const [batchId, setBatchId] = useState<string>('')
   const [error, setError] = useState<FlatfileError>()
+  const [useWindow, setUseWindow] = useState<boolean>(false)
 
   const [embedId, setEmbedId] = useState(localStorage.getItem('embed_id') || '')
   const [endUserEmail, setEndUserEmail] = useState(localStorage.getItem('end_user_email') || '')
@@ -44,76 +45,69 @@ export function Sandbox(): any {
     )
   }, [])
 
-  const handleInit = useCallback(
-    async (newWindow = false) => {
-      localStorage.setItem('embed_id', embedId)
-      localStorage.setItem('end_user_email', endUserEmail)
-      localStorage.setItem('private_key', privateKey)
-      localStorage.setItem('mount_url', mountUrl)
-      localStorage.setItem('api_url', apiUrl)
+  const handleInit = useCallback(async () => {
+    localStorage.setItem('embed_id', embedId)
+    localStorage.setItem('end_user_email', endUserEmail)
+    localStorage.setItem('private_key', privateKey)
+    localStorage.setItem('mount_url', mountUrl)
+    localStorage.setItem('api_url', apiUrl)
 
-      if (!embedId || !endUserEmail || !privateKey) {
-        return alert('Embed id, user email & private key are required fields.')
-      }
-      const token = await Flatfile.getDevelopmentToken(
-        embedId,
-        {
-          user: {
-            id: 99,
-            email: endUserEmail,
-            name: 'John Doe',
-          },
+    if (!embedId || !endUserEmail || !privateKey) {
+      return alert('Embed id, user email & private key are required fields.')
+    }
+    const token = await Flatfile.getDevelopmentToken(
+      embedId,
+      {
+        user: {
+          id: 99,
+          email: endUserEmail,
+          name: 'John Doe',
         },
-        privateKey
-      )
-      // TOKEN has to be generated per user session on the server-side
-      const flatfile = new Flatfile(token, {
-        mountUrl,
-        apiUrl,
+      },
+      privateKey
+    )
+    // TOKEN has to be generated per user session on the server-side
+    const flatfile = new Flatfile(token, {
+      mountUrl,
+      apiUrl,
+    })
+
+    flatfile.on('error', ({ error }) => {
+      setError(error)
+    })
+
+    const HOOK_HELPER = serializeFunction(function (a: number, b: number) {
+      return a * b * 4
+    })
+
+    const session = await flatfile.startOrResumeImportSession()
+    session.on('init', ({ workspaceId, batchId }) => {
+      setWorkspaceId(workspaceId)
+      setBatchId(batchId)
+      session.updateEnvironment({
+        HOOK_HELPER,
       })
-
-      flatfile.on('error', ({ error }) => {
-        setError(error)
-      })
-
-      // flatfile.requestDataFromUser(recordCallback, { open: 'iframe' })
-
-      const HOOK_HELPER = serializeFunction(function (a: number, b: number) {
-        return a * b * 4
-      })
-
-      const session = await flatfile.startOrResumeImportSession()
-      session.on('init', ({ workspaceId, batchId }) => {
-        setWorkspaceId(workspaceId)
-        setBatchId(batchId)
-        session.updateEnvironment({
-          HOOK_HELPER,
-        })
-        setFrameUrl(session.signedImportUrl)
-      })
-
-      // can be triggered n times
-      session.on('submit', async () => {
-        // display my on processing dialog
-        await session.processPendingRecords(recordCallback, { chunkSize: 5 })
-        console.log('done')
-        // todo: handling of submit progress
-      })
-
-      const batchId = session.batchId
-
-      if (newWindow) {
+      if (useWindow) {
         session.openInNewWindow()
       } else {
-        session.openInEmbeddedIframe()
+        setFrameUrl(session.signedImportUrl())
       }
+    })
 
-      console.log(`${batchId} has been launched.`)
+    // can be triggered n times
+    session.on('submit', async () => {
+      // display my on processing dialog
+      await session.processPendingRecords(recordCallback, { chunkSize: 5 })
+      console.log('done')
+      // todo: handling of submit progress
+    })
 
-      // importerRef.current = session
-    },
-    [output, embedId, endUserEmail, privateKey, mountUrl, apiUrl]
-  )
+    const batchId = session.batchId
+
+    console.log(`${batchId} has been launched.`)
+
+    importerRef.current = session
+  }, [output, embedId, endUserEmail, privateKey, mountUrl, apiUrl, useWindow])
   return (
     <div style={{ padding: '45px 13px' }}>
       <Container breakpoint='fluid'>
@@ -168,6 +162,15 @@ export function Sandbox(): any {
                   <Button color={'primary'} onClick={() => handleInit()}>
                     Start
                   </Button>
+                  <Form.Checkbox
+                    style={{ color: '#fff', margin: '10px 0 0 20px' }}
+                    onChange={(e) => {
+                      setUseWindow(e.target.checked)
+                    }}
+                    checked={useWindow}
+                  >
+                    Open in New Window
+                  </Form.Checkbox>
                 </Form.Control>
               </Form.Field>
               <hr />

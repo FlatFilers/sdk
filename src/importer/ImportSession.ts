@@ -1,6 +1,6 @@
 import { Flatfile } from '../Flatfile'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
-import { useOrInit } from '../lib/general'
+import { toQs, useOrInit } from '../lib/general'
 import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
 import { TypedEventManager } from '../lib/TypedEventManager'
 import { TPrimitive } from '../service/FlatfileRecord'
@@ -20,8 +20,20 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * Open the importer in an iframe (recommended)
    * todo: move launch event out of iframe helper
    */
-  public openInEmbeddedIframe(): ImportFrame {
-    return this.iframe.open()
+  public openInEmbeddedIframe(options?: IUrlOptions): ImportFrame {
+    return this.iframe.open(options)
+  }
+
+  /**
+   * Open the import in a new window and listen for data
+   */
+  public openInNewWindow(options?: IUrlOptions): Window {
+    const newWindow = window.open(this.signedImportUrl(options))
+    if (!newWindow) {
+      throw new Error('Could not initialize window. Possibly prevented by popup blocker')
+    }
+    this.emit('launch', { batchId: this.batchId })
+    return newWindow
   }
 
   /**
@@ -36,7 +48,7 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * @param env
    */
   public async updateEnvironment(env: Record<string, TPrimitive>): Promise<{ success: boolean }> {
-    return this.flatfile.api.updateSesssionEnv(this, env)
+    return this.flatfile.api.updateSessionEnv(this, env)
   }
 
   /**
@@ -49,18 +61,6 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
     this.meta.workbookId = await this.flatfile.api.getWorkbookId(this.batchId)
 
     await new RecordChunkIterator(this, cb, { chunkSize: options?.chunkSize || 100 }).process()
-  }
-
-  /**
-   * Open the import in a new window and listen for data
-   */
-  public openInNewWindow(): Window {
-    const newWindow = window.open(this.signedImportUrl)
-    if (!newWindow) {
-      throw new Error('Could not initialize window. Possibly prevented by popup blocker')
-    }
-    this.emit('launch', { batchId: this.batchId })
-    return newWindow
   }
 
   /**
@@ -97,10 +97,14 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * Get the URL necessary to load the importer and manipulate the data
    * @todo fix the fact that the JWT is sent in raw query params
    */
-  public get signedImportUrl(): string {
+  public signedImportUrl(options?: IUrlOptions): string {
     const MOUNT_URL = this.flatfile.config.mountUrl
-    const TOKEN = encodeURI(this.flatfile.token)
-    return `${MOUNT_URL}/e?jwt=${TOKEN}${this.batchId ? `&batchId=${this.batchId}` : ''}`
+    const qs = {
+      jwt: this.flatfile.token,
+      ...(this.batchId ? { batchId: this.batchId } : {}),
+      ...(options?.autoContinue ? { autoContinue: '1' } : {}),
+    }
+    return `${MOUNT_URL}/e?${toQs(qs)}`
   }
 }
 
@@ -132,4 +136,7 @@ export interface IImportMeta {
 
 export interface IChunkOptions {
   chunkSize?: number
+}
+export interface IUrlOptions {
+  autoContinue?: boolean
 }
