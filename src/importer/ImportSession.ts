@@ -17,6 +17,16 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
   }
 
   /**
+   * Close the active import session
+   * todo: unsubscribe
+   * todo: handle close tab
+   */
+  close(): this {
+    this.iframe.close()
+    return this
+  }
+
+  /**
    * Open the importer in an iframe (recommended)
    * todo: move launch event out of iframe helper
    */

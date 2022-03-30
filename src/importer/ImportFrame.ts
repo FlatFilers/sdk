@@ -26,7 +26,7 @@ export class ImportFrame {
     this.$iframe?.remove()
     this.batch.emit('close')
 
-    this.$close.removeEventListener('click', this.close)
+    this.$close?.removeEventListener('click', this.close)
   }
 
   private createIFrameElement(): HTMLIFrameElement {
