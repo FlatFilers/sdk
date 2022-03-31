@@ -1,5 +1,3 @@
-import { mock, restore } from 'simple-mock'
-
 import { Flatfile } from '../Flatfile'
 import { IteratorCallback } from '../lib/RecordChunkIterator'
 import { createChunk, makeRecords } from '../lib/test-helper'
@@ -24,14 +22,8 @@ describe('ImportSession', () => {
     })
 
     chunk = createChunk(session, makeRecords(0, 10), 10, 0, 10)
-    callbackFn = jest.fn((chunk, next) => {
-      next()
-    })
-    mock(session.flatfile.api, 'getRecordsByStatus').returnWith(chunk)
-  })
-
-  afterEach(() => {
-    restore()
+    callbackFn = jest.fn((chunk, next) => next())
+    jest.spyOn(session.flatfile.api, 'getRecordsByStatus').mockResolvedValue(chunk)
   })
 
   test('openInEmbeddedIframe', async () => {
@@ -71,18 +63,18 @@ describe('ImportSession', () => {
 
   describe('openInNewWindow', () => {
     test('triggers window.open', () => {
-      const openFn = mock(window, 'open').returnWith(true)
+      const spy = jest.spyOn(window, 'open').mockReturnValue(window)
       session.openInNewWindow()
-      expect(openFn.called).toBe(true)
+      expect(spy).toHaveBeenCalled()
     })
 
     test('throws error if window fails to open', () => {
-      mock(window, 'open').returnWith(null)
+      jest.spyOn(window, 'open').mockReturnValue(null)
       expect(() => session.openInNewWindow()).toThrow(Error)
     })
 
     test('emits launch event', () => {
-      mock(window, 'open').returnWith(true)
+      jest.spyOn(window, 'open').mockReturnValue(window)
       const spy = jest.spyOn(session, 'emit')
       session.openInNewWindow()
       expect(spy).toHaveBeenCalledWith('launch', { batchId: session.batchId })

@@ -1,4 +1,5 @@
 import { ClientError, GraphQLClient } from 'graphql-request'
+import { GraphQLError } from 'graphql-request/dist/types'
 import { SubscriptionClient } from 'graphql-subscriptions-client'
 
 import { FlatfileError } from '../errors/FlatfileError'
@@ -156,12 +157,7 @@ export class ApiService {
     return new RecordsChunk(
       session,
       res.rows.map((r) => new FlatfileRecord(r)),
-      {
-        status,
-        skip: skip,
-        limit: limit,
-        totalRecords: res.totalRows,
-      }
+      { status, skip, limit, totalRecords: res.totalRows }
     )
   }
 
@@ -218,7 +214,7 @@ export class ApiService {
     this.pubsub.request({ query, variables: { batchId } }).subscribe({
       next: ({ data, errors }: IBatchStatusSubscription) => {
         if (errors) {
-          return this.handleError(errors)
+          return this.handleGraphQLErrors(errors)
         }
         observe(data)
       },
@@ -230,13 +226,13 @@ export class ApiService {
     if (isError && (error instanceof ClientError || 'response' in error)) {
       const errors = error['response']['errors']
       const message = 'message' in error ? error.message : undefined
-      this.handleError(errors, message)
+      this.handleGraphQLErrors(errors, message)
     } else {
       throw new FlatfileError(isError ? error.message : 'Unknown network error')
     }
   }
 
-  public handleError(errors?: ClientError['response']['errors'], message?: string): void {
+  public handleGraphQLErrors(errors?: GraphQLError[], message?: string): void {
     if (errors?.length) {
       errors.forEach((e) => {
         if (e.message === 'Unauthorized') {

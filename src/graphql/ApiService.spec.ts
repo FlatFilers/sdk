@@ -1,5 +1,4 @@
 import nock from 'nock'
-import simple, { mock } from 'simple-mock'
 
 import { RequestError } from '../errors/RequestError'
 import { UnauthorizedError } from '../errors/UnauthorizedError'
@@ -26,13 +25,12 @@ describe('ApiService', () => {
     })
     chunk = createChunk(session, makeRecords(0, 10), 20, 0, 10)
 
-    mock(session.flatfile.api, 'getRecordsByStatus').returnWith(chunk)
+    jest.spyOn(session.flatfile.api, 'getRecordsByStatus').mockResolvedValue(chunk)
 
     api = new ApiService('foobar', 'http://localhost')
   })
 
   afterEach(() => {
-    simple.restore()
     jest.restoreAllMocks()
     nock.cleanAll()
   })
@@ -163,23 +161,25 @@ describe('ApiService', () => {
     })
   })
 
-  describe('handleError', () => {
+  describe('handleGraphQLErrors', () => {
     test('handles unauthorized specifically', async () => {
       const payload = { errors: true }
       mockGraphQLRequest('updateWorkspaceEnvironment', 200, payload)
-      await expect(() => api.handleError([{ message: 'Unauthorized' }])).toThrow(UnauthorizedError)
+      await expect(() => api.handleGraphQLErrors([{ message: 'Unauthorized' }])).toThrow(
+        UnauthorizedError
+      )
     })
     test('handles generic error', async () => {
       const payload = { errors: true }
       mockGraphQLRequest('updateWorkspaceEnvironment', 200, payload)
-      await expect(() => api.handleError([], 'Something is awry.')).toThrowError(
+      await expect(() => api.handleGraphQLErrors([], 'Something is awry.')).toThrowError(
         'Something is awry.'
       )
     })
     test('handles no error payload', async () => {
       const payload = { errors: true }
       mockGraphQLRequest('updateWorkspaceEnvironment', 200, payload)
-      await expect(() => api.handleError([])).toThrowError('Something went wrong')
+      await expect(() => api.handleGraphQLErrors([])).toThrowError('Something went wrong')
     })
   })
 
