@@ -1,3 +1,4 @@
+import { FlatfileError } from './errors/FlatfileError'
 import { GetFinalDatabaseViewResponse } from './graphql/queries/GET_FINAL_DATABASE_VIEW'
 
 export interface IFlatfileImporterConfig {
@@ -22,7 +23,7 @@ export interface IEvents {
     uploadId: string
   }
   error: {
-    error: Error
+    error: FlatfileError
   }
   launch: {
     batchId: string

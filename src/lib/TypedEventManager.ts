@@ -15,35 +15,45 @@ export class TypedEventManager<T> {
   public emit<K extends Diff<keyof T, AllowedNames<IEvents, undefined>>, Attr extends T[K]>(
     event: K,
     payload?: Attr | undefined
-  ): void {
+  ): this {
     this.em.emit(event, payload)
     this.proxies.forEach((p) => {
       p.emit(event, payload)
     })
+    return this
   }
 
-  public listen<K extends keyof T>(event: K, cb: (e: T[K]) => void): () => void {
+  public hasListener<K extends keyof T>(event: K): boolean {
+    return this.em.listenerCount(event) > 0
+  }
+
+  public listen<K extends keyof T>(event: K, cb: (e: T[K]) => void): () => this {
     this.on(event, cb)
     return () => {
       this.off(event, cb)
+      return this
     }
   }
 
-  public on<K extends keyof T>(event: K, cb: (e: T[K]) => void): void {
+  public on<K extends keyof T>(event: K, cb: (e: T[K]) => void): this {
     this.em.on(event, cb)
+    return this
   }
 
-  public off<K extends keyof T>(event: K, cb: (e: T[K]) => void): void {
+  public off<K extends keyof T>(event: K, cb: (e: T[K]) => void): this {
     this.em.off(event, cb)
+    return this
   }
 
-  public cleanup(): void {
+  public cleanup(): this {
     this.em.removeAllListeners()
+    return this
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public proxyTo(em1: TypedEventManager<any>): void {
+  public proxyTo(em1: TypedEventManager<any>): this {
     this.proxies.push(em1)
+    return this
   }
 }
 

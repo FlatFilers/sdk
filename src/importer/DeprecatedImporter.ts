@@ -1,6 +1,6 @@
 import { Flatfile } from '../Flatfile'
+import { TypedEventManager } from '../lib/TypedEventManager'
 import { IEvents } from '../types'
-import { TypedEventManager } from '../utils/TypedEventManager'
 import { ImportSession } from './ImportSession'
 
 export class DeprecatedImporter extends TypedEventManager<IEvents> {

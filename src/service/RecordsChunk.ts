@@ -1,4 +1,4 @@
-import { ImportSession } from '../../importer/ImportSession'
+import { ImportSession } from '../importer/ImportSession'
 import { ERecordStatus, FlatfileRecord } from './FlatfileRecord'
 
 export class RecordsChunk {

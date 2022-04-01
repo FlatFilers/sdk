@@ -39,6 +39,17 @@ export class RecordMutation {
   }
 
   /**
+   * Add an info message to the mutation
+   *
+   * @alias addInfo
+   * @param fields
+   * @param message
+   */
+  public addComment(fields: string | string[], message: string): this {
+    return this.addInfo(fields, message)
+  }
+
+  /**
    * Add an error message to the mutation
    *
    * @param fields

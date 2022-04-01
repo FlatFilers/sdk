@@ -1,10 +1,17 @@
 import { Flatfile } from '../Flatfile'
+import { IteratorCallback } from '../lib/RecordChunkIterator'
+import { createChunk, makeRecords } from '../lib/test-helper'
+import { RecordsChunk } from '../service/RecordsChunk'
 import { ImportFrame } from './ImportFrame'
 import { ImportSession } from './ImportSession'
+
+jest.mock('../graphql/ApiService')
 
 describe('ImportSession', () => {
   let flatfile: Flatfile
   let session: ImportSession
+  let chunk: RecordsChunk
+  let callbackFn: IteratorCallback
   beforeEach(async () => {
     flatfile = new Flatfile('asdf', { apiUrl: 'http://localhost:3000' })
     session = new ImportSession(flatfile, {
@@ -13,6 +20,10 @@ describe('ImportSession', () => {
       workbookId: 'hij',
       schemaIds: ['99'],
     })
+
+    chunk = createChunk(session, makeRecords(0, 10), 10, 0, 10)
+    callbackFn = jest.fn((chunk, next) => next())
+    jest.spyOn(session.flatfile.api, 'getRecordsByStatus').mockResolvedValue(chunk)
   })
 
   test('openInEmbeddedIframe', async () => {
@@ -34,7 +45,39 @@ describe('ImportSession', () => {
   })
 
   test('signedImportUrl', async () => {
-    expect(session.signedImportUrl).toContain('batchId=abc')
-    expect(session.signedImportUrl).toContain('jwt=asdf')
+    expect(session.signedImportUrl()).toContain('batchId=abc')
+    expect(session.signedImportUrl()).toContain('jwt=asdf')
+  })
+
+  test('processPendingRecords', async () => {
+    await expect(session.processPendingRecords(callbackFn)).resolves.toBe(undefined)
+  })
+
+  describe('updateEnvironment', () => {
+    test('calls api with payload', async () => {
+      const spy = jest.spyOn(session.flatfile.api, 'updateSessionEnv')
+      await session.updateEnvironment({ foo: 'bar' })
+      expect(spy).toHaveBeenCalledWith(session, { foo: 'bar' })
+    })
+  })
+
+  describe('openInNewWindow', () => {
+    test('triggers window.open', () => {
+      const spy = jest.spyOn(window, 'open').mockReturnValue(window)
+      session.openInNewWindow()
+      expect(spy).toHaveBeenCalled()
+    })
+
+    test('throws error if window fails to open', () => {
+      jest.spyOn(window, 'open').mockReturnValue(null)
+      expect(() => session.openInNewWindow()).toThrow(Error)
+    })
+
+    test('emits launch event', () => {
+      jest.spyOn(window, 'open').mockReturnValue(window)
+      const spy = jest.spyOn(session, 'emit')
+      session.openInNewWindow()
+      expect(spy).toHaveBeenCalledWith('launch', { batchId: session.batchId })
+    })
   })
 })

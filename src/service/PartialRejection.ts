@@ -1,6 +1,6 @@
-import { RequestError } from '../../errors/RequestError'
-import { ImportSession } from '../../importer/ImportSession'
-import { UPDATE_RECORDS } from '../queries/UPDATE_RECORDS'
+import { RequestError } from '../errors/RequestError'
+import { UPDATE_RECORDS } from '../graphql/queries/UPDATE_RECORDS'
+import { ImportSession } from '../importer/ImportSession'
 import { ClientResponse } from './ClientResponse'
 import { RecordError } from './RecordError'
 

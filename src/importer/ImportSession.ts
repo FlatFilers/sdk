@@ -1,10 +1,9 @@
 import { Flatfile } from '../Flatfile'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
-import { ERecordStatus, TPrimitive } from '../graphql/service/FlatfileRecord'
-import { PartialRejection } from '../graphql/service/PartialRejection'
-import { RecordsChunk } from '../graphql/service/RecordsChunk'
-import { useOrInit } from '../utils/general'
-import { TypedEventManager } from '../utils/TypedEventManager'
+import { toQs, useOrInit } from '../lib/general'
+import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
+import { TypedEventManager } from '../lib/TypedEventManager'
+import { TPrimitive } from '../service/FlatfileRecord'
 import { ImportFrame } from './ImportFrame'
 
 export class ImportSession extends TypedEventManager<IBatchEvents> {
@@ -13,6 +12,7 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
   constructor(public flatfile: Flatfile, public meta: IImportMeta) {
     super()
     this.batchId = meta.batchId
+    setTimeout(() => this.emit('init', meta))
     this.subscribeToBatchStatus() // todo this shouldn't happen here
   }
 
@@ -20,8 +20,20 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * Open the importer in an iframe (recommended)
    * todo: move launch event out of iframe helper
    */
-  public openInEmbeddedIframe(): ImportFrame {
-    return this.iframe.open()
+  public openInEmbeddedIframe(options?: IUrlOptions): ImportFrame {
+    return this.iframe.open(options)
+  }
+
+  /**
+   * Open the import in a new window and listen for data
+   */
+  public openInNewWindow(options?: IUrlOptions): Window {
+    const newWindow = window.open(this.signedImportUrl(options))
+    if (!newWindow) {
+      throw new Error('Could not initialize window. Possibly prevented by popup blocker')
+    }
+    this.emit('launch', { batchId: this.batchId })
+    return newWindow
   }
 
   /**
@@ -35,8 +47,8 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * Update the environment with unsigned values
    * @param env
    */
-  public async updateEnvironment(env: Record<string, TPrimitive>): Promise<void> {
-    await this.flatfile.api.updateWorkspaceEnv(this, env)
+  public async updateEnvironment(env: Record<string, TPrimitive>): Promise<{ success: boolean }> {
+    return this.flatfile.api.updateSessionEnv(this, env)
   }
 
   /**
@@ -44,57 +56,11 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * @param cb
    * @param options
    */
-  public async processPendingRecords(
-    cb: (chunk: RecordsChunk, next: (res?: PartialRejection) => void) => Promise<void> | void,
-    options?: { chunkSize?: number }
-  ): Promise<this> {
+  public async processPendingRecords(cb: IteratorCallback, options?: IChunkOptions): Promise<void> {
     // temp hack because workbook ID is not available during init yet
     this.meta.workbookId = await this.flatfile.api.getWorkbookId(this.batchId)
-    return new Promise(async (resolve, reject) => {
-      const api = this.flatfile.api
-      let chunk = await api.getRecordsByStatus(this, ERecordStatus.REVIEW, 0, options?.chunkSize)
-      let approveIds: number[] = []
-      const next = async (err?: PartialRejection) => {
-        approveIds = approveIds.concat(chunk.recordIds)
-        if (err) {
-          if ('executeResponse' in err) {
-            approveIds = approveIds.filter((recordId) => !err.recordIds.includes(recordId))
-            await err.executeResponse(this)
-          } else {
-            console.error(err)
-            reject(
-              'Invalid Error payload interrupted execution. Must be instance of ClientResponse. ' +
-                'View console error to see skipped error.'
-            )
-          }
-        }
-        const newChunk = await chunk.getNextChunk()
 
-        if (newChunk) {
-          chunk = newChunk
-          cb(chunk, next)
-        } else {
-          if (approveIds.length > 0) {
-            await api.updateRecordStatus(this, approveIds, ERecordStatus.ACCEPTED)
-          }
-          resolve(this)
-        }
-      }
-
-      cb(chunk, next)
-    })
-  }
-
-  /**
-   * Open the import in a new window and listen for data
-   */
-  public openInNewWindow(): Window {
-    const newWindow = window.open(this.signedImportUrl)
-    if (!newWindow) {
-      throw new Error('Could not initialize window. Possibly prevented by popup blocker')
-    }
-    this.emit('launch', { batchId: this.batchId })
-    return newWindow
+    await new RecordChunkIterator(this, cb, { chunkSize: options?.chunkSize || 100 }).process()
   }
 
   /**
@@ -131,10 +97,14 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * Get the URL necessary to load the importer and manipulate the data
    * @todo fix the fact that the JWT is sent in raw query params
    */
-  public get signedImportUrl(): string {
+  public signedImportUrl(options?: IUrlOptions): string {
     const MOUNT_URL = this.flatfile.config.mountUrl
-    const TOKEN = encodeURI(this.flatfile.token)
-    return `${MOUNT_URL}/e?jwt=${TOKEN}${this.batchId ? `&batchId=${this.batchId}` : ''}`
+    const qs = {
+      jwt: this.flatfile.token,
+      ...(this.batchId ? { batchId: this.batchId } : {}),
+      ...(options?.autoContinue ? { autoContinue: '1' } : {}),
+    }
+    return `${MOUNT_URL}/e?${toQs(qs)}`
   }
 }
 
@@ -160,6 +130,13 @@ export interface IBatchEvents {
 export interface IImportMeta {
   batchId: string
   workspaceId: string
-  workbookId: string
+  workbookId?: string
   schemaIds: string[]
+}
+
+export interface IChunkOptions {
+  chunkSize?: number
+}
+export interface IUrlOptions {
+  autoContinue?: boolean
 }

@@ -10,3 +10,13 @@ export function useOrInit<T>(current: T | undefined, setter: () => T): T {
     return setter()
   }
 }
+
+/**
+ * Convert an object to a query string
+ * @param obj
+ */
+export function toQs(obj: Record<string, string>): string {
+  return Object.keys(obj)
+    .map((k) => `${k}=${encodeURI(obj[k])}`)
+    .join('&')
+}

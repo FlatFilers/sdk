@@ -1,15 +1,15 @@
-import { $, addClass, removeClass } from '../utils/html'
-import { insertGlobalCSS } from '../utils/insertGlobalCSS'
-import { ImportSession } from './ImportSession'
+import { $, addClass, removeClass } from '../lib/html'
+import { insertGlobalCSS } from '../lib/insertGlobalCSS'
+import { ImportSession, IUrlOptions } from './ImportSession'
 
 export class ImportFrame {
   private $iframe?: HTMLIFrameElement
   constructor(private batch: ImportSession) {}
 
-  public open(): this {
+  public open(options?: IUrlOptions): this {
     this.initializeFlatfileWrapper()
-
-    const iFrameEl = this.createIFrameElement()
+    const url = this.batch.signedImportUrl(options)
+    const iFrameEl = this.createIFrameElement(url)
     this.$container.append(iFrameEl)
     addClass(document.body, 'flatfile-active')
     this.batch.emit('launch')
@@ -29,9 +29,9 @@ export class ImportFrame {
     this.$close.removeEventListener('click', this.close)
   }
 
-  private createIFrameElement(): HTMLIFrameElement {
+  private createIFrameElement(url: string): HTMLIFrameElement {
     const iframeElement = document.createElement('iframe')
-    iframeElement.src = this.batch.signedImportUrl
+    iframeElement.src = url
     return (this.$iframe = iframeElement)
   }
 
