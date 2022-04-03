@@ -11,6 +11,6 @@ export function flatfileImporter(
   token: string,
   config: IFlatfileImporterConfig = {}
 ): DeprecatedImporter {
-  const ff = new Flatfile(token, config)
+  const ff = new Flatfile({ ...config, token })
   return new DeprecatedImporter(ff)
 }

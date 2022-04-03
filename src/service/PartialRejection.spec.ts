@@ -1,5 +1,5 @@
 import { RequestError } from '../errors/RequestError'
-import { Flatfile } from '../Flatfile'
+import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
 import { mockGraphQLRequest } from '../lib/test-helper'
 import { FlatfileRecord } from './FlatfileRecord'
@@ -41,11 +41,11 @@ describe('PartialRejection', () => {
   })
 
   describe('executeResponse', () => {
-    let flatfile: Flatfile
+    let api: ApiService
     let session: ImportSession
     beforeEach(async () => {
-      flatfile = new Flatfile('asdf', { apiUrl: 'http://localhost:3000' })
-      session = new ImportSession(flatfile, {
+      api = new ApiService('token', 'http://localhost:3000')
+      session = new ImportSession(api, {
         batchId: 'abc',
         workspaceId: 'def',
         workbookId: 'hij',

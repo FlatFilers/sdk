@@ -4,11 +4,15 @@ import { GetFinalDatabaseViewResponse } from './graphql/queries/GET_FINAL_DATABA
 export interface IFlatfileImporterConfig {
   mountUrl?: string
   apiUrl?: string
+  token?: JsonWebToken
+  onAuth?: () => Promise<JsonWebToken>
 }
 
 export interface IFlatfileConfig {
   mountUrl: string
   apiUrl: string
+  token?: JsonWebToken
+  onAuth?: () => Promise<JsonWebToken>
 }
 
 export interface IEvents {

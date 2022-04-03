@@ -67,7 +67,8 @@ export function Sandbox(): any {
       privateKey
     )
     // TOKEN has to be generated per user session on the server-side
-    const flatfile = new Flatfile(token, {
+    const flatfile = new Flatfile({
+      token,
       mountUrl,
       apiUrl,
     })

@@ -25,7 +25,7 @@ export class RecordsChunk {
     if (nextSkip >= this.meta.totalRecords) {
       return null
     }
-    return this.session.flatfile.api.getRecordsByStatus(
+    return this.session.api.getRecordsByStatus(
       this.session,
       this.meta.status,
       nextSkip,

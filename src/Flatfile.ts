@@ -1,4 +1,5 @@
 import { FlatfileError } from './errors/FlatfileError'
+import { UnauthorizedError } from './errors/UnauthorizedError'
 import { ApiService } from './graphql/ApiService'
 import { IChunkOptions, ImportSession } from './importer/ImportSession'
 import { sign } from './lib/jwt'
@@ -8,26 +9,27 @@ import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebTo
 
 export class Flatfile extends TypedEventManager<IEvents> {
   /**
-   * Reference to a pre-authenticated instance of the API service
-   */
-  public readonly api: ApiService
-
-  /**
    * The configuration of this instance of Flatfile with defaults merged in
    */
   public readonly config: IFlatfileConfig
 
-  /**
-   * JWT for securing user data while interacting with Flatfile
-   */
-  public readonly token: JsonWebToken
-
-  constructor(token: JsonWebToken, config: IFlatfileImporterConfig = {}) {
+  constructor(config: IFlatfileImporterConfig = {}) {
     super()
-
     this.config = this.mergeConfigDefaults(config)
-    this.token = token
-    this.api = new ApiService(token, this.config.apiUrl)
+  }
+
+  public async token(): Promise<JsonWebToken> {
+    if (this.config.token) return this.config.token
+    if (this.config.onAuth) return this.config.onAuth()
+    else throw new UnauthorizedError('No token or onAuth callback was provided')
+  }
+
+  /**
+   * Creates a new pre-authenticated instance of the API service
+   */
+  private async api(): Promise<ApiService> {
+    const token = await this.token()
+    return new ApiService(token, this.config.apiUrl)
   }
 
   /**
@@ -35,10 +37,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
     try {
-      const importMeta = await this.api.init()
+      const api = await this.api()
+      const importMeta = await api.init()
+      const { mountUrl } = this.config
 
       this.emit('launch', { batchId: importMeta.batchId }) // todo - should this happen here
-      const session = new ImportSession(this, importMeta)
+      const session = new ImportSession(api, { ...importMeta, mountUrl })
       session.emit('init', importMeta)
       if (options?.open === 'iframe') {
         session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
