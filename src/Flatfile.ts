@@ -13,6 +13,11 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public readonly config: IFlatfileConfig
 
+  /**
+   * Reference to a pre-authenticated instance of the API service
+   */
+  public api?: ApiService
+
   constructor(config: IFlatfileImporterConfig = {}) {
     super()
     this.config = this.mergeConfigDefaults(config)
@@ -27,9 +32,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
   /**
    * Creates a new pre-authenticated instance of the API service
    */
-  private async api(): Promise<ApiService> {
-    const token = await this.token()
-    return new ApiService(token, this.config.apiUrl)
+  private async initApi(): Promise<ApiService> {
+    if (!this.api) {
+      const token = await this.token()
+      this.api = new ApiService(token, this.config.apiUrl)
+    }
+    return this.api
   }
 
   /**
@@ -37,7 +45,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
     try {
-      const api = await this.api()
+      const api = await this.initApi()
       const importMeta = await api.init()
       const { mountUrl } = this.config
 
