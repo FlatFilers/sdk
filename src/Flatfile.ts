@@ -1,5 +1,5 @@
 import { FlatfileError } from './errors/FlatfileError'
-import { UnauthorizedError } from './errors/UnauthorizedError'
+import { ImplementationError } from './errors/ImplementationError'
 import { ApiService } from './graphql/ApiService'
 import { IChunkOptions, ImportSession } from './importer/ImportSession'
 import { sign } from './lib/jwt'
@@ -26,7 +26,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
   public async token(): Promise<JsonWebToken> {
     if (this.config.token) return this.config.token
     if (this.config.onAuth) return this.config.onAuth()
-    else throw new UnauthorizedError('No token or onAuth callback was provided')
+    else throw new ImplementationError('No token or onAuth callback was provided')
   }
 
   /**
