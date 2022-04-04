@@ -5,14 +5,14 @@ export interface IFlatfileImporterConfig {
   mountUrl?: string
   apiUrl?: string
   token?: JsonWebToken
-  onAuth?: () => Promise<JsonWebToken>
+  onAuth?: () => JsonWebToken | Promise<JsonWebToken>
 }
 
 export interface IFlatfileConfig {
   mountUrl: string
   apiUrl: string
   token?: JsonWebToken
-  onAuth?: () => Promise<JsonWebToken>
+  onAuth?: () => JsonWebToken | Promise<JsonWebToken>
 }
 
 export interface IEvents {
