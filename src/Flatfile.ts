@@ -18,9 +18,16 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public api?: ApiService
 
-  constructor(config: IFlatfileImporterConfig = {}) {
+  constructor(config: IFlatfileImporterConfig)
+  constructor(token: string, config: IFlatfileImporterConfig)
+  constructor(
+    tokenOrConfig: string | IFlatfileImporterConfig,
+    config: IFlatfileImporterConfig = {}
+  ) {
     super()
-    this.config = this.mergeConfigDefaults(config)
+    const configWithToken =
+      typeof tokenOrConfig === 'object' ? tokenOrConfig : { ...config, token: tokenOrConfig }
+    this.config = this.mergeConfigDefaults(configWithToken)
   }
 
   public async token(): Promise<JsonWebToken> {
