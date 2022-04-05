@@ -2,32 +2,23 @@ import nock from 'nock'
 
 import { RequestError } from '../errors/RequestError'
 import { UnauthorizedError } from '../errors/UnauthorizedError'
-import { Flatfile } from '../Flatfile'
 import { ImportSession } from '../importer/ImportSession'
-import { createChunk, makeRecords, mockGraphQLRequest } from '../lib/test-helper'
+import { mockGraphQLRequest } from '../lib/test-helper'
 import { ERecordStatus } from '../service/FlatfileRecord'
-import { RecordsChunk } from '../service/RecordsChunk'
 import { ApiService } from './ApiService'
 
 describe('ApiService', () => {
-  let flatfile: Flatfile
   let session: ImportSession
-  let chunk: RecordsChunk
   let api: ApiService
 
   beforeEach(async () => {
-    flatfile = new Flatfile('asdf', { apiUrl: 'http://localhost:3000' })
-    session = new ImportSession(flatfile, {
+    api = new ApiService('token', 'http://localhost')
+    session = new ImportSession(api, {
       batchId: 'abc',
       workspaceId: 'def',
       workbookId: 'hij',
       schemaIds: ['99'],
     })
-    chunk = createChunk(session, makeRecords(0, 10), 20, 0, 10)
-
-    jest.spyOn(session.flatfile.api, 'getRecordsByStatus').mockResolvedValue(chunk)
-
-    api = new ApiService('foobar', 'http://localhost')
   })
 
   afterEach(() => {

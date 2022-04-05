@@ -1,4 +1,4 @@
-import { Flatfile } from '../Flatfile'
+import { ApiService } from '../graphql/ApiService'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { toQs, useOrInit } from '../lib/general'
 import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
@@ -9,7 +9,7 @@ import { ImportFrame } from './ImportFrame'
 export class ImportSession extends TypedEventManager<IBatchEvents> {
   private $iframe?: ImportFrame
   public batchId: string
-  constructor(public flatfile: Flatfile, public meta: IImportMeta) {
+  constructor(public api: ApiService, public meta: IImportMeta) {
     super()
     this.batchId = meta.batchId
     setTimeout(() => this.emit('init', meta))
@@ -48,7 +48,7 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * @param env
    */
   public async updateEnvironment(env: Record<string, TPrimitive>): Promise<{ success: boolean }> {
-    return this.flatfile.api.updateSessionEnv(this, env)
+    return this.api.updateSessionEnv(this, env)
   }
 
   /**
@@ -58,7 +58,7 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    */
   public async processPendingRecords(cb: IteratorCallback, options?: IChunkOptions): Promise<void> {
     // temp hack because workbook ID is not available during init yet
-    this.meta.workbookId = await this.flatfile.api.getWorkbookId(this.batchId)
+    this.meta.workbookId = await this.api.getWorkbookId(this.meta.batchId)
 
     await new RecordChunkIterator(this, cb, { chunkSize: options?.chunkSize || 100 }).process()
   }
@@ -67,28 +67,22 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * @todo make this less lines and more readable
    */
   private subscribeToBatchStatus(): void {
-    this.flatfile.api.subscribeBatchStatusUpdated(this.batchId, async (data) => {
-      if (data?.batchStatusUpdated?.id) {
-        switch (data.batchStatusUpdated.status) {
-          case 'submitted': {
-            this.emit('submit', this)
-            this.emit('complete', {
-              batchId: this.batchId,
-              data: (sample = false) => this.flatfile.api.getAllRecords(this.batchId, 0, sample),
-            })
-            break
-          }
-          // todo handle this better
-          case 'cancelled': {
-            const apiBatch = await this.flatfile.api.init()
-            this.emit('init', apiBatch)
-            this.batchId = apiBatch.batchId
-            this.meta = apiBatch
-            // todo unsubscribe from old batch
-            this.subscribeToBatchStatus()
-            break
-          }
-        }
+    return this.api.subscribeBatchStatusUpdated(this.meta.batchId, async (status) => {
+      if (status === 'submitted') {
+        this.emit('submit', this)
+        this.emit('complete', {
+          batchId: this.batchId,
+          data: (sample = false) => this.api.getAllRecords(this.meta.batchId, 0, sample),
+        })
+      }
+
+      if (status === 'cancelled') {
+        const apiBatch = await this.api.init()
+        this.emit('init', apiBatch)
+        this.batchId = apiBatch.batchId
+        this.meta = apiBatch
+        // todo unsubscribe from old batch
+        this.subscribeToBatchStatus()
       }
     })
   }
@@ -98,9 +92,9 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * @todo fix the fact that the JWT is sent in raw query params
    */
   public signedImportUrl(options?: IUrlOptions): string {
-    const MOUNT_URL = this.flatfile.config.mountUrl
+    const MOUNT_URL = this.meta.mountUrl
     const qs = {
-      jwt: this.flatfile.token,
+      jwt: this.api.token,
       ...(this.batchId ? { batchId: this.batchId } : {}),
       ...(options?.autoContinue ? { autoContinue: '1' } : {}),
     }
@@ -129,6 +123,7 @@ export interface IBatchEvents {
 
 export interface IImportMeta {
   batchId: string
+  mountUrl?: string
   workspaceId: string
   workbookId?: string
   schemaIds: string[]

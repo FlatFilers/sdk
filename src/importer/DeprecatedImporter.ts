@@ -41,7 +41,7 @@ export class DeprecatedImporter extends TypedEventManager<IEvents> {
       },
       privateKey
     )
-    this.ff = new Flatfile(token, this.ff.config)
+    this.ff = new Flatfile({ ...this.ff.config, token })
   }
 
   /**

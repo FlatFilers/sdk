@@ -1,4 +1,5 @@
 import { FlatfileError } from './errors/FlatfileError'
+import { ImplementationError } from './errors/ImplementationError'
 import { ApiService } from './graphql/ApiService'
 import { IChunkOptions, ImportSession } from './importer/ImportSession'
 import { sign } from './lib/jwt'
@@ -8,26 +9,42 @@ import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebTo
 
 export class Flatfile extends TypedEventManager<IEvents> {
   /**
-   * Reference to a pre-authenticated instance of the API service
-   */
-  public readonly api: ApiService
-
-  /**
    * The configuration of this instance of Flatfile with defaults merged in
    */
   public readonly config: IFlatfileConfig
 
   /**
-   * JWT for securing user data while interacting with Flatfile
+   * Reference to a pre-authenticated instance of the API service
    */
-  public readonly token: JsonWebToken
+  public api?: ApiService
 
-  constructor(token: JsonWebToken, config: IFlatfileImporterConfig = {}) {
+  constructor(config: IFlatfileImporterConfig)
+  constructor(token: string, config: IFlatfileImporterConfig)
+  constructor(
+    tokenOrConfig: string | IFlatfileImporterConfig,
+    config: IFlatfileImporterConfig = {}
+  ) {
     super()
+    const configWithToken =
+      typeof tokenOrConfig === 'object' ? tokenOrConfig : { ...config, token: tokenOrConfig }
+    this.config = this.mergeConfigDefaults(configWithToken)
+  }
 
-    this.config = this.mergeConfigDefaults(config)
-    this.token = token
-    this.api = new ApiService(token, this.config.apiUrl)
+  public async token(): Promise<JsonWebToken> {
+    if (this.config.token) return this.config.token
+    if (this.config.onAuth) return this.config.onAuth()
+    else throw new ImplementationError('No token or onAuth callback was provided')
+  }
+
+  /**
+   * Creates a new pre-authenticated instance of the API service
+   */
+  private async initApi(): Promise<ApiService> {
+    if (!this.api) {
+      const token = await this.token()
+      this.api = new ApiService(token, this.config.apiUrl)
+    }
+    return this.api
   }
 
   /**
@@ -35,10 +52,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
     try {
-      const importMeta = await this.api.init()
+      const api = await this.initApi()
+      const importMeta = await api.init()
+      const { mountUrl } = this.config
 
       this.emit('launch', { batchId: importMeta.batchId }) // todo - should this happen here
-      const session = new ImportSession(this, importMeta)
+      const session = new ImportSession(api, { ...importMeta, mountUrl })
       session.emit('init', importMeta)
       if (options?.open === 'iframe') {
         session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })

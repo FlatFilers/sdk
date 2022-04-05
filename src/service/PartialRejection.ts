@@ -33,7 +33,8 @@ export class PartialRejection extends ClientResponse {
    * @param session
    */
   async executeResponse(session: ImportSession): Promise<this> {
-    const client = session.flatfile.api.client
+    // todo: we should move this to ApiService
+    const client = session.api.client
     await client
       .request(UPDATE_RECORDS, {
         batchId: session.batchId,

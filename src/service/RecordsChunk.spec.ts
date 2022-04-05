@@ -1,4 +1,4 @@
-import { Flatfile } from '../Flatfile'
+import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
 import { createChunk, mockGraphQLRequest } from '../lib/test-helper'
 import { FlatfileRecord } from './FlatfileRecord'
@@ -6,7 +6,7 @@ import { BASE_RECORD } from './FlatfileRecord.spec'
 import { RecordsChunk } from './RecordsChunk'
 
 describe('RecordsChunk', function () {
-  let flatfile: Flatfile
+  let api: ApiService
   let session: ImportSession
   let chunk: RecordsChunk
   let records: FlatfileRecord[]
@@ -14,8 +14,8 @@ describe('RecordsChunk', function () {
   beforeEach(async () => {
     records = [1, 2, 3, 4, 5].map((id) => new FlatfileRecord({ ...BASE_RECORD, id }))
 
-    flatfile = new Flatfile('asdf', { apiUrl: 'http://localhost:3000' })
-    session = new ImportSession(flatfile, {
+    api = new ApiService('token', 'http://localhost:3000')
+    session = new ImportSession(api, {
       batchId: 'abc',
       workspaceId: 'def',
       workbookId: 'hij',

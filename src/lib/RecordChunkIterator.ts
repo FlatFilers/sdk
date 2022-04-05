@@ -35,7 +35,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
   ) {
     super()
     this.callback = callback
-    this.api = session.flatfile.api
+    this.api = session.api
   }
 
   /**

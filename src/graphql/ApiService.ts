@@ -206,17 +206,13 @@ export class ApiService {
    * @param observe
    */
   /* istanbul ignore next */
-  public subscribeBatchStatusUpdated(
-    batchId: string,
-    observe: (d: BatchStatusUpdatedResponse) => void
-  ): void {
+  public subscribeBatchStatusUpdated(batchId: string, observe: (status: string) => void): void {
     const query = BATCH_STATUS_UPDATED
     this.pubsub.request({ query, variables: { batchId } }).subscribe({
       next: ({ data, errors }: IBatchStatusSubscription) => {
-        if (errors) {
-          return this.handleGraphQLErrors(errors)
-        }
-        observe(data)
+        const batch = data?.batchStatusUpdated
+        if (errors) this.handleGraphQLErrors(errors)
+        else if (batch?.id) observe(batch?.status)
       },
     })
   }
