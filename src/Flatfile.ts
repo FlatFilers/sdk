@@ -5,6 +5,7 @@ import { IChunkOptions, ImportSession } from './importer/ImportSession'
 import { sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
+import { UiService } from './service/UiService'
 import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebToken } from './types'
 
 export class Flatfile extends TypedEventManager<IEvents> {
@@ -18,6 +19,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public api?: ApiService
 
+  public ui?: UiService
+
   constructor(config: IFlatfileImporterConfig)
   constructor(token: string, config: IFlatfileImporterConfig)
   constructor(
@@ -28,12 +31,15 @@ export class Flatfile extends TypedEventManager<IEvents> {
     const configWithToken =
       typeof tokenOrConfig === 'object' ? tokenOrConfig : { ...config, token: tokenOrConfig }
     this.config = this.mergeConfigDefaults(configWithToken)
+    this.ui = new UiService()
   }
 
   public async token(): Promise<JsonWebToken> {
     if (this.config.token) return this.config.token
-    if (this.config.onAuth) return this.config.onAuth()
-    else throw new ImplementationError('No token or onAuth callback was provided')
+    if (this.config.onAuth) {
+      this.config.token = await this.config.onAuth()
+      return this.config.token
+    } else throw new ImplementationError('No token or onAuth callback was provided')
   }
 
   /**
@@ -52,6 +58,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
     try {
+      this.ui?.showLoader()
       const api = await this.initApi()
       const importMeta = await api.init()
       const { mountUrl } = this.config

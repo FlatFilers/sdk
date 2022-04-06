@@ -1,20 +1,24 @@
-import { $, addClass, removeClass } from '../lib/html'
-import { insertGlobalCSS } from '../lib/insertGlobalCSS'
+import { addClass, removeClass } from '../lib/html'
+import { UiService } from '../service/UiService'
 import { ImportSession, IUrlOptions } from './ImportSession'
 
 export class ImportFrame {
+  public ui: UiService
   private $iframe?: HTMLIFrameElement
-  constructor(private batch: ImportSession) {}
+  constructor(private session: ImportSession) {
+    this.ui = new UiService()
+    this.close = this.close.bind(this)
+  }
 
   public open(options?: IUrlOptions): this {
-    this.initializeFlatfileWrapper()
-    const url = this.batch.signedImportUrl(options)
+    this.ui.initializeFlatfileWrapper()
+    const url = this.session.signedImportUrl(options)
     const iFrameEl = this.createIFrameElement(url)
-    this.$container.append(iFrameEl)
+    this.ui.$container.append(iFrameEl)
     addClass(document.body, 'flatfile-active')
-    this.batch.emit('launch')
+    this.session.emit('launch')
 
-    this.$close.addEventListener('click', this.close)
+    this.ui.$close.addEventListener('click', this.close)
     return this
   }
 
@@ -24,34 +28,14 @@ export class ImportFrame {
   public close(): void {
     removeClass(document.body, 'flatfile-active')
     this.$iframe?.remove()
-    this.batch.emit('close')
+    this.session.emit('close')
 
-    this.$close.removeEventListener('click', this.close)
+    this.ui.$close.removeEventListener('click', this.close)
   }
 
   private createIFrameElement(url: string): HTMLIFrameElement {
     const iframeElement = document.createElement('iframe')
     iframeElement.src = url
     return (this.$iframe = iframeElement)
-  }
-
-  private initializeFlatfileWrapper(): void {
-    if (!this.$container) {
-      insertGlobalCSS()
-      document.body.insertAdjacentHTML(
-        'beforeend',
-        `<div class="flatfile-sdk">
-                 <button class="flatfile-close"></button>
-               </div>`
-      )
-    }
-  }
-
-  private get $close(): HTMLButtonElement {
-    return $<HTMLButtonElement>('.flatfile-close')
-  }
-
-  private get $container(): HTMLDivElement {
-    return $<HTMLDivElement>('.flatfile-sdk')
   }
 }
