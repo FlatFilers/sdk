@@ -4,6 +4,14 @@ import { insertGlobalCSS } from '../lib/insertGlobalCSS'
 export class UiService {
   private $loader?: HTMLDivElement
 
+  public get $close(): HTMLButtonElement {
+    return $<HTMLButtonElement>('.flatfile-close')
+  }
+
+  public get $container(): HTMLDivElement {
+    return $<HTMLDivElement>('.flatfile-sdk')
+  }
+
   public initializeFlatfileWrapper(): void {
     if (!this.$container) {
       insertGlobalCSS()
@@ -16,17 +24,10 @@ export class UiService {
     }
   }
 
-  public get $close(): HTMLButtonElement {
-    return $<HTMLButtonElement>('.flatfile-close')
-  }
-
-  public get $container(): HTMLDivElement {
-    return $<HTMLDivElement>('.flatfile-sdk')
-  }
-
   public showLoader(): void {
     this.initializeFlatfileWrapper()
     const loaderContainer = document.createElement('div')
+    loaderContainer.setAttribute('id', 'flatfile-loader')
     loaderContainer.append(this.spinner())
     loaderContainer.append(document.createTextNode('Authenticating...'))
     addClass(loaderContainer, 'flatfile-loader')

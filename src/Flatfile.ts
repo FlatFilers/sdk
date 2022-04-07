@@ -66,11 +66,18 @@ export class Flatfile extends TypedEventManager<IEvents> {
       this.emit('launch', { batchId: importMeta.batchId }) // todo - should this happen here
       const session = new ImportSession(api, { ...importMeta, mountUrl })
       session.emit('init', importMeta)
+
       if (options?.open === 'iframe') {
-        session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
+        session.openInEmbeddedIframe({
+          autoContinue: options?.autoContinue,
+          onLoad: () => this.ui?.hideLoader(),
+        })
       }
       if (options?.open === 'window') {
-        session.openInNewWindow({ autoContinue: options?.autoContinue })
+        session.openInNewWindow({
+          autoContinue: options?.autoContinue,
+          onLoad: () => this.ui?.hideLoader(),
+        })
       }
       return session
     } catch (e) {

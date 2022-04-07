@@ -31,7 +31,6 @@ const GLOBAL_CSS = `
     font-size: 20px;
   }
   .flatfile-sdk iframe {
-    z-index: 15;
     width: calc(100% - 80px);
     height: calc(100% - 80px);
     position: absolute;
