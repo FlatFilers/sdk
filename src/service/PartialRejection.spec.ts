@@ -1,4 +1,5 @@
 import { RequestError } from '../errors/RequestError'
+import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
 import { mockGraphQLRequest } from '../lib/test-helper'
@@ -6,7 +7,6 @@ import { FlatfileRecord } from './FlatfileRecord'
 import { BASE_RECORD } from './FlatfileRecord.spec'
 import { PartialRejection } from './PartialRejection'
 import { RecordError } from './RecordError'
-import { UiService } from './UiService'
 
 describe('PartialRejection', () => {
   let records: FlatfileRecord[]
@@ -42,12 +42,13 @@ describe('PartialRejection', () => {
   })
 
   describe('executeResponse', () => {
-    let api: ApiService
     let session: ImportSession
+    let flatfile: Flatfile
+
     beforeEach(async () => {
-      const ui = new UiService()
-      api = new ApiService('token', 'http://localhost:3000')
-      session = new ImportSession(api, ui, {
+      flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
+      flatfile.api = new ApiService('token', 'http://localhost:3000')
+      session = new ImportSession(flatfile, {
         batchId: 'abc',
         workspaceId: 'def',
         workbookId: 'hij',

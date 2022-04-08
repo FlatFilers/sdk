@@ -1,3 +1,4 @@
+import { Flatfile } from 'Flatfile'
 import { UiService } from 'service/UiService'
 
 import { ApiService } from '../graphql/ApiService'
@@ -9,12 +10,16 @@ import { TPrimitive } from '../service/FlatfileRecord'
 import { ImportFrame } from './ImportFrame'
 
 export class ImportSession extends TypedEventManager<IBatchEvents> {
-  private $iframe?: ImportFrame
+  public ui: UiService
+  public api: ApiService
   public batchId: string
+  private $iframe?: ImportFrame
 
-  constructor(public api: ApiService, public ui: UiService, public meta: IImportMeta) {
+  constructor(public flatfile: Flatfile, public meta: IImportMeta) {
     super()
     this.batchId = meta.batchId
+    this.ui = this.flatfile.ui
+    this.api = this.flatfile?.api as ApiService
     setTimeout(() => this.emit('init', meta))
     this.subscribeToBatchStatus() // todo: this shouldn't happen here
   }

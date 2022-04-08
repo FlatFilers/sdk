@@ -1,22 +1,23 @@
+import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
 import { IteratorCallback } from '../lib/RecordChunkIterator'
 import { createChunk, makeRecords } from '../lib/test-helper'
 import { RecordsChunk } from '../service/RecordsChunk'
-import { UiService } from '../service/UiService'
 import { ImportFrame } from './ImportFrame'
 import { ImportSession } from './ImportSession'
 
 jest.mock('../graphql/ApiService')
 
 describe('ImportSession', () => {
-  let api: ApiService
   let session: ImportSession
   let chunk: RecordsChunk
   let callbackFn: IteratorCallback
+  let flatfile: Flatfile
+
   beforeEach(async () => {
-    const ui = new UiService()
-    api = new ApiService('token', 'http://localhost:3000')
-    session = new ImportSession(api, ui, {
+    flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
+    flatfile.api = new ApiService('toke', 'http://localhost:3000')
+    session = new ImportSession(flatfile, {
       mountUrl: 'url',
       batchId: 'abc',
       workspaceId: 'def',
@@ -26,8 +27,8 @@ describe('ImportSession', () => {
 
     chunk = createChunk(session, makeRecords(0, 10), 10, 0, 10)
     callbackFn = jest.fn((chunk, next) => next())
-    jest.spyOn(api, 'getRecordsByStatus').mockResolvedValue(chunk)
-    Object.defineProperty(api, 'token', { get: () => 'token' })
+    jest.spyOn(flatfile.api, 'getRecordsByStatus').mockResolvedValue(chunk)
+    Object.defineProperty(flatfile.api, 'token', { get: () => 'token' })
   })
 
   test('openInEmbeddedIframe', async () => {
@@ -59,7 +60,7 @@ describe('ImportSession', () => {
 
   describe('updateEnvironment', () => {
     test('calls api with payload', async () => {
-      const spy = jest.spyOn(api, 'updateSessionEnv')
+      const spy = jest.spyOn(flatfile.api as ApiService, 'updateSessionEnv')
       await session.updateEnvironment({ foo: 'bar' })
       expect(spy).toHaveBeenCalledWith(session, { foo: 'bar' })
     })

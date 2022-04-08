@@ -2,20 +2,22 @@ import nock from 'nock'
 
 import { RequestError } from '../errors/RequestError'
 import { UnauthorizedError } from '../errors/UnauthorizedError'
+import { Flatfile } from '../Flatfile'
 import { ImportSession } from '../importer/ImportSession'
 import { mockGraphQLRequest } from '../lib/test-helper'
 import { ERecordStatus } from '../service/FlatfileRecord'
-import { UiService } from '../service/UiService'
 import { ApiService } from './ApiService'
 
 describe('ApiService', () => {
   let session: ImportSession
   let api: ApiService
+  let flatfile: Flatfile
 
   beforeEach(async () => {
-    const ui = new UiService()
     api = new ApiService('token', 'http://localhost')
-    session = new ImportSession(api, ui, {
+    flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
+    flatfile.api = api
+    session = new ImportSession(flatfile, {
       batchId: 'abc',
       workspaceId: 'def',
       workbookId: 'hij',
