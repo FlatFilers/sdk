@@ -1,3 +1,5 @@
+import { UiService } from 'service/UiService'
+
 import { ApiService } from '../graphql/ApiService'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { toQs, useOrInit } from '../lib/general'
@@ -9,11 +11,12 @@ import { ImportFrame } from './ImportFrame'
 export class ImportSession extends TypedEventManager<IBatchEvents> {
   private $iframe?: ImportFrame
   public batchId: string
-  constructor(public api: ApiService, public meta: IImportMeta) {
+
+  constructor(public api: ApiService, public ui: UiService, public meta: IImportMeta) {
     super()
     this.batchId = meta.batchId
     setTimeout(() => this.emit('init', meta))
-    this.subscribeToBatchStatus() // todo this shouldn't happen here
+    this.subscribeToBatchStatus() // todo: this shouldn't happen here
   }
 
   /**

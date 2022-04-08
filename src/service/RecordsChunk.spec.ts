@@ -4,6 +4,7 @@ import { createChunk, mockGraphQLRequest } from '../lib/test-helper'
 import { FlatfileRecord } from './FlatfileRecord'
 import { BASE_RECORD } from './FlatfileRecord.spec'
 import { RecordsChunk } from './RecordsChunk'
+import { UiService } from './UiService'
 
 describe('RecordsChunk', function () {
   let api: ApiService
@@ -14,8 +15,9 @@ describe('RecordsChunk', function () {
   beforeEach(async () => {
     records = [1, 2, 3, 4, 5].map((id) => new FlatfileRecord({ ...BASE_RECORD, id }))
 
+    const ui = new UiService()
     api = new ApiService('token', 'http://localhost:3000')
-    session = new ImportSession(api, {
+    session = new ImportSession(api, ui, {
       batchId: 'abc',
       workspaceId: 'def',
       workbookId: 'hij',

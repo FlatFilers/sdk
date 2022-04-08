@@ -6,6 +6,7 @@ import { FlatfileRecord } from './FlatfileRecord'
 import { BASE_RECORD } from './FlatfileRecord.spec'
 import { PartialRejection } from './PartialRejection'
 import { RecordError } from './RecordError'
+import { UiService } from './UiService'
 
 describe('PartialRejection', () => {
   let records: FlatfileRecord[]
@@ -44,8 +45,9 @@ describe('PartialRejection', () => {
     let api: ApiService
     let session: ImportSession
     beforeEach(async () => {
+      const ui = new UiService()
       api = new ApiService('token', 'http://localhost:3000')
-      session = new ImportSession(api, {
+      session = new ImportSession(api, ui, {
         batchId: 'abc',
         workspaceId: 'def',
         workbookId: 'hij',

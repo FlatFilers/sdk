@@ -2,6 +2,7 @@ import { ApiService } from '../graphql/ApiService'
 import { IteratorCallback } from '../lib/RecordChunkIterator'
 import { createChunk, makeRecords } from '../lib/test-helper'
 import { RecordsChunk } from '../service/RecordsChunk'
+import { UiService } from '../service/UiService'
 import { ImportFrame } from './ImportFrame'
 import { ImportSession } from './ImportSession'
 
@@ -13,8 +14,9 @@ describe('ImportSession', () => {
   let chunk: RecordsChunk
   let callbackFn: IteratorCallback
   beforeEach(async () => {
+    const ui = new UiService()
     api = new ApiService('token', 'http://localhost:3000')
-    session = new ImportSession(api, {
+    session = new ImportSession(api, ui, {
       mountUrl: 'url',
       batchId: 'abc',
       workspaceId: 'def',

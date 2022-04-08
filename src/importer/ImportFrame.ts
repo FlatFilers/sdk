@@ -8,7 +8,7 @@ export class ImportFrame {
   private onLoadEventHandler?: () => void
 
   constructor(private session: ImportSession) {
-    this.ui = new UiService()
+    this.ui = this.session.ui
     this.close = this.close.bind(this)
   }
 

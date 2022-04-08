@@ -3,6 +3,7 @@ import { ImportSession } from '../importer/ImportSession'
 import { PartialRejection } from '../service/PartialRejection'
 import { RecordError } from '../service/RecordError'
 import { RecordsChunk } from '../service/RecordsChunk'
+import { UiService } from '../service/UiService'
 import { IteratorCallback, RecordChunkIterator } from './RecordChunkIterator'
 import { createChunk, makeRecords, mockGraphQLRequest } from './test-helper'
 
@@ -17,8 +18,9 @@ describe('RecordChunkIterator', () => {
   let callbackFn: IteratorCallback
 
   beforeEach(async () => {
+    const ui = new UiService()
     api = new ApiService('token', 'http://localhost:3000')
-    session = new ImportSession(api, {
+    session = new ImportSession(api, ui, {
       batchId: 'abc',
       workspaceId: 'def',
       workbookId: 'hij',

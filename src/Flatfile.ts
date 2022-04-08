@@ -19,7 +19,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public api?: ApiService
 
-  public ui?: UiService
+  private ui: UiService
 
   constructor(config: IFlatfileImporterConfig)
   constructor(token: string, config: IFlatfileImporterConfig)
@@ -64,7 +64,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { mountUrl } = this.config
 
       this.emit('launch', { batchId: importMeta.batchId }) // todo - should this happen here
-      const session = new ImportSession(api, { ...importMeta, mountUrl })
+      const session = new ImportSession(api, this.ui, { ...importMeta, mountUrl })
       session.emit('init', importMeta)
 
       if (options?.open === 'iframe') {

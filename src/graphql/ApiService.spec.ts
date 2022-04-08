@@ -5,6 +5,7 @@ import { UnauthorizedError } from '../errors/UnauthorizedError'
 import { ImportSession } from '../importer/ImportSession'
 import { mockGraphQLRequest } from '../lib/test-helper'
 import { ERecordStatus } from '../service/FlatfileRecord'
+import { UiService } from '../service/UiService'
 import { ApiService } from './ApiService'
 
 describe('ApiService', () => {
@@ -12,8 +13,9 @@ describe('ApiService', () => {
   let api: ApiService
 
   beforeEach(async () => {
+    const ui = new UiService()
     api = new ApiService('token', 'http://localhost')
-    session = new ImportSession(api, {
+    session = new ImportSession(api, ui, {
       batchId: 'abc',
       workspaceId: 'def',
       workbookId: 'hij',
