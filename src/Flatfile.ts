@@ -37,7 +37,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
   public async token(): Promise<JsonWebToken> {
     if (this.config.token) return this.config.token
     if (this.config.onAuth) {
+      this.ui.updateLoaderMessage('Authenticating...')
       this.config.token = await this.config.onAuth()
+      this.ui.updateLoaderMessage('Connecting to Flatfile...')
       return this.config.token
     } else throw new ImplementationError('No token or onAuth callback was provided')
   }
