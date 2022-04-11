@@ -39,7 +39,9 @@ export class UiService {
   }
 
   public hideLoader(): void {
-    this.$loader?.remove()
+    if (this.$loader) {
+      this.$loader?.remove()
+    }
   }
 
   public updateLoaderMessage(message: string): void {

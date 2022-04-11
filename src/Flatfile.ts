@@ -82,6 +82,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       }
       return session
     } catch (e) {
+      this.ui.hideLoader()
       this.handleError(e as FlatfileError)
       this.cleanup()
       throw e
