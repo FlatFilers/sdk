@@ -142,5 +142,4 @@ export interface IChunkOptions {
 }
 export interface IUrlOptions {
   autoContinue?: boolean
-  onLoad?: () => void
 }

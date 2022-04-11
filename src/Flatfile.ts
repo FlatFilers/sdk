@@ -70,15 +70,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
       session.emit('init', importMeta)
 
       if (options?.open === 'iframe') {
-        session.openInEmbeddedIframe({
-          autoContinue: options?.autoContinue,
-          onLoad: () => this.ui.hideLoader(),
-        })
+        const importFrame = session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
+        importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
-        session.openInNewWindow({
-          autoContinue: options?.autoContinue,
-        })
+        const newWindow = session.openInNewWindow({ autoContinue: options?.autoContinue })
+        newWindow.addEventListener('load', () => this.ui.hideLoader())
       }
       return session
     } catch (e) {
