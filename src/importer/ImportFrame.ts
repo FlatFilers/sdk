@@ -9,7 +9,6 @@ export class ImportFrame {
 
   constructor(private session: ImportSession) {
     this.ui = this.session.ui
-    this.close = this.close.bind(this)
   }
 
   public open(options?: IUrlOptions): this {

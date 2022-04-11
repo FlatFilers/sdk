@@ -60,7 +60,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
     try {
-      this.ui?.showLoader()
+      this.ui.showLoader()
       const api = await this.initApi()
       const importMeta = await api.init()
       const { mountUrl } = this.config
@@ -72,13 +72,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
       if (options?.open === 'iframe') {
         session.openInEmbeddedIframe({
           autoContinue: options?.autoContinue,
-          onLoad: () => this.ui?.hideLoader(),
+          onLoad: () => this.ui.hideLoader(),
         })
       }
       if (options?.open === 'window') {
         session.openInNewWindow({
           autoContinue: options?.autoContinue,
-          onLoad: () => this.ui?.hideLoader(),
         })
       }
       return session
