@@ -5,7 +5,7 @@ import { IChunkOptions, ImportSession } from './importer/ImportSession'
 import { sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
-import { UiService } from './service/UiService'
+import { UIService } from './service/UIService'
 import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebToken } from './types'
 
 export class Flatfile extends TypedEventManager<IEvents> {
@@ -19,7 +19,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public api?: ApiService
 
-  public ui: UiService
+  public ui: UIService
 
   constructor(config: IFlatfileImporterConfig)
   constructor(token: string, config: IFlatfileImporterConfig)
@@ -31,7 +31,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
     const configWithToken =
       typeof tokenOrConfig === 'object' ? tokenOrConfig : { ...config, token: tokenOrConfig }
     this.config = this.mergeConfigDefaults(configWithToken)
-    this.ui = new UiService()
+    this.ui = new UIService()
   }
 
   public async token(): Promise<JsonWebToken> {

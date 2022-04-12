@@ -1,9 +1,9 @@
-import { UiService } from './UiService'
+import { UIService } from './UIService'
 
 describe('RecordMutation', () => {
-  let ui: UiService
+  let ui: UIService
   beforeEach(() => {
-    ui = new UiService()
+    ui = new UIService()
   })
 
   describe('initializeFlatfileWrapper', () => {

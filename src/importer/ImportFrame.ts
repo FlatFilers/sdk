@@ -1,6 +1,6 @@
 import { addClass, removeClass } from '../lib/html'
 import { TypedEventManager } from '../lib/TypedEventManager'
-import { UiService } from '../service/UiService'
+import { UIService } from '../service/UIService'
 import { ImportSession, IUrlOptions } from './ImportSession'
 
 export interface IImportFrameEvents {
@@ -8,7 +8,7 @@ export interface IImportFrameEvents {
 }
 
 export class ImportFrame extends TypedEventManager<IImportFrameEvents> {
-  public ui: UiService
+  public ui: UIService
   private $iframe?: HTMLIFrameElement
 
   constructor(private session: ImportSession) {

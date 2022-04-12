@@ -1,5 +1,5 @@
 import { Flatfile } from 'Flatfile'
-import { UiService } from 'service/UiService'
+import { UIService } from 'service/UIService'
 
 import { ApiService } from '../graphql/ApiService'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
@@ -10,7 +10,7 @@ import { TPrimitive } from '../service/FlatfileRecord'
 import { ImportFrame } from './ImportFrame'
 
 export class ImportSession extends TypedEventManager<IBatchEvents> {
-  public ui: UiService
+  public ui: UIService
   public api: ApiService
   public batchId: string
   private $iframe?: ImportFrame

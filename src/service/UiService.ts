@@ -1,7 +1,7 @@
 import { $, addClass } from '../lib/html'
 import { insertGlobalCSS } from '../lib/insertGlobalCSS'
 
-export class UiService {
+export class UIService {
   private $loader?: HTMLDivElement
   private $message?: Text
 
