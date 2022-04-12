@@ -60,7 +60,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
     try {
-      if (options?.open == 'iframe' || options?.open == 'window') {
+      if (options?.open) {
         this.ui.showLoader()
       }
       const api = await this.initApi()
