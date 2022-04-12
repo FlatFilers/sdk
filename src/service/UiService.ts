@@ -25,6 +25,12 @@ export class UIService {
     }
   }
 
+  public removeFlatfileWrapper(): void {
+    if (this.$container) {
+      this.$container.remove()
+    }
+  }
+
   public showLoader(): void {
     this.initializeFlatfileWrapper()
     const loaderContainer = document.createElement('div')

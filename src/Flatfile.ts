@@ -60,7 +60,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
     try {
-      this.ui.showLoader()
+      if (options?.open == 'iframe' || options?.open == 'window') {
+        this.ui.showLoader()
+      }
       const api = await this.initApi()
       const importMeta = await api.init()
       const { mountUrl } = this.config
@@ -79,7 +81,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       }
       return session
     } catch (e) {
-      this.ui.hideLoader()
+      this.ui.removeFlatfileWrapper()
       this.handleError(e as FlatfileError)
       this.cleanup()
       throw e
