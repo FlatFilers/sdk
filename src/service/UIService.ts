@@ -27,6 +27,8 @@ export class UIService {
 
   public removeFlatfileWrapper(): void {
     if (this.$container) {
+      this.$loader = undefined
+      this.$message = undefined
       this.$container.remove()
     }
   }

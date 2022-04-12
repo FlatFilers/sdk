@@ -32,4 +32,22 @@ describe('RecordMutation', () => {
       expect(document.getElementById('flatfile-loader')).toBeNull()
     })
   })
+
+  describe('removeFlatfileWrapper', () => {
+    it('should remove flatfile sdk wrapper from document', () => {
+      /* eslint-disable  @typescript-eslint/no-explicit-any */
+      const untypedUi = ui as any
+      expect(document.getElementById('flatfile-loader')).toBeDefined()
+
+      ui.showLoader()
+      expect(untypedUi.$loader).toBeDefined()
+      expect(untypedUi.$message).toBeDefined()
+      expect(document.getElementsByClassName('flatfile-sdk')).toBeDefined()
+
+      ui.removeFlatfileWrapper()
+      expect(untypedUi.$loader).not.toBeDefined()
+      expect(untypedUi.$message).not.toBeDefined()
+      expect(document.getElementById('flatfile-sdk')).toBeNull()
+    })
+  })
 })
