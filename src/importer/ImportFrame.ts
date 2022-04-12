@@ -14,6 +14,7 @@ export class ImportFrame extends TypedEventManager<IImportFrameEvents> {
   constructor(private session: ImportSession) {
     super()
     this.ui = this.session.ui
+    this.close = this.close.bind(this)
   }
 
   public open(options?: IUrlOptions): this {
