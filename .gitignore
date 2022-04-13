@@ -37,3 +37,7 @@ typings/
 coverage
 docs
 package
+
+# dist
+packages/**/dist
+**/*.tsbuildinfo

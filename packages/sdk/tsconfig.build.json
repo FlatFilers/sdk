@@ -1,4 +1,5 @@
 {
+  "extends": "../tsconfig.build.json",
   "compilerOptions": {
     "outDir": "./dist/",
     "declaration":true,
@@ -11,9 +12,8 @@
     "target": "es5",
     "jsx": "react-jsx",
     "types": ["node", "jest"],
-    "baseUrl": "./src",
     "isolatedModules": false
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.*", "**/*.spec.*", "__sandbox__"]
+  "exclude": ["node_modules", "dist", "tests/**/*", "**/*.spec.ts", "jest.config.ts"],
+  "references": []
 }

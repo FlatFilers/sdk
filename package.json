@@ -1,8 +1,11 @@
 {
-  "name": "@flatfile/sdk",
-  "version": "2.0.0-rc5",
-  "description": "Flatfile SDK",
-  "private": false,
+  "name": "flatfile-sdk-monorepo",
+  "version": "0.0.0",
+  "description": "Flatfile SDK Monorepo (Base adapter + Angular / Vue / React / Ember)",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/FlatFilers/sdk.git"
@@ -14,23 +17,28 @@
   "files": [
     "dist"
   ],
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "scripts": {
     "analyze": "webpack --progress --config webpack.analyze.js",
     "prebuild": "rm -rf ./dist",
     "build": "npm run build:types && npm run build:webpack",
+    "changelog": "lerna-changelog",
     "build:types": "tsc --emitDeclarationOnly",
     "build:webpack": "webpack --progress --config webpack.prod.js",
-    "lint": "eslint ./src --ext '.ts,.tsx'",
-    "lint:fix": "eslint ./src --ext '.ts,.tsx' --fix",
+    "lint": "eslint ./packages --ext '.ts,.tsx'",
+    "lint:fix": "eslint ./packages --ext '.ts,.tsx' --fix",
     "prepack": "npm run build",
     "start": "webpack serve --progress --config webpack.dev.js",
-    "test": "jest",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
     "prepare": "husky install",
-    "todo": "npx --no-install leasot src/**/*.ts > TODO"
+    "todo": "npx --no-install leasot packages/**/*.ts > TODO",
+    "publish:npm": "lerna publish",
+    "prepublish:next": "yarn build",
+    "publish:next": "lerna publish --dist-tag next",
+    "test": "lerna run test --parallel --stream",
+    "test:dev": "lerna run test:dev --parallel --stream",
+    "test:e2e": "lerna run test:e2e --parallel",
+    "test:e2e:dev": "lerna run test:e2e:dev --parallel"
   },
   "author": "Max Blank <max@flatfile.com>",
   "license": "ISC",
@@ -69,7 +77,10 @@
     "graphql-subscriptions-client": "^0.16.0",
     "husky": "^6.0.0",
     "jest": "^27.0.3",
-    "lint-staged": "^11.0.0",
+    "lerna": "^4.0.0",
+    "lerna-changelog": "^2.2.0",
+    "lint-staged": "^12.0.0",
+    "ng-packagr": "^13.0.0",
     "nock": "^13.2.2",
     "nqr": "^1.0.0",
     "prettier": "^2.3.1",
@@ -94,11 +105,11 @@
   },
   "jest": {
     "roots": [
-      "<rootDir>/src"
+      "<rootDir>/packages"
     ],
     "collectCoverage": false,
     "moduleNameMapper": {
-      "src/(.*)": "<rootDir>/src/$1",
+      "packages/(.*)": "<rootDir>/packages/$1",
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
       "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
     },
@@ -120,6 +131,15 @@
       "json"
     ]
   },
+  "changelog": {
+    "labels": {
+      "feature": "Features",
+      "bug": "Bug fixes",
+      "enhancement": "Enhancements",
+      "docs": "Docs",
+      "dependencies": "Dependencies"
+    }
+  },
   "ts-jest": {
     "isolatedModules": false
   },
@@ -129,9 +149,9 @@
     }
   },
   "lint-staged": {
-    "src/**/*.{js,jsx,ts,tsx}": [
-      "npm run lint",
-      "prettier --check"
+    "packages/**/*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "npm run lint"
     ]
   }
 }
