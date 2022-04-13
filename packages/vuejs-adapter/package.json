@@ -1,0 +1,63 @@
+{
+  "name": "@flatfile/vuejs",
+  "version": "3.0.0",
+  "homepage": "https://flatfile.io/",
+  "description": "Vue.js flatfile adapter",
+  "author": {
+    "name": "Mark Pieszak"
+  },
+  "files": [
+    "dist/*"
+  ],
+  "main": "./dist/vuejs.umd.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FlatFilers/vuejs-adapter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FlatFilers/vuejs-adapter/issues"
+  },
+  "keywords": [
+    "flatfile",
+    "flatfile vuejs",
+    "vuejs",
+    "csv",
+    "csv import",
+    "vuejs csv",
+    "vuejs csv import"
+  ],
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "build:lib": "vue-cli-service build --target lib src/index.js && npm run delete:demo && npm pack",
+    "build:lib:local": "vue-cli-service build --target lib src/index.js && npm run delete:demo && npm pack && shx mv ./flatfile-vuejs-3.0.0-beta.2.tgz ../flatfile-vuejs-demo",
+    "delete:demo": "rm -rf ./dist/demo.html",
+    "lint": "vue-cli-service lint",
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
+  },
+  "dependencies": {
+    "@flatfile/sdk": "^1.0.5",
+    "core-js": "^3.6.5"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
