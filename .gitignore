@@ -2,6 +2,9 @@
 .idea
 .editorconfig
 
+# Angular
+.angular
+
 # Logs
 logs
 *.log

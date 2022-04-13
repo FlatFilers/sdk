@@ -1,5 +1,9 @@
 {
   "files": [],
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+  },
   "references": [
     {
       "path": "./sdk/tsconfig.build.json"

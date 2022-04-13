@@ -1,0 +1,33 @@
+{
+  "name": "@flatfile/angular",
+  "version": "3.1.0",
+  "homepage": "https://flatfile.com/",
+  "description": "Angular flatfile adapter",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FlatFilers/angular-adapter.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FlatFilers/angular-adapter/issues"
+  },
+  "author": {
+    "name": "Mark Pieszak"
+  },
+  "keywords": [
+    "flatfile",
+    "flatfile angular",
+    "angular",
+    "csv",
+    "angular csv",
+    "angular csv import"
+  ],
+  "peerDependencies": {
+    "@angular/common": "^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0 || ^12.0.0 || ^13.0.0",
+    "@angular/core": "^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0 || ^12.0.0 || ^13.0.0"
+  },
+  "dependencies": {
+    "@flatfile/sdk": "^1.0.4",
+    "tslib": "^2.0.0"
+  }
+}
