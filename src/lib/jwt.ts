@@ -60,6 +60,26 @@ export function sign(payload: Record<string, any>, key: string): Promise<string>
   })
 }
 
+function isBase64(str: string): boolean {
+  return /^[A-Z0-9_\-]*$/i.test(str)
+}
+
+export function isJWT(str: string): boolean {
+  if (typeof str !== 'string') {
+    return false
+  }
+  const dotSplit = str.split('.')
+  const len = dotSplit.length
+
+  if (len > 3 || len < 2) {
+    return false
+  }
+
+  return dotSplit.reduce((acc: boolean, currElem: string) => {
+    return acc && isBase64(currElem)
+  }, true)
+}
+
 function base64Stringify(a: Uint8Array) {
   return btoa(String.fromCharCode.apply(0, a as any))
     .replace(/=/g, '')

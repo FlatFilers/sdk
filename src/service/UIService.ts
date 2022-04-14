@@ -1,5 +1,6 @@
 import { $, addClass } from '../lib/html'
 import { insertGlobalCSS } from '../lib/insertGlobalCSS'
+import { EDialogMessage } from '../types/enums/EDialogMessage'
 
 export class UIService {
   private $loader?: HTMLDivElement
@@ -38,7 +39,7 @@ export class UIService {
     const loaderContainer = document.createElement('div')
     loaderContainer.setAttribute('id', 'flatfile-loader')
     loaderContainer.append(this.spinner())
-    this.$message = document.createTextNode('Connecting to Flatfile...')
+    this.$message = document.createTextNode(EDialogMessage.Default)
     loaderContainer.append(this.$message)
     addClass(loaderContainer, 'flatfile-loader')
     this.$container.append(loaderContainer)

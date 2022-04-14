@@ -2,11 +2,12 @@ import { FlatfileError } from './errors/FlatfileError'
 import { ImplementationError } from './errors/ImplementationError'
 import { ApiService } from './graphql/ApiService'
 import { IChunkOptions, ImportSession } from './importer/ImportSession'
-import { sign } from './lib/jwt'
+import { isJWT, sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
 import { UIService } from './service/UIService'
 import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebToken } from './types'
+import { EDialogMessage } from './types/enums/EDialogMessage'
 
 export class Flatfile extends TypedEventManager<IEvents> {
   /**
@@ -37,10 +38,13 @@ export class Flatfile extends TypedEventManager<IEvents> {
   public async token(): Promise<JsonWebToken> {
     if (this.config.token) return this.config.token
     if (this.config.onAuth) {
-      this.ui.updateLoaderMessage('Authenticating...')
-      this.config.token = await this.config.onAuth()
-      this.ui.updateLoaderMessage('Connecting to Flatfile...')
-      return this.config.token
+      this.ui.updateLoaderMessage(EDialogMessage.Authenticating)
+      const token = await this.config.onAuth()
+      if (!isJWT(token)) {
+        throw new ImplementationError('onAuth() has to return a valid JWT')
+      }
+      this.ui.updateLoaderMessage(EDialogMessage.Default)
+      return token
     } else throw new ImplementationError('No token or onAuth callback was provided')
   }
 
