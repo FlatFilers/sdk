@@ -1,3 +1,4 @@
+import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
 import { PartialRejection } from '../service/PartialRejection'
@@ -9,16 +10,17 @@ import { createChunk, makeRecords, mockGraphQLRequest } from './test-helper'
 jest.mock('../graphql/ApiService')
 
 describe('RecordChunkIterator', () => {
-  let api: ApiService
   let session: ImportSession
+  let flatfile: Flatfile
   let iterator: RecordChunkIterator
   let chunk: RecordsChunk
   let chunk2: RecordsChunk
   let callbackFn: IteratorCallback
 
   beforeEach(async () => {
-    api = new ApiService('token', 'http://localhost:3000')
-    session = new ImportSession(api, {
+    flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
+    flatfile.api = new ApiService('toke', 'http://localhost:3000')
+    session = new ImportSession(flatfile, {
       batchId: 'abc',
       workspaceId: 'def',
       workbookId: 'hij',
@@ -27,7 +29,7 @@ describe('RecordChunkIterator', () => {
     chunk = createChunk(session, makeRecords(0, 10), 20, 0, 10)
     chunk2 = createChunk(session, makeRecords(10, 10), 20, 10, 10)
     callbackFn = jest.fn((chunk, next) => next())
-    jest.spyOn(api, 'getRecordsByStatus').mockResolvedValue(chunk)
+    jest.spyOn(flatfile.api, 'getRecordsByStatus').mockResolvedValue(chunk)
     jest.spyOn(chunk, 'getNextChunk').mockResolvedValue(chunk2)
 
     iterator = new RecordChunkIterator(session, (chunk, next) => callbackFn(chunk, next), {

@@ -2,10 +2,12 @@ import { FlatfileError } from './errors/FlatfileError'
 import { ImplementationError } from './errors/ImplementationError'
 import { ApiService } from './graphql/ApiService'
 import { IChunkOptions, ImportSession } from './importer/ImportSession'
-import { sign } from './lib/jwt'
+import { isJWT, sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
+import { UIService } from './service/UIService'
 import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebToken } from './types'
+import { EDialogMessage } from './types/enums/EDialogMessage'
 
 export class Flatfile extends TypedEventManager<IEvents> {
   /**
@@ -18,6 +20,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public api?: ApiService
 
+  public ui: UIService
+
   constructor(config: IFlatfileImporterConfig)
   constructor(token: string, config: IFlatfileImporterConfig)
   constructor(
@@ -28,12 +32,20 @@ export class Flatfile extends TypedEventManager<IEvents> {
     const configWithToken =
       typeof tokenOrConfig === 'object' ? tokenOrConfig : { ...config, token: tokenOrConfig }
     this.config = this.mergeConfigDefaults(configWithToken)
+    this.ui = new UIService()
   }
 
   public async token(): Promise<JsonWebToken> {
     if (this.config.token) return this.config.token
-    if (this.config.onAuth) return this.config.onAuth()
-    else throw new ImplementationError('No token or onAuth callback was provided')
+    if (this.config.onAuth) {
+      this.ui.updateLoaderMessage(EDialogMessage.Authenticating)
+      const token = await this.config.onAuth()
+      if (!isJWT(token)) {
+        throw new ImplementationError('onAuth() has to return a valid JWT')
+      }
+      this.ui.updateLoaderMessage(EDialogMessage.Default)
+      return token
+    } else throw new ImplementationError('No token or onAuth callback was provided')
   }
 
   /**
@@ -52,21 +64,28 @@ export class Flatfile extends TypedEventManager<IEvents> {
    */
   public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
     try {
+      if (options?.open) {
+        this.ui.showLoader()
+      }
       const api = await this.initApi()
       const importMeta = await api.init()
       const { mountUrl } = this.config
 
       this.emit('launch', { batchId: importMeta.batchId }) // todo - should this happen here
-      const session = new ImportSession(api, { ...importMeta, mountUrl })
+      const session = new ImportSession(this, { ...importMeta, mountUrl })
       session.emit('init', importMeta)
+
       if (options?.open === 'iframe') {
-        session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
+        const importFrame = session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
+        importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
         session.openInNewWindow({ autoContinue: options?.autoContinue })
+        this.ui.destroy()
       }
       return session
     } catch (e) {
+      this.ui.destroy()
       this.handleError(e as FlatfileError)
       this.cleanup()
       throw e

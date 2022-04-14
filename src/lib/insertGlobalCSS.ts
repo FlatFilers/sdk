@@ -11,6 +11,7 @@ const GLOBAL_CSS = `
     z-index: 100000;
     padding: 40px;
     background-color: rgba(0,0,0,0.15);
+    font-family: 'Avenir Next', sans-serif;
   }
   .flatfile-sdk .flatfile-close {
     position: absolute;
@@ -42,6 +43,52 @@ const GLOBAL_CSS = `
   }
   body.flatfile-active .flatfile-sdk {
     display: block;
+  }
+  .flatfile-sdk .flatfile-loader {
+    z-index: 10;
+    position: absolute;
+    width: calc(100% - 80px);
+    height: calc(100% - 80px);
+    border-radius: 20px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .flatfile-sdk .flatfile-loader svg {
+    width: 13px;
+    height: 13px;
+    vertical-align: -3px;
+    animation: rotate 1s linear infinite;
+    margin-right: 8px;
+    width: 24px;
+    height: 24px;
+    vertical-align: -6px;
+    display: inline-block;
+  }
+  .flatfile-sdk .flatfile-loader svg circle {
+    stroke: #3b2fc9;
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+  }
+  @keyframes rotate {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes dash {
+    0% {
+      stroke-dasharray: 1, 150;
+      stroke-dashoffset: 0;
+    }
+    50% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -35;
+    }
+    100% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -124;
+    }
   }
 `
 
