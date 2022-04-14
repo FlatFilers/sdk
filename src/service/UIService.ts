@@ -13,7 +13,7 @@ export class UIService {
     return $<HTMLDivElement>('.flatfile-sdk')
   }
 
-  public initializeFlatfileWrapper(): void {
+  public initialize(): void {
     if (!this.$container) {
       insertGlobalCSS()
       document.body.insertAdjacentHTML(
@@ -25,7 +25,7 @@ export class UIService {
     }
   }
 
-  public removeFlatfileWrapper(): void {
+  public destroy(): void {
     if (this.$container) {
       this.$loader = undefined
       this.$message = undefined
@@ -34,7 +34,7 @@ export class UIService {
   }
 
   public showLoader(): void {
-    this.initializeFlatfileWrapper()
+    this.initialize()
     const loaderContainer = document.createElement('div')
     loaderContainer.setAttribute('id', 'flatfile-loader')
     loaderContainer.append(this.spinner())

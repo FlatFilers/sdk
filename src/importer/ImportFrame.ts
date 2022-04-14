@@ -18,7 +18,7 @@ export class ImportFrame extends TypedEventManager<IImportFrameEvents> {
   }
 
   public open(options?: IUrlOptions): this {
-    this.ui.initializeFlatfileWrapper()
+    this.ui.initialize()
     const url = this.session.signedImportUrl(options)
     const iFrameEl = this.createIFrameElement(url)
     iFrameEl.addEventListener('load', () => this.emit('load'))

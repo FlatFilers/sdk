@@ -76,12 +76,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
         importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
-        const newWindow = session.openInNewWindow({ autoContinue: options?.autoContinue })
-        newWindow.addEventListener('load', () => this.ui.hideLoader())
+        session.openInNewWindow({ autoContinue: options?.autoContinue })
+        this.ui.destroy()
       }
       return session
     } catch (e) {
-      this.ui.removeFlatfileWrapper()
+      this.ui.destroy()
       this.handleError(e as FlatfileError)
       this.cleanup()
       throw e
