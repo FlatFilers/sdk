@@ -8,6 +8,7 @@ import { UIService } from './service/UIService'
 window.alert = jest.fn()
 window.open = jest.fn(() => window)
 jest.mock('./graphql/ApiService')
+jest.mock('./lib/jwt', () => ({ sign: jest.fn(() => 'token') }))
 
 const fakeImportMeta = { batchId: 'bId', workspaceId: 'wId', schemaIds: [] }
 
@@ -59,7 +60,28 @@ describe('Flatfile', () => {
       })
     })
 
-    describe('when no token or onAuth callback is provided', () => {
+    describe('when user info and embed id is provided', () => {
+      test('should create a development token', async () => {
+        jest.spyOn(Flatfile, 'getDevelopmentToken')
+        jest.spyOn(console, 'warn').mockImplementationOnce(() => null)
+        const orgAndUserConfig = {
+          org: { id: 1, name: 'Flatfile' },
+          user: { id: 1, name: 'John Doe', email: 'john@email.io' },
+        }
+        const flatfile = new Flatfile({
+          embedId: 'embedId',
+          apiUrl: 'http://localhost:3000',
+          ...orgAndUserConfig,
+        })
+
+        await flatfile.startOrResumeImportSession({ open: 'window' })
+        expect(Flatfile.getDevelopmentToken).toHaveBeenCalledTimes(1)
+        expect(Flatfile.getDevelopmentToken).toHaveBeenCalledWith('embedId', orgAndUserConfig)
+        expect(console.warn).toHaveBeenCalled()
+      })
+    })
+
+    describe('when no token onAuth callback or user and embedId info is provided', () => {
       test('should throw implementation error', async () => {
         const flatfile = new Flatfile({ apiUrl: 'http://localhost:3000' })
         jest.spyOn(UIService.prototype, 'destroy')

@@ -5,6 +5,9 @@ export interface IFlatfileImporterConfig {
   mountUrl?: string
   apiUrl?: string
   token?: JsonWebToken
+  embedId?: string
+  user?: IUser
+  org?: IOrganization
   onAuth?: () => JsonWebToken | Promise<JsonWebToken>
 }
 
@@ -12,6 +15,9 @@ export interface IFlatfileConfig {
   mountUrl: string
   apiUrl: string
   token?: JsonWebToken
+  embedId?: string
+  user?: IUser
+  org?: IOrganization
   onAuth?: () => JsonWebToken | Promise<JsonWebToken>
 }
 
