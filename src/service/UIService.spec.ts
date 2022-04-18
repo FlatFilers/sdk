@@ -6,19 +6,19 @@ describe('RecordMutation', () => {
     ui = new UIService()
   })
 
-  describe('initializeFlatfileWrapper', () => {
+  describe('initialize', () => {
     it('should add flatffile sdk container to the document', () => {
-      ui.initializeFlatfileWrapper()
+      ui.initialize()
       expect(document.querySelector('.flatfile-sdk')).toBeDefined()
     })
   })
 
   describe('showLoader', () => {
     it('should add flatffile sdk container to the document', () => {
-      jest.spyOn(ui, 'initializeFlatfileWrapper')
-      ui.initializeFlatfileWrapper()
+      jest.spyOn(ui, 'initialize')
+      ui.initialize()
 
-      expect(ui.initializeFlatfileWrapper).toHaveBeenCalledTimes(1)
+      expect(ui.initialize).toHaveBeenCalledTimes(1)
       expect(document.getElementById('flatfile-loader')).toBeDefined()
     })
   })
@@ -33,7 +33,7 @@ describe('RecordMutation', () => {
     })
   })
 
-  describe('removeFlatfileWrapper', () => {
+  describe('destroy', () => {
     it('should remove flatfile sdk wrapper from document', () => {
       /* eslint-disable  @typescript-eslint/no-explicit-any */
       const untypedUi = ui as any
@@ -44,7 +44,7 @@ describe('RecordMutation', () => {
       expect(untypedUi.$message).toBeDefined()
       expect(document.getElementsByClassName('flatfile-sdk')).toBeDefined()
 
-      ui.removeFlatfileWrapper()
+      ui.destroy()
       expect(untypedUi.$loader).not.toBeDefined()
       expect(untypedUi.$message).not.toBeDefined()
       expect(document.getElementById('flatfile-sdk')).toBeNull()
