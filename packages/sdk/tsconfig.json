@@ -6,6 +6,7 @@
     "strict": true,
     "esModuleInterop": true,
     "module": "esnext",
+    "resolveJsonModule": true,
     "moduleResolution": "node",
     "pretty": true,
     "target": "es5",

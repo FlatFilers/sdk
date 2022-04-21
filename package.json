@@ -94,6 +94,7 @@
     "styled-components": "^5.3.0",
     "transferable-function": "^1.0.2",
     "ts-jest": "^27.0.3",
+    "ts-node": "^10.7.0",
     "tslib": "^2.3.0",
     "typedoc": "^0.22.11",
     "typedoc-plugin-markdown": "^3.11.12",
