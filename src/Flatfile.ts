@@ -46,7 +46,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       this.ui.updateLoaderMessage(EDialogMessage.Default)
       return token
     }
-    if (this.config.embedId && this.config.user && this.config.org) {
+    if (this.config.embedId) {
       return Flatfile.getDevelopmentToken(this.config.embedId, {
         user: this.config.user,
         org: this.config.org,
