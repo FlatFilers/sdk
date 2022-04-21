@@ -60,24 +60,38 @@ describe('Flatfile', () => {
       })
     })
 
-    describe('when user info and embed id is provided', () => {
-      test('should create a development token', async () => {
-        jest.spyOn(Flatfile, 'getDevelopmentToken')
-        jest.spyOn(console, 'warn').mockImplementationOnce(() => null)
-        const orgAndUserConfig = {
-          org: { id: 1, name: 'Flatfile' },
-          user: { id: 1, name: 'John Doe', email: 'john@email.io' },
-        }
-        const flatfile = new Flatfile({
-          embedId: 'embedId',
-          apiUrl: 'http://localhost:3000',
-          ...orgAndUserConfig,
-        })
+    describe('when embed id is provided', () => {
+      const org = { id: 1, name: 'Flatfile' }
+      const user = { id: 1, name: 'John Doe', email: 'john@email.io' }
+      const defaultConfig = {
+        org: { id: 1, name: 'Company' },
+        user: { id: 1, name: 'John Doe', email: 'john@email.com' },
+      }
 
-        await flatfile.startOrResumeImportSession({ open: 'window' })
-        expect(Flatfile.getDevelopmentToken).toHaveBeenCalledTimes(1)
-        expect(Flatfile.getDevelopmentToken).toHaveBeenCalledWith('embedId', orgAndUserConfig)
-        expect(console.warn).toHaveBeenCalled()
+      describe.each([
+        ['org', { org }, { org, user: defaultConfig.user }],
+        ['user', { user }, { org: defaultConfig.org, user }],
+        ['user and org', { org, user }, { org, user }],
+        ['no user and no org', {}, defaultConfig],
+      ])('and %p info is proided', (_, orgAndUserConfig, expectedOrAndUserConfig) => {
+        test('should create a development token', async () => {
+          jest.spyOn(Flatfile, 'getDevelopmentToken')
+          jest.spyOn(console, 'warn').mockImplementationOnce(() => null)
+
+          const flatfile = new Flatfile({
+            embedId: 'embedId',
+            apiUrl: 'http://localhost:3000',
+            ...orgAndUserConfig,
+          })
+
+          await flatfile.startOrResumeImportSession({ open: 'window' })
+          expect(console.warn).toHaveBeenCalled()
+          expect(Flatfile.getDevelopmentToken).toHaveBeenCalledTimes(1)
+          expect(Flatfile.getDevelopmentToken).toHaveBeenCalledWith(
+            'embedId',
+            expectedOrAndUserConfig
+          )
+        })
       })
     })
 

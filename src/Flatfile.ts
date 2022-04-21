@@ -48,8 +48,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
     }
     if (this.config.embedId) {
       return Flatfile.getDevelopmentToken(this.config.embedId, {
-        user: this.config.user,
-        org: this.config.org,
+        org: this.config.org || { id: 1, name: 'Company' },
+        user: this.config.user || { id: 1, name: 'John Doe', email: 'john@email.com' },
       })
     } else throw new ImplementationError('No token or onAuth callback was provided')
   }
