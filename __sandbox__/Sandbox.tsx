@@ -6,9 +6,9 @@ import { Button, Columns, Container, Form } from 'react-bulma-components'
 import Highlight from 'react-highlight'
 import styled from 'styled-components'
 
-import { Flatfile, IteratorCallback, PartialRejection, RecordError } from '../src'
-import { serializeFunction } from '../src'
-import { FlatfileError } from '../src/errors/FlatfileError'
+import { Flatfile, IteratorCallback, PartialRejection, RecordError } from '../packages/sdk/lib'
+import { serializeFunction } from '../packages/sdk/lib'
+import { FlatfileError } from '../packages/sdk/lib/errors/FlatfileError'
 import { BrowserFrame } from './BrowserFrame'
 
 export function Sandbox(): any {

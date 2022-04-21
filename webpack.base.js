@@ -3,7 +3,7 @@ const webpack = require('webpack')
 const Dotenv = require('dotenv-webpack')
 
 module.exports = {
-  entry: './src/index.ts',
+  entry: './packages/sdk/lib/index.ts',
   stats: {
     errorDetails: true,
     colors: true,

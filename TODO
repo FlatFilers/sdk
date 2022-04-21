@@ -1,11 +1,11 @@
 
-src/graphql/ApiService.ts
+packages/sdk/lib/graphql/ApiService.ts
   line 126  TODO  clean up validation status vs stage and support both
 
-src/importer/ImportFrame.ts
+packages/sdk/lib/importer/ImportFrame.ts
   line 22   TODO  handle the close better, support cleaner transition
 
-src/importer/ImportSession.ts
+packages/sdk/lib/importer/ImportSession.ts
   line 20   TODO  move launch event out of iframe helper
   line 69   TODO  make this less lines and more readable
   line 83   TODO  handle this better
