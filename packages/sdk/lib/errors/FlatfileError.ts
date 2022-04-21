@@ -2,7 +2,7 @@ export class FlatfileError extends Error {
   public code = 'FF-GE-00'
   public debug = ''
   public name = 'FlatfileError'
-  public userMessage = 'An unknown issue has occured'
+  public userMessage = 'An unknown issue has occurred'
   constructor(message?: string) {
     super(message)
     const self = new.target.prototype
