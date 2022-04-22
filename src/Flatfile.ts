@@ -5,6 +5,7 @@ import { IChunkOptions, ImportSession } from './importer/ImportSession'
 import { isJWT, sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
+import { IResponsePromise, ResponsePromise } from './service/ResponsePromise'
 import { UIService } from './service/UIService'
 import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebToken } from './types'
 import { EDialogMessage } from './types/enums/EDialogMessage'
@@ -96,15 +97,18 @@ export class Flatfile extends TypedEventManager<IEvents> {
    * Simple function that abstracts away some of the complexity for a single line call
    * also provides some level of backwards compatability
    */
-  public requestDataFromUser(): this
-  public requestDataFromUser(opts: DataReqOptions): this
-  public requestDataFromUser(callback: IteratorCallback, opts?: DataReqOptions): this
+  public requestDataFromUser(): IResponsePromise | void
+  public requestDataFromUser(opts: DataReqOptions): IResponsePromise | void
+  public requestDataFromUser(
+    callback: IteratorCallback,
+    opts?: DataReqOptions
+  ): IResponsePromise | void
   public requestDataFromUser(
     cbOpts?: IteratorCallback | DataReqOptions,
     opts?: DataReqOptions
-  ): this {
+  ): IResponsePromise | void {
     let callback: IteratorCallback | undefined
-    let options: DataReqOptions = { open: 'window' }
+    let options: DataReqOptions = { open: 'iframe' }
     if (typeof cbOpts === 'function') {
       callback = cbOpts
       options = opts ? { ...options, ...opts } : options
@@ -112,14 +116,27 @@ export class Flatfile extends TypedEventManager<IEvents> {
       options = { ...options, ...cbOpts }
     }
 
+    const response = new ResponsePromise()
+
     this.startOrResumeImportSession(options).then((session) => {
-      session.on('submit', () => {
-        if (callback) {
-          session.processPendingRecords(callback, options)
-        }
-      })
+      if (callback) {
+        session.on('submit', () => {
+          session.processPendingRecords(callback as IteratorCallback, options)
+        })
+      } else {
+        /**
+         * requestDataFromUser() will return a Promise if callback is not provided
+         */
+        session.on('complete', (payload) => {
+          response.resolve(payload)
+          session.iframe?.close()
+        })
+        session.on('error', ({ error }) => {
+          response.reject(error)
+        })
+      }
     })
-    return this
+    return callback ? void 0 : response.promise
   }
 
   public handleError(error: FlatfileError): void {
