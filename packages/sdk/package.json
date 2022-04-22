@@ -17,7 +17,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "jest --detectOpenHandles",
+    "test": "jest",
     "test:dev": "jest --detectOpenHandles --watch",
     "test:e2e": "jest --config ./tests/jest-e2e.ts --runInBand",
     "test:e2e:dev": "jest --config ./tests/jest-e2e.ts --runInBand --watch"
