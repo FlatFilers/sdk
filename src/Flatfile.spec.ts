@@ -46,7 +46,7 @@ describe('Flatfile', () => {
     describe('when an error is trown from api', () => {
       test('should handle thrown error', async () => {
         const error = new FlatfileError()
-        jest.spyOn(UIService.prototype, 'removeFlatfileWrapper')
+        jest.spyOn(UIService.prototype, 'destroy')
         jest.spyOn(flatfile, 'handleError')
         jest.spyOn(flatfile, 'cleanup')
         jest.spyOn(ApiService.prototype, 'init').mockRejectedValue(error)
@@ -55,14 +55,14 @@ describe('Flatfile', () => {
         await expect(fn).rejects.toThrow(Error)
         expect(flatfile.cleanup).toHaveBeenCalled()
         expect(flatfile.handleError).toHaveBeenCalledWith(error)
-        expect(UIService.prototype.removeFlatfileWrapper).toHaveBeenCalled()
+        expect(UIService.prototype.destroy).toHaveBeenCalled()
       })
     })
 
     describe('when no token or onAuth callback is provided', () => {
       test('should throw implementation error', async () => {
         const flatfile = new Flatfile({ apiUrl: 'http://localhost:3000' })
-        jest.spyOn(UIService.prototype, 'removeFlatfileWrapper')
+        jest.spyOn(UIService.prototype, 'destroy')
         jest.spyOn(flatfile, 'handleError')
         jest.spyOn(flatfile, 'cleanup')
 
@@ -70,7 +70,7 @@ describe('Flatfile', () => {
         await expect(fn).rejects.toThrow(ImplementationError)
         expect(flatfile.cleanup).toHaveBeenCalled()
         expect(flatfile.handleError).toHaveBeenCalled()
-        expect(UIService.prototype.removeFlatfileWrapper).toHaveBeenCalled()
+        expect(UIService.prototype.destroy).toHaveBeenCalled()
       })
     })
 
