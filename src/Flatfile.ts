@@ -45,6 +45,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
       }
       this.ui.updateLoaderMessage(EDialogMessage.Default)
       return token
+    }
+    if (this.config.embedId) {
+      return Flatfile.getDevelopmentToken(this.config.embedId, {
+        org: this.config.org || { id: 1, name: 'Company' },
+        user: this.config.user || { id: 1, name: 'John Doe', email: 'john@email.com' },
+      })
     } else throw new ImplementationError('No token or onAuth callback was provided')
   }
 
