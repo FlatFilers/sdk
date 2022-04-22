@@ -36,7 +36,7 @@
     "publish:npm": "lerna publish",
     "prepublish:next": "yarn build",
     "publish:next": "lerna publish --dist-tag next",
-    "test": "lerna run test --parallel --stream",
+    "test": "lerna run test --parallel --stream --",
     "test:dev": "lerna run test:dev --parallel --stream",
     "test:e2e": "lerna run test:e2e --parallel",
     "test:e2e:dev": "lerna run test:e2e:dev --parallel"
