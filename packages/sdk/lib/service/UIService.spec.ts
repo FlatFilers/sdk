@@ -1,22 +1,23 @@
 import { UIService } from './UIService'
 
-describe('RecordMutation', () => {
+describe('UI Service', () => {
   let ui: UIService
   beforeEach(() => {
     ui = new UIService()
+    document.body.innerHTML = ''
   })
 
-  describe('initializeFlatfileWrapper', () => {
-    it('should add Flatfile sdk container to the document', () => {
+  describe('initialize', () => {
+    it('should add flatfile sdk container to the document', () => {
       ui.initialize()
       expect(document.querySelector('.flatfile-sdk')).toBeDefined()
     })
   })
 
   describe('showLoader', () => {
-    it('should add Flatfile sdk container to the document', () => {
+    it('should add flatfile sdk container and loader to the document', () => {
       jest.spyOn(ui, 'initialize')
-      ui.initialize()
+      ui.showLoader()
 
       expect(ui.initialize).toHaveBeenCalledTimes(1)
       expect(document.getElementById('flatfile-loader')).toBeDefined()
@@ -24,7 +25,8 @@ describe('RecordMutation', () => {
   })
 
   describe('hideLoader', () => {
-    it('should add Flatfile sdk container to the document', () => {
+    it('should remove flatfile loader from the document', () => {
+      const ui = new UIService()
       ui.showLoader()
       expect(document.getElementById('flatfile-loader')).toBeDefined()
 
@@ -33,8 +35,8 @@ describe('RecordMutation', () => {
     })
   })
 
-  describe('removeFlatfileWrapper', () => {
-    it('should remove flatfile sdk wrapper from document', () => {
+  describe('destroy', () => {
+    it('should remove flatfile ui from document', () => {
       /* eslint-disable  @typescript-eslint/no-explicit-any */
       const untypedUi = ui as any
       expect(document.getElementById('flatfile-loader')).toBeDefined()

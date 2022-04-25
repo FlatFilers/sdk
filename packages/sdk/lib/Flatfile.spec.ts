@@ -8,6 +8,7 @@ import { UIService } from './service/UIService'
 window.alert = jest.fn()
 window.open = jest.fn(() => window)
 jest.mock('./graphql/ApiService')
+jest.mock('./lib/jwt', () => ({ sign: jest.fn(() => 'token') }))
 
 const fakeImportMeta = { batchId: 'bId', workspaceId: 'wId', schemaIds: [] }
 
@@ -59,7 +60,42 @@ describe('Flatfile', () => {
       })
     })
 
-    describe('when no token or onAuth callback is provided', () => {
+    describe('when embed id is provided', () => {
+      const org = { id: 1, name: 'Flatfile' }
+      const user = { id: 1, name: 'John Doe', email: 'john@email.io' }
+      const defaultConfig = {
+        org: { id: 1, name: 'Company' },
+        user: { id: 1, name: 'John Doe', email: 'john@email.com' },
+      }
+
+      describe.each([
+        ['org', { org }, { org, user: defaultConfig.user }],
+        ['user', { user }, { org: defaultConfig.org, user }],
+        ['user and org', { org, user }, { org, user }],
+        ['no user and no org', {}, defaultConfig],
+      ])('and %p info is proided', (_, orgAndUserConfig, expectedOrAndUserConfig) => {
+        test('should create a development token', async () => {
+          jest.spyOn(Flatfile, 'getDevelopmentToken')
+          jest.spyOn(console, 'warn').mockImplementationOnce(() => null)
+
+          const flatfile = new Flatfile({
+            embedId: 'embedId',
+            apiUrl: 'http://localhost:3000',
+            ...orgAndUserConfig,
+          })
+
+          await flatfile.startOrResumeImportSession({ open: 'window' })
+          expect(console.warn).toHaveBeenCalled()
+          expect(Flatfile.getDevelopmentToken).toHaveBeenCalledTimes(1)
+          expect(Flatfile.getDevelopmentToken).toHaveBeenCalledWith(
+            'embedId',
+            expectedOrAndUserConfig
+          )
+        })
+      })
+    })
+
+    describe('when no token onAuth callback or user and embedId info is provided', () => {
       test('should throw implementation error', async () => {
         const flatfile = new Flatfile({ apiUrl: 'http://localhost:3000' })
         jest.spyOn(UIService.prototype, 'destroy')

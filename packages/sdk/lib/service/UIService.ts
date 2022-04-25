@@ -50,6 +50,8 @@ export class UIService {
   public hideLoader(): void {
     if (this.$loader) {
       this.$loader?.remove()
+      this.$loader = undefined
+      this.$message = undefined
     }
   }
 
