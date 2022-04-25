@@ -3,7 +3,7 @@ const webpack = require('webpack')
 const Dotenv = require('dotenv-webpack')
 
 module.exports = {
-  entry: './packages/sdk/lib/index.ts',
+  entry: './lib/index.ts',
   stats: {
     errorDetails: true,
     colors: true,
@@ -20,8 +20,8 @@ module.exports = {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new Dotenv({
-      path: './.env'
-    })
+      path: './.env',
+    }),
   ],
   module: {
     rules: [

@@ -6,6 +6,6 @@ module.exports = merge(base, {
   mode: 'production',
   devtool: false,
   output: {
-    path: path.resolve(__dirname, 'dist/sdk'),
+    path: path.resolve(__dirname, 'dist'),
   },
 })
