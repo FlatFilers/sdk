@@ -68,7 +68,17 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
     // temp hack because workbook ID is not available during init yet
     this.meta.workbookId = await this.api.getWorkbookId(this.meta.batchId)
 
-    await new RecordChunkIterator(this, cb, { chunkSize: options?.chunkSize || 100 }).process()
+    const chunkIterator = new RecordChunkIterator(this, cb, {
+      chunkSize: options?.chunkSize || 100,
+    })
+    await chunkIterator.process()
+
+    /**
+     * close the iframe if none of the records were rejected
+     */
+    if (chunkIterator.rejectedIds.length === 0) {
+      this.iframe?.close()
+    }
   }
 
   /**
