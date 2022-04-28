@@ -204,6 +204,15 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return sign({ embed: embedId, sub: payload.user.email, ...payload, devModeOnly: true }, key)
   }
 
+  public static requestDataFromUser(
+    options: DataReqOptions & IFlatfileImporterConfig
+  ): void | IResponsePromise {
+    const { mountUrl, apiUrl, embedId, user, org, onAuth, ...sessionConfig } = options
+    const flatfile = new Flatfile({ mountUrl, apiUrl, embedId, user, org, onAuth })
+
+    return flatfile.requestDataFromUser(sessionConfig)
+  }
+
   /**
    * Merge in any user provided configuration with defaults.
    *
