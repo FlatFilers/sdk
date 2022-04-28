@@ -1,3 +1,6 @@
+import { IImportMeta, IImportSessionEvents, ImportSession } from 'importer/ImportSession'
+import { IteratorCallback } from 'lib/RecordChunkIterator'
+
 import { FlatfileError } from './errors/FlatfileError'
 import { GetFinalDatabaseViewResponse } from './graphql/queries/GET_FINAL_DATABASE_VIEW'
 
@@ -21,13 +24,17 @@ export interface IFlatfileConfig {
   onAuth?: () => JsonWebToken | Promise<JsonWebToken>
 }
 
+export interface IImportSessionConfig {
+  onInit?: (payload: IImportSessionEvents['init']) => void | Promise<void>
+  onData?: IteratorCallback
+  onComplete?: (payload: IImportSessionEvents['complete']) => void | Promise<void>
+  onError?: (e: Error) => void | Promise<void>
+}
+
 export interface IEvents {
   init: {
-    batchId: string
-    schemas: {
-      id: number
-    }[]
-    workspaceId: string
+    session: ImportSession
+    meta: IImportMeta
   }
   upload: {
     uploadId: string

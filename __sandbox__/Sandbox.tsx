@@ -82,7 +82,8 @@ export function Sandbox(): any {
     })
 
     const session = await flatfile.startOrResumeImportSession()
-    session.on('init', ({ workspaceId, batchId }) => {
+    session.on('init', ({ meta }) => {
+      const { workspaceId, batchId } = meta
       setWorkspaceId(workspaceId)
       setBatchId(batchId)
       session.updateEnvironment({

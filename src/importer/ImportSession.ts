@@ -9,7 +9,7 @@ import { TypedEventManager } from '../lib/TypedEventManager'
 import { TPrimitive } from '../service/FlatfileRecord'
 import { ImportFrame } from './ImportFrame'
 
-export class ImportSession extends TypedEventManager<IBatchEvents> {
+export class ImportSession extends TypedEventManager<IImportSessionEvents> {
   public ui: UIService
   public api: ApiService
   public batchId: string
@@ -20,7 +20,7 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
     this.batchId = meta.batchId
     this.ui = this.flatfile.ui
     this.api = this.flatfile?.api as ApiService
-    setTimeout(() => this.emit('init', meta))
+    setTimeout(() => this.emit('init', { session: this, meta }))
     this.subscribeToBatchStatus() // todo: this shouldn't happen here
   }
 
@@ -95,10 +95,10 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
       }
 
       if (status === 'cancelled') {
-        const apiBatch = await this.api.init()
-        this.emit('init', apiBatch)
-        this.batchId = apiBatch.batchId
-        this.meta = apiBatch
+        const meta = await this.api.init()
+        this.emit('init', { session: this, meta })
+        this.batchId = meta.batchId
+        this.meta = meta
         // todo unsubscribe from old batch
         this.subscribeToBatchStatus()
       }
@@ -120,8 +120,11 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
   }
 }
 
-export interface IBatchEvents {
-  init: IImportMeta
+export interface IImportSessionEvents {
+  init: {
+    session: ImportSession
+    meta: IImportMeta
+  }
   upload: {
     uploadId: string
   }

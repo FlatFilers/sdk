@@ -7,7 +7,14 @@ import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
 import { IResponsePromise, ResponsePromise } from './service/ResponsePromise'
 import { UIService } from './service/UIService'
-import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebToken } from './types'
+import {
+  IEvents,
+  IFlatfileConfig,
+  IFlatfileImporterConfig,
+  IImportSessionConfig,
+  IRawToken,
+  JsonWebToken,
+} from './types'
 import { EDialogMessage } from './types/enums/EDialogMessage'
 
 export class Flatfile extends TypedEventManager<IEvents> {
@@ -75,12 +82,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
         this.ui.showLoader()
       }
       const api = await this.initApi()
-      const importMeta = await api.init()
+      const meta = await api.init()
       const { mountUrl } = this.config
 
-      this.emit('launch', { batchId: importMeta.batchId }) // todo - should this happen here
-      const session = new ImportSession(this, { ...importMeta, mountUrl })
-      session.emit('init', importMeta)
+      this.emit('launch', { batchId: meta.batchId }) // todo - should this happen here
+      const session = new ImportSession(this, { ...meta, mountUrl })
+      session.emit('init', { session, meta })
 
       if (options?.open === 'iframe') {
         const importFrame = session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
@@ -103,28 +110,30 @@ export class Flatfile extends TypedEventManager<IEvents> {
    * Simple function that abstracts away some of the complexity for a single line call
    * also provides some level of backwards compatability
    */
-  public requestDataFromUser(): IResponsePromise | void
+  public requestDataFromUser(): void
   public requestDataFromUser(opts: DataReqOptions): IResponsePromise | void
+  public requestDataFromUser(cb: IteratorCallback, opts?: DataReqOptions): IResponsePromise | void
   public requestDataFromUser(
-    callback: IteratorCallback,
-    opts?: DataReqOptions
-  ): IResponsePromise | void
-  public requestDataFromUser(
-    cbOpts?: IteratorCallback | DataReqOptions,
+    callbackOrOptions?: IteratorCallback | DataReqOptions,
     opts?: DataReqOptions
   ): IResponsePromise | void {
     let callback: IteratorCallback | undefined
     let options: DataReqOptions = { open: 'iframe' }
-    if (typeof cbOpts === 'function') {
-      callback = cbOpts
+    if (typeof callbackOrOptions === 'function') {
+      callback = callbackOrOptions
       options = opts ? { ...options, ...opts } : options
-    } else if (typeof cbOpts === 'object') {
-      options = { ...options, ...cbOpts }
+    } else if (typeof callbackOrOptions === 'object') {
+      options = { ...options, ...callbackOrOptions }
+      callback = options.onData
     }
 
+    const { onInit, onComplete, onError } = options
     const response = new ResponsePromise()
 
     this.startOrResumeImportSession(options).then((session) => {
+      if (onInit) {
+        session.on('init', onInit)
+      }
       if (callback) {
         session.on('submit', () => {
           session.processPendingRecords(callback as IteratorCallback, options)
@@ -136,9 +145,15 @@ export class Flatfile extends TypedEventManager<IEvents> {
         session.on('complete', (payload) => {
           response.resolve(payload)
           session.iframe?.close()
+          if (onComplete) {
+            onComplete(payload)
+          }
         })
         session.on('error', ({ error }) => {
           response.reject(error)
+          if (onError) {
+            onError(error)
+          }
         })
       }
     })
@@ -209,4 +224,4 @@ interface IOpenOptions {
   autoContinue?: boolean
 }
 
-type DataReqOptions = IOpenOptions & IChunkOptions
+type DataReqOptions = IOpenOptions & IChunkOptions & IImportSessionConfig
