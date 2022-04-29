@@ -110,10 +110,27 @@ describe('Flatfile', () => {
       })
     })
 
-    test('should not display loader when no "open" option is provided', async () => {
+    test('should not display loader when no "open" option is provided', () => {
       jest.spyOn(UIService.prototype, 'showLoader')
-      await flatfile.startOrResumeImportSession()
+      flatfile.startOrResumeImportSession()
       expect(UIService.prototype.showLoader).not.toHaveBeenCalled()
+    })
+
+    test('should init an import session', async () => {
+      jest.spyOn(flatfile, 'emit')
+      jest.spyOn(ImportSession.prototype, 'init')
+      await flatfile.startOrResumeImportSession({ open: 'window' })
+      expect(flatfile.emit).toHaveBeenCalledTimes(1)
+      expect(flatfile.emit).toHaveBeenCalledWith('launch', { batchId: fakeImportMeta.batchId })
+      expect(ImportSession.prototype.init).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('requestDataFromUser', () => {
+    test('should call startOrResumeImportSession', () => {
+      jest.spyOn(flatfile, 'startOrResumeImportSession')
+      flatfile.requestDataFromUser()
+      expect(flatfile.startOrResumeImportSession).toHaveBeenCalled()
     })
   })
 })

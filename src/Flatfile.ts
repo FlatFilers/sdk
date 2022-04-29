@@ -76,18 +76,19 @@ export class Flatfile extends TypedEventManager<IEvents> {
   /**
    * Start a new import or resume the one that's currently in progress
    */
-  public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
+  public async startOrResumeImportSession(
+    options?: IOpenOptions & IImportSessionConfig
+  ): Promise<ImportSession> {
     try {
       if (options?.open) {
         this.ui.showLoader()
       }
-      const api = await this.initApi()
-      const meta = await api.init()
+      await this.initApi()
       const { mountUrl } = this.config
 
+      const session = new ImportSession(this, { mountUrl, ...options })
+      const meta = await session.init()
       this.emit('launch', { batchId: meta.batchId }) // todo - should this happen here
-      const session = new ImportSession(this, { ...meta, mountUrl })
-      session.emit('init', { session, meta })
 
       if (options?.open === 'iframe') {
         const importFrame = session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
@@ -127,13 +128,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
       callback = options.onData
     }
 
-    const { onInit, onComplete, onError } = options
     const response = new ResponsePromise()
 
     this.startOrResumeImportSession(options).then((session) => {
-      if (onInit) {
-        session.on('init', onInit)
-      }
       if (callback) {
         session.on('submit', () => {
           session.processPendingRecords(callback as IteratorCallback, options)
@@ -145,15 +142,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
         session.on('complete', (payload) => {
           response.resolve(payload)
           session.iframe?.close()
-          if (onComplete) {
-            onComplete(payload)
-          }
         })
         session.on('error', ({ error }) => {
           response.reject(error)
-          if (onError) {
-            onError(error)
-          }
         })
       }
     })

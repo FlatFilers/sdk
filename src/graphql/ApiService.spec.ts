@@ -18,10 +18,12 @@ describe('ApiService', () => {
     flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
     flatfile.api = api
     session = new ImportSession(flatfile, {
-      batchId: 'abc',
-      workspaceId: 'def',
-      workbookId: 'hij',
-      schemaIds: ['99'],
+      meta: {
+        batchId: 'abc',
+        workspaceId: 'def',
+        workbookId: 'hij',
+        schemaIds: ['99'],
+      },
     })
   })
 

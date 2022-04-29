@@ -1,5 +1,6 @@
 import { Flatfile } from 'Flatfile'
 import { UIService } from 'service/UIService'
+import { IImportSessionConfig } from 'types'
 
 import { ApiService } from '../graphql/ApiService'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
@@ -12,16 +13,43 @@ import { ImportFrame } from './ImportFrame'
 export class ImportSession extends TypedEventManager<IImportSessionEvents> {
   public ui: UIService
   public api: ApiService
-  public batchId: string
+  private _meta?: IImportMeta
   private $iframe?: ImportFrame
 
-  constructor(public flatfile: Flatfile, public meta: IImportMeta) {
+  constructor(public flatfile: Flatfile, public config: IImportSessionConfig) {
     super()
-    this.batchId = meta.batchId
     this.ui = this.flatfile.ui
     this.api = this.flatfile?.api as ApiService
-    setTimeout(() => this.emit('init', { session: this, meta }))
-    this.subscribeToBatchStatus() // todo: this shouldn't happen here
+    if (config.onInit) this.on('init', config.onInit)
+    if (config.onComplete) this.on('complete', config.onComplete)
+    if (config.onError) this.on('error', config.onError)
+    if (config.meta) {
+      this.meta = config.meta
+    }
+  }
+
+  public set meta(value: IImportMeta) {
+    this._meta = value
+  }
+
+  public get meta(): IImportMeta {
+    if (!this._meta) {
+      // TODO: Create a custom error
+      throw new Error('An ImportSession should be initialized before launching the importer')
+    } else {
+      return this._meta
+    }
+  }
+
+  public get batchId(): string {
+    return this.meta.batchId
+  }
+
+  public async init(): Promise<IImportMeta> {
+    this.meta = await this.api.init()
+    this.subscribeToBatchStatus()
+    this.emit('init', { session: this, meta: this.meta })
+    return this.meta
   }
 
   /**
@@ -66,7 +94,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    */
   public async processPendingRecords(cb: IteratorCallback, options?: IChunkOptions): Promise<void> {
     // temp hack because workbook ID is not available during init yet
-    this.meta.workbookId = await this.api.getWorkbookId(this.meta.batchId)
+    this.meta.workbookId = await this.api.getWorkbookId(this.batchId)
 
     const chunkIterator = new RecordChunkIterator(this, cb, {
       chunkSize: options?.chunkSize || 100,
@@ -81,26 +109,18 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     }
   }
 
-  /**
-   * @todo make this less lines and more readable
-   */
   private subscribeToBatchStatus(): void {
-    return this.api.subscribeBatchStatusUpdated(this.meta.batchId, async (status) => {
+    return this.api.subscribeBatchStatusUpdated(this.batchId, async (status) => {
       if (status === 'submitted') {
         this.emit('submit', this)
         this.emit('complete', {
           batchId: this.batchId,
-          data: (sample = false) => this.api.getAllRecords(this.meta.batchId, 0, sample),
+          data: (sample = false) => this.api.getAllRecords(this.batchId, 0, sample),
         })
       }
 
       if (status === 'cancelled') {
-        const meta = await this.api.init()
-        this.emit('init', { session: this, meta })
-        this.batchId = meta.batchId
-        this.meta = meta
-        // todo unsubscribe from old batch
-        this.subscribeToBatchStatus()
+        await this.init()
       }
     })
   }
@@ -110,7 +130,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    * @todo fix the fact that the JWT is sent in raw query params
    */
   public signedImportUrl(options?: IUrlOptions): string {
-    const MOUNT_URL = this.meta.mountUrl
+    const MOUNT_URL = this.config.mountUrl
     const qs = {
       jwt: this.api.token,
       ...(this.batchId ? { batchId: this.batchId } : {}),
