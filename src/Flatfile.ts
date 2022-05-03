@@ -77,7 +77,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
    * Start a new import or resume the one that's currently in progress
    */
   public async startOrResumeImportSession(
-    options?: IOpenOptions & IImportSessionConfig
+    options?: IOpenOptions & IChunkOptions & IImportSessionConfig
   ): Promise<ImportSession> {
     try {
       if (options?.open) {
@@ -88,10 +88,26 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
+      const { chunkSize } = options ?? {}
 
       if (options?.onInit) session.on('init', options.onInit)
-      if (options?.onComplete) session.on('complete', options.onComplete)
       if (options?.onError) session.on('error', options.onError)
+      session.on('submit', async () => {
+        if (options?.onData) {
+          const iterator = await session.processPendingRecords(options?.onData, { chunkSize })
+          if (iterator.rejectedIds.length === 0) {
+            options?.onComplete?.({
+              batchId: meta.batchId,
+              data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
+            })
+          }
+        } else {
+          options?.onComplete?.({
+            batchId: meta.batchId,
+            data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
+          })
+        }
+      })
 
       session.init()
       this.emit('launch', { batchId: meta?.batchId }) // todo - should this happen here

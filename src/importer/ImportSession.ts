@@ -70,7 +70,10 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    * @param cb
    * @param options
    */
-  public async processPendingRecords(cb: IteratorCallback, options?: IChunkOptions): Promise<void> {
+  public async processPendingRecords(
+    cb: IteratorCallback,
+    options?: IChunkOptions
+  ): Promise<RecordChunkIterator> {
     // temp hack because workbook ID is not available during init yet
     this.meta.workbookId = await this.api.getWorkbookId(this.batchId)
 
@@ -83,8 +86,11 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
      * close the iframe if none of the records were rejected
      */
     if (chunkIterator.rejectedIds.length === 0) {
+      // return the chunk iterator
       this.iframe?.close()
     }
+
+    return chunkIterator
   }
 
   private subscribeToBatchStatus(): void {
