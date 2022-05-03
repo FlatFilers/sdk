@@ -1,6 +1,5 @@
 import { Flatfile } from 'Flatfile'
 import { UIService } from 'service/UIService'
-import { IImportSessionConfig } from 'types'
 
 import { ApiService } from '../graphql/ApiService'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
@@ -13,32 +12,12 @@ import { ImportFrame } from './ImportFrame'
 export class ImportSession extends TypedEventManager<IImportSessionEvents> {
   public ui: UIService
   public api: ApiService
-  private _meta?: IImportMeta
   private $iframe?: ImportFrame
 
-  constructor(public flatfile: Flatfile, public config: IImportSessionConfig) {
+  constructor(public flatfile: Flatfile, public meta: IImportMeta) {
     super()
     this.ui = this.flatfile.ui
     this.api = this.flatfile?.api as ApiService
-    if (config.onInit) this.on('init', config.onInit)
-    if (config.onComplete) this.on('complete', config.onComplete)
-    if (config.onError) this.on('error', config.onError)
-    if (config.meta) {
-      this.meta = config.meta
-    }
-  }
-
-  public set meta(value: IImportMeta) {
-    this._meta = value
-  }
-
-  public get meta(): IImportMeta {
-    if (!this._meta) {
-      // TODO: Create a custom error
-      throw new Error('An ImportSession should be initialized before launching the importer')
-    } else {
-      return this._meta
-    }
   }
 
   public get batchId(): string {
@@ -46,7 +25,6 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
   }
 
   public async init(): Promise<IImportMeta> {
-    this.meta = await this.api.init()
     this.subscribeToBatchStatus()
     this.emit('init', { session: this, meta: this.meta })
     return this.meta
@@ -120,7 +98,9 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
       }
 
       if (status === 'cancelled') {
-        await this.init()
+        const meta = await this.api.init()
+        this.meta = { ...this.meta, ...meta }
+        this.init()
       }
     })
   }
@@ -130,7 +110,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    * @todo fix the fact that the JWT is sent in raw query params
    */
   public signedImportUrl(options?: IUrlOptions): string {
-    const MOUNT_URL = this.config.mountUrl
+    const MOUNT_URL = this.meta.mountUrl
     const qs = {
       jwt: this.api.token,
       ...(this.batchId ? { batchId: this.batchId } : {}),

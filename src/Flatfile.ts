@@ -83,12 +83,18 @@ export class Flatfile extends TypedEventManager<IEvents> {
       if (options?.open) {
         this.ui.showLoader()
       }
-      await this.initApi()
+      const api = await this.initApi()
+      const meta = await api.init()
       const { mountUrl } = this.config
 
-      const session = new ImportSession(this, { mountUrl, ...options })
-      const meta = await session.init()
-      this.emit('launch', { batchId: meta.batchId }) // todo - should this happen here
+      const session = new ImportSession(this, { mountUrl, ...meta })
+
+      if (options?.onInit) session.on('init', options.onInit)
+      if (options?.onComplete) session.on('complete', options.onComplete)
+      if (options?.onError) session.on('error', options.onError)
+
+      session.init()
+      this.emit('launch', { batchId: meta?.batchId }) // todo - should this happen here
 
       if (options?.open === 'iframe') {
         const importFrame = session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
@@ -112,12 +118,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
    * also provides some level of backwards compatability
    */
   public requestDataFromUser(): void
-  public requestDataFromUser(opts: DataReqOptions): IResponsePromise | void
-  public requestDataFromUser(cb: IteratorCallback, opts?: DataReqOptions): IResponsePromise | void
+  public requestDataFromUser(opts: DataReqOptions): void
+  public requestDataFromUser(cb: IteratorCallback, opts?: DataReqOptions): void
   public requestDataFromUser(
     callbackOrOptions?: IteratorCallback | DataReqOptions,
     opts?: DataReqOptions
-  ): IResponsePromise | void {
+  ): void {
     let callback: IteratorCallback | undefined
     let options: DataReqOptions = { open: 'iframe' }
     if (typeof callbackOrOptions === 'function') {
@@ -142,13 +148,16 @@ export class Flatfile extends TypedEventManager<IEvents> {
         session.on('complete', (payload) => {
           response.resolve(payload)
           session.iframe?.close()
+
+          if (!options.onComplete) {
+            console.log('[Flatfile]: Register `onComplete` event to receive your payload')
+          }
         })
         session.on('error', ({ error }) => {
           response.reject(error)
         })
       }
     })
-    return callback ? void 0 : response.promise
   }
 
   public handleError(error: FlatfileError): void {

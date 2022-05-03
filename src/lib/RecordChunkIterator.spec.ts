@@ -21,12 +21,10 @@ describe('RecordChunkIterator', () => {
     flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
     flatfile.api = new ApiService('toke', 'http://localhost:3000')
     session = new ImportSession(flatfile, {
-      meta: {
-        batchId: 'abc',
-        workspaceId: 'def',
-        workbookId: 'hij',
-        schemaIds: ['99'],
-      },
+      batchId: 'abc',
+      workspaceId: 'def',
+      workbookId: 'hij',
+      schemaIds: ['99'],
     })
     chunk = createChunk(session, makeRecords(0, 10), 20, 0, 10)
     chunk2 = createChunk(session, makeRecords(10, 10), 20, 10, 10)

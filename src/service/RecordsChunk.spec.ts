@@ -18,12 +18,10 @@ describe('RecordsChunk', function () {
     flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
     flatfile.api = new ApiService('token', 'http://localhost:3000')
     session = new ImportSession(flatfile, {
-      meta: {
-        batchId: 'abc',
-        workspaceId: 'def',
-        workbookId: 'hij',
-        schemaIds: ['99'],
-      },
+      batchId: 'abc',
+      workspaceId: 'def',
+      workbookId: 'hij',
+      schemaIds: ['99'],
     })
 
     chunk = createChunk(session, records, 100)

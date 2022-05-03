@@ -19,7 +19,10 @@ describe('ImportSession', () => {
     flatfile.api = new ApiService('toke', 'http://localhost:3000')
     session = new ImportSession(flatfile, {
       mountUrl: 'url',
-      meta: { batchId: 'abc', workspaceId: 'def', workbookId: 'hij', schemaIds: ['99'] },
+      batchId: 'abc',
+      workspaceId: 'def',
+      workbookId: 'hij',
+      schemaIds: ['99'],
     })
 
     chunk = createChunk(session, makeRecords(0, 10), 10, 0, 10)

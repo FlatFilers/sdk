@@ -25,8 +25,6 @@ export interface IFlatfileConfig {
 }
 
 export interface IImportSessionConfig {
-  meta?: IImportMeta
-  mountUrl?: string
   onInit?: (payload: IImportSessionEvents['init']) => void | Promise<void>
   onData?: IteratorCallback
   onComplete?: (payload: IImportSessionEvents['complete']) => void | Promise<void>
