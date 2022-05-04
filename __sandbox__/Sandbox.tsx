@@ -81,18 +81,19 @@ export function Sandbox(): any {
       return a * b * 4
     })
 
-    const session = await flatfile.startOrResumeImportSession()
-    session.on('init', ({ meta }) => {
-      const { workspaceId, batchId } = meta
-      setWorkspaceId(workspaceId)
-      setBatchId(batchId)
-      session.updateEnvironment({
-        HOOK_HELPER,
-      })
-      if (useWindow) {
-        session.openInNewWindow()
-      } else {
-        setFrameUrl(session.signedImportUrl())
+    const session = await flatfile.startOrResumeImportSession({
+      onInit: ({ meta, session }) => {
+        const { workspaceId, batchId } = meta
+        setWorkspaceId(workspaceId)
+        setBatchId(batchId)
+        session.updateEnvironment({
+          HOOK_HELPER,
+        })
+        if (useWindow) {
+          session.openInNewWindow()
+        } else {
+          setFrameUrl(session.signedImportUrl())
+        }
       }
     })
 
