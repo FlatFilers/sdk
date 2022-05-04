@@ -150,9 +150,11 @@ export class Flatfile extends TypedEventManager<IEvents> {
       callback = options.onData
     }
 
+    // TODO: Should we remove this?
     const response = new ResponsePromise()
 
     this.startOrResumeImportSession(options).then((session) => {
+      // TODO: Shoudl we remove this?
       if (callback) {
         session.on('submit', () => {
           session.processPendingRecords(callback as IteratorCallback, options)
