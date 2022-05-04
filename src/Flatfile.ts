@@ -5,7 +5,6 @@ import { IChunkOptions, ImportSession } from './importer/ImportSession'
 import { isJWT, sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
-import { IResponsePromise, ResponsePromise } from './service/ResponsePromise'
 import { UIService } from './service/UIService'
 import {
   IEvents,
@@ -102,10 +101,14 @@ export class Flatfile extends TypedEventManager<IEvents> {
             })
           }
         } else {
-          options?.onComplete?.({
-            batchId: meta.batchId,
-            data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
-          })
+          if (options?.onComplete) {
+            options?.onComplete?.({
+              batchId: meta.batchId,
+              data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
+            })
+          } else {
+            console.log('[Flatfile]: Register `onComplete` event to receive your payload')
+          }
         }
       })
 
@@ -140,42 +143,14 @@ export class Flatfile extends TypedEventManager<IEvents> {
     callbackOrOptions?: IteratorCallback | DataReqOptions,
     opts?: DataReqOptions
   ): void {
-    let callback: IteratorCallback | undefined
     let options: DataReqOptions = { open: 'iframe' }
     if (typeof callbackOrOptions === 'function') {
-      callback = callbackOrOptions
-      options = opts ? { ...options, ...opts } : options
+      options = opts ? { ...options, ...opts, onData: callbackOrOptions } : options
     } else if (typeof callbackOrOptions === 'object') {
       options = { ...options, ...callbackOrOptions }
-      callback = options.onData
     }
 
-    // TODO: Should we remove this?
-    const response = new ResponsePromise()
-
-    this.startOrResumeImportSession(options).then((session) => {
-      // TODO: Shoudl we remove this?
-      if (callback) {
-        session.on('submit', () => {
-          session.processPendingRecords(callback as IteratorCallback, options)
-        })
-      } else {
-        /**
-         * requestDataFromUser() will return a Promise if callback is not provided
-         */
-        session.on('complete', (payload) => {
-          response.resolve(payload)
-          session.iframe?.close()
-
-          if (!options.onComplete) {
-            console.log('[Flatfile]: Register `onComplete` event to receive your payload')
-          }
-        })
-        session.on('error', ({ error }) => {
-          response.reject(error)
-        })
-      }
-    })
+    this.startOrResumeImportSession(options)
   }
 
   public handleError(error: FlatfileError): void {
@@ -222,11 +197,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return sign({ embed: embedId, sub: payload.user.email, ...payload, devModeOnly: true }, key)
   }
 
-  public static requestDataFromUser(
-    options: DataReqOptions & IFlatfileImporterConfig
-  ): void | IResponsePromise {
-    const { mountUrl, apiUrl, embedId, user, org, onAuth, ...sessionConfig } = options
-    const flatfile = new Flatfile({ mountUrl, apiUrl, embedId, user, org, onAuth })
+  public static requestDataFromUser(options: DataReqOptions & IFlatfileImporterConfig): void {
+    const { token, mountUrl, apiUrl, embedId, user, org, onAuth, ...sessionConfig } = options
+    const flatfile = new Flatfile({ token, mountUrl, apiUrl, embedId, user, org, onAuth })
 
     return flatfile.requestDataFromUser(sessionConfig)
   }

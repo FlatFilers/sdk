@@ -19,6 +19,7 @@ describe('Flatfile', () => {
     jest.clearAllMocks()
     flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
     jest.spyOn(ApiService.prototype, 'init').mockResolvedValue(fakeImportMeta)
+    jest.clearAllMocks()
   })
 
   describe('startOrResumeImportSession', () => {
@@ -131,6 +132,48 @@ describe('Flatfile', () => {
       jest.spyOn(flatfile, 'startOrResumeImportSession')
       flatfile.requestDataFromUser()
       expect(flatfile.startOrResumeImportSession).toHaveBeenCalled()
+    })
+
+    test('should use the provided callback', () => {
+      jest.spyOn(flatfile, 'startOrResumeImportSession')
+      const callback = jest.fn()
+      const importSessionConfig = {
+        open: 'window' as 'window' | 'iframe',
+        onInit: jest.fn(),
+        onError: jest.fn(),
+      }
+      flatfile.requestDataFromUser(callback, importSessionConfig)
+      expect(flatfile.startOrResumeImportSession).toHaveBeenCalledWith({
+        onData: callback,
+        ...importSessionConfig,
+      })
+    })
+  })
+
+  describe('Flatfile.requestDataFromUser', () => {
+    test('should call startOrResumeImportSession', async () => {
+      jest.spyOn(Flatfile.prototype, 'startOrResumeImportSession')
+      const flatfileConfig = {
+        token: 'token',
+        mountUrl: 'mount url',
+        apiUrl: 'api url',
+        embedId: 'embed id',
+        user: { id: 1, name: 'John Doe', email: 'john@email.com' },
+        org: { id: 1, name: 'Company' },
+        onAuth: jest.fn(),
+      }
+      const importSessionConfig = {
+        open: 'window' as 'window' | 'iframe',
+        onInit: jest.fn(),
+        onData: jest.fn(),
+        onError: jest.fn(),
+      }
+
+      await Flatfile.requestDataFromUser({ ...flatfileConfig, ...importSessionConfig })
+      expect(Flatfile.prototype.startOrResumeImportSession).toHaveBeenCalledTimes(1)
+      expect(Flatfile.prototype.startOrResumeImportSession).toHaveBeenCalledWith(
+        importSessionConfig
+      )
     })
   })
 })
