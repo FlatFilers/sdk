@@ -111,6 +111,7 @@ export function Sandbox(): any {
 
     importerRef.current = session
   }, [output, embedId, endUserEmail, privateKey, mountUrl, apiUrl, useWindow])
+
   return (
     <div style={{ padding: '45px 13px' }}>
       <Container breakpoint='fluid'>

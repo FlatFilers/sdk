@@ -3,6 +3,7 @@ import { ImplementationError } from './errors/ImplementationError'
 import { Flatfile } from './Flatfile'
 import { ApiService } from './graphql/ApiService'
 import { ImportSession } from './importer/ImportSession'
+import { RecordChunkIterator } from './lib/RecordChunkIterator'
 import { UIService } from './service/UIService'
 
 window.alert = jest.fn()
@@ -124,6 +125,84 @@ describe('Flatfile', () => {
       expect(flatfile.emit).toHaveBeenCalledTimes(1)
       expect(flatfile.emit).toHaveBeenCalledWith('launch', { batchId: fakeImportMeta.batchId })
       expect(ImportSession.prototype.init).toHaveBeenCalledTimes(1)
+    })
+
+    describe('when import session config is provided ', () => {
+      beforeEach(async () => {
+        jest.spyOn(ImportSession.prototype, 'processPendingRecords')
+        jest.spyOn(ApiService.prototype, 'getWorkbookId').mockResolvedValueOnce('wId')
+        jest
+          .spyOn(RecordChunkIterator.prototype, 'process')
+          .mockImplementation(() => Promise.resolve())
+      })
+
+      test('should register session event handlers ', async () => {
+        jest.spyOn(ImportSession.prototype, 'on')
+        const importSessionConfig = {
+          chunkSize: 10,
+          onInit: jest.fn(),
+          onData: jest.fn(),
+          onError: jest.fn(),
+          onComplete: jest.fn(),
+        }
+        await flatfile.startOrResumeImportSession(importSessionConfig)
+        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(3)
+        expect(ImportSession.prototype.on).toHaveBeenCalledWith('submit', expect.any(Function))
+        expect(ImportSession.prototype.on).toHaveBeenCalledWith('init', importSessionConfig.onInit)
+        expect(ImportSession.prototype.on).toHaveBeenCalledWith(
+          'error',
+          importSessionConfig.onError
+        )
+      })
+
+      test('should call on-complete event handler when rejected ids length is zero and on-data callback is provided', async () => {
+        const importSessionConfig = {
+          chunkSize: 10,
+          onData: jest.fn(),
+          onComplete: jest.fn(),
+        }
+        const session = await flatfile.startOrResumeImportSession(importSessionConfig)
+        session.emit('submit')
+        await new Promise(process.nextTick)
+
+        expect(importSessionConfig.onComplete).toHaveBeenCalledTimes(1)
+        expect(importSessionConfig.onComplete).toHaveBeenCalledWith({
+          batchId: fakeImportMeta.batchId,
+          data: expect.any(Function),
+        })
+        expect(ImportSession.prototype.processPendingRecords).toHaveBeenCalledWith(
+          importSessionConfig.onData,
+          { chunkSize: 10 }
+        )
+      })
+
+      test('should only call on-complete event handler when on-data callback is not provided', async () => {
+        const importSessionConfig = { onComplete: jest.fn() }
+        const session = await flatfile.startOrResumeImportSession(importSessionConfig)
+        session.emit('submit')
+        await new Promise(process.nextTick)
+
+        expect(ImportSession.prototype.processPendingRecords).not.toHaveBeenCalled()
+        expect(importSessionConfig.onComplete).toHaveBeenCalledTimes(1)
+        expect(importSessionConfig.onComplete).toHaveBeenCalledWith({
+          batchId: fakeImportMeta.batchId,
+          data: expect.any(Function),
+        })
+      })
+
+      test('should log warning message when no on-complete callback is provided', async () => {
+        jest.spyOn(console, 'log').mockImplementation((s) => s)
+
+        const importSessionConfig = {}
+        const session = await flatfile.startOrResumeImportSession(importSessionConfig)
+        session.emit('submit')
+        await new Promise(process.nextTick)
+
+        expect(ImportSession.prototype.processPendingRecords).not.toHaveBeenCalled()
+        expect(console.log).toHaveBeenCalledWith(
+          '[Flatfile]: Register `onComplete` event to receive your payload'
+        )
+      })
     })
   })
 
