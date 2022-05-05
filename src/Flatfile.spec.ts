@@ -11,6 +11,7 @@ window.open = jest.fn(() => window)
 jest.mock('./graphql/ApiService')
 jest.mock('./lib/jwt', () => ({ sign: jest.fn(() => 'token') }))
 
+const env = process.env
 const fakeImportMeta = { batchId: 'bId', workspaceId: 'wId', schemaIds: [] }
 
 describe('Flatfile', () => {
@@ -18,9 +19,29 @@ describe('Flatfile', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks()
-    flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
     jest.spyOn(ApiService.prototype, 'init').mockResolvedValue(fakeImportMeta)
-    jest.clearAllMocks()
+    flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
+    process.env = { ...env, API_URL: 'http://localhost:3002', MOUNT_URL: 'http://localhost:3001' }
+  })
+
+  afterAll(() => {
+    process.env = env
+  })
+
+  test('should only merge not undefined config fields', async () => {
+    const flatfile = new Flatfile({
+      token: 'JWT',
+      org: undefined,
+      user: undefined,
+      onAuth: undefined,
+      apiUrl: undefined,
+      mountUrl: 'http://localhost:3001/overriden',
+    })
+    expect(flatfile.config).toEqual({
+      token: 'JWT',
+      apiUrl: 'http://localhost:3002',
+      mountUrl: 'http://localhost:3001/overriden',
+    })
   })
 
   describe('startOrResumeImportSession', () => {

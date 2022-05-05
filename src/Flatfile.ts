@@ -214,7 +214,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return {
       apiUrl: process.env.API_URL as string,
       mountUrl: process.env.MOUNT_URL as string,
-      ...config,
+      ...Object.fromEntries(Object.entries(config).filter(([, value]) => value !== undefined)),
     }
   }
 }
