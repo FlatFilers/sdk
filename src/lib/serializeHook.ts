@@ -1,9 +1,7 @@
-import { FlatfileRecords, FlatfileSession } from '@flatfile/hooks/dist/src'
 import { serializeFn } from 'transferable-function'
 
-export function serializeHook(
-  fn: (payload: FlatfileRecords, session: FlatfileSession) => void
-): string {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function serializeHook(fn: (payload: any, session: any) => void): string {
   return JSON.stringify(serializeFn(fn))
 }
 

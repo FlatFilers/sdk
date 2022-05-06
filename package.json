@@ -1,6 +1,6 @@
 {
   "name": "@flatfile/sdk",
-  "version": "2.0.0-rc5",
+  "version": "2.0.0-rc8",
   "description": "Flatfile SDK",
   "private": false,
   "repository": {
@@ -44,7 +44,6 @@
     "@babel/preset-typescript": "^7.14.5",
     "@commitlint/cli": "^12.1.4",
     "@commitlint/config-conventional": "^12.1.4",
-    "@flatfile/hooks": "^1.0.1",
     "@types/backo2": "^1.0.1",
     "@types/jest": "^27.0.3",
     "@types/react": "^17.0.11",
