@@ -1,6 +1,6 @@
 import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
-import { IteratorCallback } from '../lib/RecordChunkIterator'
+import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
 import { createChunk, makeRecords } from '../lib/test-helper'
 import { RecordsChunk } from '../service/RecordsChunk'
 import { ImportFrame } from './ImportFrame'
@@ -55,7 +55,9 @@ describe('ImportSession', () => {
   })
 
   test('processPendingRecords', async () => {
-    await expect(session.processPendingRecords(callbackFn)).resolves.toBe(undefined)
+    await expect(session.processPendingRecords(callbackFn)).resolves.toBeInstanceOf(
+      RecordChunkIterator
+    )
   })
 
   describe('updateEnvironment', () => {

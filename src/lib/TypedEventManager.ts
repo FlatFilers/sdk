@@ -35,7 +35,7 @@ export class TypedEventManager<T> {
     }
   }
 
-  public on<K extends keyof T>(event: K, cb: (e: T[K]) => void): this {
+  public on<K extends keyof T>(event: K, cb: (e: T[K]) => void | Promise<void>): this {
     this.em.on(event, cb)
     return this
   }

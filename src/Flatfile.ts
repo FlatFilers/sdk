@@ -5,9 +5,15 @@ import { IChunkOptions, ImportSession } from './importer/ImportSession'
 import { isJWT, sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
-import { IResponsePromise, ResponsePromise } from './service/ResponsePromise'
 import { UIService } from './service/UIService'
-import { IEvents, IFlatfileConfig, IFlatfileImporterConfig, IRawToken, JsonWebToken } from './types'
+import {
+  IEvents,
+  IFlatfileConfig,
+  IFlatfileImporterConfig,
+  IImportSessionConfig,
+  IRawToken,
+  JsonWebToken,
+} from './types'
 import { EDialogMessage } from './types/enums/EDialogMessage'
 
 export class Flatfile extends TypedEventManager<IEvents> {
@@ -69,18 +75,47 @@ export class Flatfile extends TypedEventManager<IEvents> {
   /**
    * Start a new import or resume the one that's currently in progress
    */
-  public async startOrResumeImportSession(options?: IOpenOptions): Promise<ImportSession> {
+  public async startOrResumeImportSession(
+    options?: IOpenOptions & IChunkOptions & IImportSessionConfig
+  ): Promise<ImportSession> {
     try {
       if (options?.open) {
         this.ui.showLoader()
       }
       const api = await this.initApi()
-      const importMeta = await api.init()
+      const meta = await api.init()
       const { mountUrl } = this.config
 
-      this.emit('launch', { batchId: importMeta.batchId }) // todo - should this happen here
-      const session = new ImportSession(this, { ...importMeta, mountUrl })
-      session.emit('init', importMeta)
+      const session = new ImportSession(this, { mountUrl, ...meta })
+      const { chunkSize } = options ?? {}
+
+      if (options?.onInit) session.on('init', options.onInit)
+      if (options?.onError) session.on('error', options.onError)
+      session.on('submit', async () => {
+        if (options?.onData) {
+          const iterator = await session.processPendingRecords(options.onData, { chunkSize })
+          if (iterator.rejectedIds.length === 0) {
+            session.iframe?.close()
+            options.onComplete?.({
+              batchId: meta.batchId,
+              data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
+            })
+          }
+        } else {
+          if (options?.onComplete) {
+            session.iframe?.close()
+            options.onComplete?.({
+              batchId: meta.batchId,
+              data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
+            })
+          } else {
+            console.log('[Flatfile]: Register `onComplete` event to receive your payload')
+          }
+        }
+      })
+
+      session.init()
+      this.emit('launch', { batchId: meta?.batchId }) // todo - should this happen here
 
       if (options?.open === 'iframe') {
         const importFrame = session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
@@ -103,46 +138,21 @@ export class Flatfile extends TypedEventManager<IEvents> {
    * Simple function that abstracts away some of the complexity for a single line call
    * also provides some level of backwards compatability
    */
-  public requestDataFromUser(): IResponsePromise | void
-  public requestDataFromUser(opts: DataReqOptions): IResponsePromise | void
+  public requestDataFromUser(): void
+  public requestDataFromUser(opts: DataReqOptions): void
+  public requestDataFromUser(cb: IteratorCallback, opts?: DataReqOptions): void
   public requestDataFromUser(
-    callback: IteratorCallback,
+    callbackOrOptions?: IteratorCallback | DataReqOptions,
     opts?: DataReqOptions
-  ): IResponsePromise | void
-  public requestDataFromUser(
-    cbOpts?: IteratorCallback | DataReqOptions,
-    opts?: DataReqOptions
-  ): IResponsePromise | void {
-    let callback: IteratorCallback | undefined
+  ): void {
     let options: DataReqOptions = { open: 'iframe' }
-    if (typeof cbOpts === 'function') {
-      callback = cbOpts
-      options = opts ? { ...options, ...opts } : options
-    } else if (typeof cbOpts === 'object') {
-      options = { ...options, ...cbOpts }
+    if (typeof callbackOrOptions === 'function') {
+      options = opts ? { ...options, ...opts, onData: callbackOrOptions } : options
+    } else if (typeof callbackOrOptions === 'object') {
+      options = { ...options, ...callbackOrOptions }
     }
 
-    const response = new ResponsePromise()
-
-    this.startOrResumeImportSession(options).then((session) => {
-      if (callback) {
-        session.on('submit', () => {
-          session.processPendingRecords(callback as IteratorCallback, options)
-        })
-      } else {
-        /**
-         * requestDataFromUser() will return a Promise if callback is not provided
-         */
-        session.on('complete', (payload) => {
-          response.resolve(payload)
-          session.iframe?.close()
-        })
-        session.on('error', ({ error }) => {
-          response.reject(error)
-        })
-      }
-    })
-    return callback ? void 0 : response.promise
+    this.startOrResumeImportSession(options)
   }
 
   public handleError(error: FlatfileError): void {
@@ -189,6 +199,51 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return sign({ embed: embedId, sub: payload.user.email, ...payload, devModeOnly: true }, key)
   }
 
+  public static requestDataFromUser(options: DataReqOptions & IFlatfileImporterConfig): void {
+    const { sessionConfig, importerConfig } = Flatfile.extractImporterOptions(options)
+    const flatfile = new Flatfile(importerConfig)
+    return flatfile.requestDataFromUser(sessionConfig)
+  }
+
+  private static extractImporterOptions(options: DataReqOptions & IFlatfileImporterConfig): {
+    sessionConfig: DataReqOptions
+    importerConfig: IFlatfileImporterConfig
+  } {
+    const sessionConfigKeys: (keyof DataReqOptions)[] = [
+      'autoContinue',
+      'chunkSize',
+      'onComplete',
+      'onData',
+      'onError',
+      'onInit',
+      'open',
+    ]
+    const sessionConfig = {} as DataReqOptions
+    const importerConfigKeys: (keyof IFlatfileImporterConfig)[] = [
+      'apiUrl',
+      'embedId',
+      'mountUrl',
+      'onAuth',
+      'org',
+      'token',
+      'user',
+    ]
+    const importerConfig = {} as IFlatfileImporterConfig
+    Object.entries(options).forEach(([key, val]) => {
+      if (sessionConfigKeys.indexOf(key as keyof DataReqOptions) !== -1) {
+        sessionConfig[key as keyof DataReqOptions] = val
+      }
+      if (importerConfigKeys.indexOf(key as keyof IFlatfileImporterConfig) !== -1) {
+        importerConfig[key as keyof IFlatfileImporterConfig] = val
+      }
+    })
+
+    return {
+      sessionConfig,
+      importerConfig,
+    }
+  }
+
   /**
    * Merge in any user provided configuration with defaults.
    *
@@ -199,7 +254,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return {
       apiUrl: process.env.API_URL as string,
       mountUrl: process.env.MOUNT_URL as string,
-      ...config,
+      ...Object.entries(config).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key as keyof IFlatfileConfig] = value
+        }
+        return acc
+      }, {} as Partial<IFlatfileConfig>),
     }
   }
 }
@@ -209,4 +269,4 @@ interface IOpenOptions {
   autoContinue?: boolean
 }
 
-type DataReqOptions = IOpenOptions & IChunkOptions
+type DataReqOptions = IOpenOptions & IChunkOptions & IImportSessionConfig
