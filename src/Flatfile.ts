@@ -231,7 +231,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       if (sessionConfigKeys.indexOf(key as keyof DataReqOptions) !== -1) {
         sessionConfig[key as keyof DataReqOptions] = val
       }
-      if (importerConfigKeys.indexOf(key as keyof IFlatfileImporterConfig)) {
+      if (importerConfigKeys.indexOf(key as keyof IFlatfileImporterConfig) !== -1) {
         importerConfig[key as keyof IFlatfileImporterConfig] = val
       }
     })
