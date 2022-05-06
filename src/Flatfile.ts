@@ -228,10 +228,10 @@ export class Flatfile extends TypedEventManager<IEvents> {
     ]
     const importerConfig = {} as IFlatfileImporterConfig
     Object.entries(options).forEach(([key, val]) => {
-      if (key in sessionConfigKeys) {
+      if (sessionConfigKeys.indexOf(key as keyof DataReqOptions) !== -1) {
         sessionConfig[key as keyof DataReqOptions] = val
       }
-      if (key in importerConfigKeys) {
+      if (importerConfigKeys.indexOf(key as keyof IFlatfileImporterConfig)) {
         importerConfig[key as keyof IFlatfileImporterConfig] = val
       }
     })
