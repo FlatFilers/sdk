@@ -82,14 +82,6 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     })
     await chunkIterator.process()
 
-    /**
-     * close the iframe if none of the records were rejected
-     */
-    if (chunkIterator.rejectedIds.length === 0) {
-      // return the chunk iterator
-      this.iframe?.close()
-    }
-
     return chunkIterator
   }
 

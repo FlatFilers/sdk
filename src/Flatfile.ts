@@ -95,6 +95,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
         if (options?.onData) {
           const iterator = await session.processPendingRecords(options.onData, { chunkSize })
           if (iterator.rejectedIds.length === 0) {
+            session.iframe?.close()
             options.onComplete?.({
               batchId: meta.batchId,
               data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
@@ -102,6 +103,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
           }
         } else {
           if (options?.onComplete) {
+            session.iframe?.close()
             options.onComplete?.({
               batchId: meta.batchId,
               data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
