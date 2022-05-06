@@ -93,16 +93,16 @@ export class Flatfile extends TypedEventManager<IEvents> {
       if (options?.onError) session.on('error', options.onError)
       session.on('submit', async () => {
         if (options?.onData) {
-          const iterator = await session.processPendingRecords(options?.onData, { chunkSize })
+          const iterator = await session.processPendingRecords(options.onData, { chunkSize })
           if (iterator.rejectedIds.length === 0) {
-            options?.onComplete?.({
+            options.onComplete?.({
               batchId: meta.batchId,
               data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
             })
           }
         } else {
           if (options?.onComplete) {
-            options?.onComplete?.({
+            options.onComplete?.({
               batchId: meta.batchId,
               data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
             })

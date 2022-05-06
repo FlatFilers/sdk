@@ -96,7 +96,6 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
   private subscribeToBatchStatus(): void {
     return this.api.subscribeBatchStatusUpdated(this.batchId, async (status) => {
       if (status === 'submitted') {
-        this.$iframe?.close()
         this.emit('submit', this)
         this.emit('complete', {
           batchId: this.batchId,
