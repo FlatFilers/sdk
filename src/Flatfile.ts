@@ -198,10 +198,48 @@ export class Flatfile extends TypedEventManager<IEvents> {
   }
 
   public static requestDataFromUser(options: DataReqOptions & IFlatfileImporterConfig): void {
-    const { token, mountUrl, apiUrl, embedId, user, org, onAuth, ...sessionConfig } = options
-    const flatfile = new Flatfile({ token, mountUrl, apiUrl, embedId, user, org, onAuth })
-
+    const { sessionConfig, importerConfig } = Flatfile.extractImporterOptions(options)
+    const flatfile = new Flatfile(importerConfig)
     return flatfile.requestDataFromUser(sessionConfig)
+  }
+
+  private static extractImporterOptions(options: DataReqOptions & IFlatfileImporterConfig): {
+    sessionConfig: DataReqOptions
+    importerConfig: IFlatfileImporterConfig
+  } {
+    const sessionConfigKeys: (keyof DataReqOptions)[] = [
+      'autoContinue',
+      'chunkSize',
+      'onComplete',
+      'onData',
+      'onError',
+      'onInit',
+      'open',
+    ]
+    const sessionConfig = {} as DataReqOptions
+    const importerConfigKeys: (keyof IFlatfileImporterConfig)[] = [
+      'apiUrl',
+      'embedId',
+      'mountUrl',
+      'onAuth',
+      'org',
+      'token',
+      'user',
+    ]
+    const importerConfig = {} as IFlatfileImporterConfig
+    Object.entries(options).forEach(([key, val]) => {
+      if (key in sessionConfigKeys) {
+        sessionConfig[key as keyof DataReqOptions] = val
+      }
+      if (key in importerConfigKeys) {
+        importerConfig[key as keyof IFlatfileImporterConfig] = val
+      }
+    })
+
+    return {
+      sessionConfig,
+      importerConfig,
+    }
   }
 
   /**
@@ -214,7 +252,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return {
       apiUrl: process.env.API_URL as string,
       mountUrl: process.env.MOUNT_URL as string,
-      ...Object.fromEntries(Object.entries(config).filter(([, value]) => value !== undefined)),
+      ...config,
     }
   }
 }
