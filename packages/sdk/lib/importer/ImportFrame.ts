@@ -38,7 +38,7 @@ export class ImportFrame extends TypedEventManager<IImportFrameEvents> {
     this.$iframe?.remove()
     this.session.emit('close')
 
-    this.ui.$close.removeEventListener('click', this.close)
+    this.ui.$close?.removeEventListener('click', this.close)
   }
 
   private createIFrameElement(url: string): HTMLIFrameElement {

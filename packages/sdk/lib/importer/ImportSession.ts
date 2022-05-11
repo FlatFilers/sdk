@@ -8,19 +8,25 @@ import { TPrimitive } from '../service/FlatfileRecord'
 import { UIService } from '../service/UIService'
 import { ImportFrame } from './ImportFrame'
 
-export class ImportSession extends TypedEventManager<IBatchEvents> {
+export class ImportSession extends TypedEventManager<IImportSessionEvents> {
   public ui: UIService
   public api: ApiService
-  public batchId: string
   private $iframe?: ImportFrame
 
   constructor(public flatfile: Flatfile, public meta: IImportMeta) {
     super()
-    this.batchId = meta.batchId
     this.ui = this.flatfile.ui
     this.api = this.flatfile?.api as ApiService
-    setTimeout(() => this.emit('init', meta))
-    this.subscribeToBatchStatus() // todo: this shouldn't happen here
+  }
+
+  public get batchId(): string {
+    return this.meta.batchId
+  }
+
+  public async init(): Promise<IImportMeta> {
+    this.subscribeToBatchStatus()
+    this.emit('init', { session: this, meta: this.meta })
+    return this.meta
   }
 
   /**
@@ -63,33 +69,35 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
    * @param cb
    * @param options
    */
-  public async processPendingRecords(cb: IteratorCallback, options?: IChunkOptions): Promise<void> {
+  public async processPendingRecords(
+    cb: IteratorCallback,
+    options?: IChunkOptions
+  ): Promise<RecordChunkIterator> {
     // temp hack because workbook ID is not available during init yet
-    this.meta.workbookId = await this.api.getWorkbookId(this.meta.batchId)
+    this.meta.workbookId = await this.api.getWorkbookId(this.batchId)
 
-    await new RecordChunkIterator(this, cb, { chunkSize: options?.chunkSize || 100 }).process()
+    const chunkIterator = new RecordChunkIterator(this, cb, {
+      chunkSize: options?.chunkSize || 100,
+    })
+    await chunkIterator.process()
+
+    return chunkIterator
   }
 
-  /**
-   * @todo make this less lines and more readable
-   */
   private subscribeToBatchStatus(): void {
-    return this.api.subscribeBatchStatusUpdated(this.meta.batchId, async (status) => {
+    return this.api.subscribeBatchStatusUpdated(this.batchId, async (status) => {
       if (status === 'submitted') {
         this.emit('submit', this)
         this.emit('complete', {
           batchId: this.batchId,
-          data: (sample = false) => this.api.getAllRecords(this.meta.batchId, 0, sample),
+          data: (sample = false) => this.api.getAllRecords(this.batchId, 0, sample),
         })
       }
 
       if (status === 'cancelled') {
-        const apiBatch = await this.api.init()
-        this.emit('init', apiBatch)
-        this.batchId = apiBatch.batchId
-        this.meta = apiBatch
-        // todo unsubscribe from old batch
-        this.subscribeToBatchStatus()
+        const meta = await this.api.init()
+        this.meta = { ...this.meta, ...meta }
+        this.init()
       }
     })
   }
@@ -109,8 +117,11 @@ export class ImportSession extends TypedEventManager<IBatchEvents> {
   }
 }
 
-export interface IBatchEvents {
-  init: IImportMeta
+export interface IImportSessionEvents {
+  init: {
+    session: ImportSession
+    meta: IImportMeta
+  }
   upload: {
     uploadId: string
   }
