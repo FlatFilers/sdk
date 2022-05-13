@@ -1,0 +1,19 @@
+{
+  "name": "@flatfile/sdk",
+  "version": "2.0.0-rc8",
+  "description": "Flatfile SDK",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FlatFilers/sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FlatFilers/sdk/issues"
+  },
+  "homepage": "https://github.com/FlatFilers/sdk#readme",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "webpack --progress --config webpack.prod.js"
+  }
+}

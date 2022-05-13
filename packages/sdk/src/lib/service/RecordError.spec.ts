@@ -22,14 +22,14 @@ describe('RecordError', () => {
 
   test('errors passed in the initialization are staged as errors', () => {
     err.addInfo('full_name', 'Nice name bro')
-    expect(err.toGraphQLEdits().messages.find((m) => m.error === 'error')?.message).toEqual(
+    expect(err.toGraphQLEdits().messages.find((m) => m['error'] === 'error')?.['message']).toEqual(
       'test error'
     )
   })
 
   test('you can call addInfo and other mutation methods as well', () => {
     err.addInfo('full_name', 'Nice name bro')
-    expect(err.toGraphQLEdits().messages.find((m) => m.error === 'info')?.message).toEqual(
+    expect(err.toGraphQLEdits().messages.find((m) => m['error'] === 'info')?.['message']).toEqual(
       'Nice name bro'
     )
   })

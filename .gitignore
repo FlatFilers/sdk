@@ -37,3 +37,5 @@ typings/
 coverage
 docs
 package
+
+.angular

@@ -1,39 +1,11 @@
 {
-  "name": "@flatfile/sdk",
-  "version": "2.0.0-rc8",
-  "description": "Flatfile SDK",
-  "private": false,
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/FlatFilers/sdk.git"
-  },
-  "bugs": {
-    "url": "https://github.com/FlatFilers/sdk/issues"
-  },
-  "homepage": "https://github.com/FlatFilers/sdk#readme",
-  "files": [
-    "dist"
-  ],
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "name": "sdk",
+  "version": "0.0.0",
+  "license": "MIT",
   "scripts": {
-    "analyze": "webpack --progress --config webpack.analyze.js",
-    "prebuild": "rm -rf ./dist",
-    "build": "npm run build:types && npm run build:webpack",
-    "build:types": "tsc --emitDeclarationOnly",
-    "build:webpack": "webpack --progress --config webpack.prod.js",
-    "lint": "eslint ./src --ext '.ts,.tsx'",
-    "lint:fix": "eslint ./src --ext '.ts,.tsx' --fix",
-    "prepack": "npm run build",
-    "start": "webpack serve --progress --config webpack.dev.js",
-    "test": "jest",
-    "type-check": "tsc --noEmit",
-    "type-check:watch": "npm run type-check -- --watch",
-    "prepare": "husky install",
-    "todo": "npx --no-install leasot src/**/*.ts > TODO"
+    "build:sdk:umd": "cd packages/sdk && npm run build"
   },
-  "author": "Max Blank <max@flatfile.com>",
-  "license": "ISC",
+  "private": true,
   "devDependencies": {
     "@babel/cli": "^7.14.5",
     "@babel/core": "^7.14.6",
@@ -50,18 +22,24 @@
     "@types/react-dom": "^17.0.8",
     "@types/simple-mock": "^0.8.2",
     "@types/styled-components": "^5.1.10",
-    "@typescript-eslint/eslint-plugin": "^4.28.0",
-    "@typescript-eslint/parser": "^4.28.0",
+    "@typescript-eslint/eslint-plugin": "~5.18.0",
+    "@typescript-eslint/parser": "~5.18.0",
+    "@nrwl/angular": "^14.0.5",
+    "@nrwl/cli": "14.0.5",
+    "@nrwl/cypress": "14.0.5",
+    "@nrwl/eslint-plugin-nx": "14.0.5",
+    "@nrwl/jest": "14.0.5",
+    "@nrwl/js": "14.0.5",
+    "@nrwl/linter": "14.0.5",
+    "@nrwl/workspace": "14.0.5",
     "babel-jest": "^27.0.5",
     "babel-loader": "^8.2.2",
     "bulma": "^0.9.3",
     "css-loader": "^6.6.0",
     "cz-conventional-changelog": "^3.3.0",
     "dotenv-webpack": "^7.0.3",
-    "eslint": "^7.29.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^3.4.0",
-    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "eslint": "~8.12.0",
+    "eslint-config-prettier": "8.1.0",
     "eventemitter3": "^4.0.7",
     "graphql": "^15.5.0",
     "graphql-request": "^3.4.0",
@@ -71,6 +49,7 @@
     "lint-staged": "^11.0.0",
     "nock": "^13.2.2",
     "nqr": "^1.0.0",
+    "nx": "14.0.5",
     "prettier": "^2.3.1",
     "react": "^17.0.2",
     "react-bulma-components": "^4.0.7",
@@ -90,47 +69,5 @@
     "webpack-cli": "^4.7.2",
     "webpack-dev-server": "^3.11.2",
     "webpack-merge": "^5.8.0"
-  },
-  "jest": {
-    "roots": [
-      "<rootDir>/src"
-    ],
-    "collectCoverage": false,
-    "moduleNameMapper": {
-      "src/(.*)": "<rootDir>/src/$1",
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
-      "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
-    },
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testMatch": [
-      "**/__tests__/**/*.+(ts|tsx|js)",
-      "**/?(*.)+(spec|test).+(ts|tsx|js)"
-    ],
-    "testPathIgnorePatterns": [
-      "<rootdir>/node_modules/"
-    ],
-    "testEnvironment": "jsdom",
-    "moduleFileExtensions": [
-      "js",
-      "ts",
-      "tsx",
-      "json"
-    ]
-  },
-  "ts-jest": {
-    "isolatedModules": false
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  },
-  "lint-staged": {
-    "src/**/*.{js,jsx,ts,tsx}": [
-      "npm run lint",
-      "prettier --check"
-    ]
   }
 }

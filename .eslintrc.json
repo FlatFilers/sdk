@@ -1,19 +1,36 @@
 {
-    "parser": "@typescript-eslint/parser",
-    "plugins": [ "@typescript-eslint", "simple-import-sort" ],
-    "settings": {
-        "react": {
-            "version": "detect" // Tells eslint-plugin-react to automatically detect the version of React to use
+    "root": true,
+    "ignorePatterns": ["**/*"],
+    "plugins": ["@nrwl/nx"],
+    "overrides": [
+      {
+        "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
+        "rules": {
+          "@nrwl/nx/enforce-module-boundaries": [
+            "error",
+            {
+              "enforceBuildableLibDependency": true,
+              "allow": [],
+              "depConstraints": [
+                {
+                  "sourceTag": "*",
+                  "onlyDependOnLibsWithTags": ["*"]
+                }
+              ]
+            }
+          ]
         }
-    },
-    "extends": [
-        "plugin:@typescript-eslint/recommended",
-        "plugin:prettier/recommended"
-    ],
-    "rules": {
-        "sort-imports": "off",
-        "import/order": "off",
-        "simple-import-sort/imports": "error",
-        "@typescript-eslint/no-unused-vars": "error"
-    }
-}
+      },
+      {
+        "files": ["*.ts", "*.tsx"],
+        "extends": ["plugin:@nrwl/nx/typescript"],
+        "rules": {}
+      },
+      {
+        "files": ["*.js", "*.jsx"],
+        "extends": ["plugin:@nrwl/nx/javascript"],
+        "rules": {}
+      }
+    ]
+  }
+  

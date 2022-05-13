@@ -27,21 +27,21 @@ describe('RecordMutation', () => {
 
   test('calling addInfo for a field stages an info level message', () => {
     mutation.addInfo('full_name', 'Nice name bro')
-    expect(mutation.toGraphQLEdits().messages.find((m) => m.error === 'info')?.message).toEqual(
+    expect(mutation.toGraphQLEdits().messages.find((m) => m['error'] === 'info')?.['message']).toEqual(
       'Nice name bro'
     )
   })
 
   test('calling addError for a field stages an error level message', () => {
     mutation.addError('full_name', 'Get that name changed')
-    expect(mutation.toGraphQLEdits().messages.find((m) => m.error === 'error')?.message).toEqual(
+    expect(mutation.toGraphQLEdits().messages.find((m) => m['error'] === 'error')?.['message']).toEqual(
       'Get that name changed'
     )
   })
 
   test('calling addWarning for a field stages an warning level message', () => {
     mutation.addWarning('full_name', 'How do you pronounce that?')
-    expect(mutation.toGraphQLEdits().messages.find((m) => m.error === 'warn')?.message).toEqual(
+    expect(mutation.toGraphQLEdits().messages.find((m) => m['error'] === 'warn')?.['message']).toEqual(
       'How do you pronounce that?'
     )
   })

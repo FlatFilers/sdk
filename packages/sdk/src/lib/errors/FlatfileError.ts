@@ -1,7 +1,7 @@
 export class FlatfileError extends Error {
   public code = 'FF-GE-00'
   public debug = ''
-  public name = 'FlatfileError'
+  public override name = 'FlatfileError'
   public userMessage = 'An unknown issue has occured'
   constructor(message?: string) {
     super(message)

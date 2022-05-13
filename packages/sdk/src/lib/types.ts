@@ -1,5 +1,5 @@
-import { IImportMeta, IImportSessionEvents, ImportSession } from 'importer/ImportSession'
-import { IteratorCallback } from 'lib/RecordChunkIterator'
+import { IImportMeta, IImportSessionEvents, ImportSession } from './importer/ImportSession'
+import { IteratorCallback } from './lib/RecordChunkIterator'
 
 import { FlatfileError } from './errors/FlatfileError'
 import { GetFinalDatabaseViewResponse } from './graphql/queries/GET_FINAL_DATABASE_VIEW'
