@@ -1,7 +1,7 @@
 import { FlatfileError } from './FlatfileError'
 
 export class ChunkTimeoutError extends FlatfileError {
-  public code = 'FF-CT-01'
+  public code = 'FF-CT-00'
   public name = 'ChunkTimeoutError'
   public userMessage = 'Chunk processing timeout'
   public debug =
