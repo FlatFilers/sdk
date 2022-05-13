@@ -90,7 +90,6 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { chunkSize } = options ?? {}
 
       if (options?.onInit) session.on('init', options.onInit)
-      if (options?.onError) session.on('error', options.onError)
       session.on('submit', async () => {
         if (options?.onData) {
           const iterator = await session.processPendingRecords(options.onData, { chunkSize })
@@ -161,6 +160,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
   public handleError(error: FlatfileError): void {
     if (this.hasListener('error')) {
       this.emit('error', { error })
+    } else if (this.config.onError) {
+      this.config.onError({ error })
     } else {
       alert(`[${error.code}] ${error.userMessage}`)
     }
@@ -202,7 +203,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return sign({ embed: embedId, sub: payload.user.email, ...payload, devModeOnly: true }, key)
   }
 
-  public static requestDataFromUser(options: DataReqOptions & IFlatfileImporterConfig): void {
+  public static requestDataFromUser(options: DataReqOptions & IFlatfileImporterConfig = {}): void {
     const { sessionConfig, importerConfig } = Flatfile.extractImporterOptions(options)
     const flatfile = new Flatfile(importerConfig)
     return flatfile.requestDataFromUser(sessionConfig)
@@ -217,7 +218,6 @@ export class Flatfile extends TypedEventManager<IEvents> {
       'chunkSize',
       'onComplete',
       'onData',
-      'onError',
       'onInit',
       'open',
     ]
@@ -227,6 +227,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       'embedId',
       'mountUrl',
       'onAuth',
+      'onError',
       'org',
       'token',
       'user',

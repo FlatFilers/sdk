@@ -126,9 +126,7 @@ export interface IImportSessionEvents {
   upload: {
     uploadId: string
   }
-  error: {
-    error: Error
-  }
+  /** @deprecated */
   launch: {
     batchId: string
   }
