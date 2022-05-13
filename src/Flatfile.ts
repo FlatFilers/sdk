@@ -87,13 +87,16 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
-      const { chunkSize } = options ?? {}
+      const { chunkSize, chunkTimeout } = options ?? {}
 
       if (options?.onInit) session.on('init', options.onInit)
       if (options?.onError) session.on('error', options.onError)
       session.on('submit', async () => {
         if (options?.onData) {
-          const iterator = await session.processPendingRecords(options.onData, { chunkSize })
+          const iterator = await session.processPendingRecords(options.onData, {
+            chunkSize,
+            chunkTimeout,
+          })
           if (iterator.rejectedIds.length === 0) {
             session.iframe?.close()
             options.onComplete?.({

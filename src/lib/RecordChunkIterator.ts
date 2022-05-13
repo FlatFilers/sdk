@@ -28,10 +28,14 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    */
   private readonly callback: IteratorCallback
 
+  private timerId?: ReturnType<typeof setTimeout>
+
+  private isProcessingTimedOut = false
+
   constructor(
     private session: ImportSession,
     callback: IteratorCallback,
-    private options: { chunkSize: number }
+    private options: { chunkSize: number; chunkTimeout?: number }
   ) {
     super()
     this.callback = callback
@@ -83,13 +87,13 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    * @param err
    */
   public async next(chunk: RecordsChunk, err?: PartialRejection | Error): Promise<void> {
+    if (this.timerId) clearTimeout(this.timerId)
+    if (this.isProcessingTimedOut) throw new Error('onData callback timeout')
     try {
       await this.afterEach(chunk, err)
       const newChunk = await this.beforeOthers(chunk)
       if (newChunk) {
-        this.callback(newChunk, (err) => {
-          this.next(newChunk, err)
-        })
+        this.runCallback(newChunk)
       } else {
         await this.afterAll()
       }
@@ -104,7 +108,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
   public process(): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const chunk: RecordsChunk = await this.beforeFirst()
-      this.callback(chunk, (err) => this.next(chunk, err))
+      this.runCallback(chunk)
       this.on('complete', (err) => {
         if (err) {
           reject(err)
@@ -123,6 +127,16 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
       await this.api.updateRecordStatus(this.session, this.acceptedIds, ERecordStatus.ACCEPTED)
     }
     this.emit('complete')
+  }
+
+  private runCallback(chunk: RecordsChunk): Promise<void> | void {
+    this.timerId = setTimeout(() => {
+      this.timerId = undefined
+      this.isProcessingTimedOut = true
+      console.warn('Did you forget to call next inside your onData callback?')
+    }, this.options.chunkTimeout || 3000)
+
+    return this.callback(chunk, (err) => this.next(chunk, err))
   }
 }
 

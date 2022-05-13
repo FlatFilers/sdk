@@ -79,6 +79,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
 
     const chunkIterator = new RecordChunkIterator(this, cb, {
       chunkSize: options?.chunkSize || 100,
+      chunkTimeout: options?.chunkTimeout || 3000,
     })
     await chunkIterator.process()
 
@@ -150,6 +151,7 @@ export interface IImportMeta {
 
 export interface IChunkOptions {
   chunkSize?: number
+  chunkTimeout?: number
 }
 export interface IUrlOptions {
   autoContinue?: boolean
