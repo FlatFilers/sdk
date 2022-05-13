@@ -55,6 +55,15 @@ export class TypedEventManager<T> {
     this.proxies.push(em1)
     return this
   }
+
+  public bubble<K extends keyof T>(
+    eventName: K,
+    em: TypedEventManager<Partial<Record<K, T[K]>>>
+  ): void {
+    this.on(eventName, (payload) => {
+      em.emit(eventName, payload)
+    })
+  }
 }
 
 type FilterFlags<Base, Condition> = {

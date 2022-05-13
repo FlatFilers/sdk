@@ -42,6 +42,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
     super()
     this.callback = callback
     this.api = session.api
+    this.bubble('error', session)
   }
 
   /**
@@ -90,7 +91,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    */
   public async next(chunk: RecordsChunk, err?: PartialRejection | Error): Promise<void> {
     if (this.timerId) clearTimeout(this.timerId)
-    if (this.isProcessingTimedOut) throw new ChunkTimeoutExpiredError()
+    if (this.isProcessingTimedOut) this.emit('error', { error: new ChunkTimeoutExpiredError() })
     try {
       await this.afterEach(chunk, err)
       const newChunk = await this.beforeOthers(chunk)
@@ -136,7 +137,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
       this.timerId = undefined
       this.isProcessingTimedOut = true
       console.warn('Did you forget to call next inside your onData callback?')
-      throw new ChunkTimeoutError()
+      this.emit('error', { error: new ChunkTimeoutError() })
     }, this.options.chunkTimeout || 3000)
 
     return this.callback(chunk, (err) => this.next(chunk, err))
@@ -150,4 +151,5 @@ export type IteratorCallback = (
 
 export interface IIteratorEvents {
   complete?: Error
+  error: { error: Error }
 }

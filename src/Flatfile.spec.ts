@@ -167,7 +167,8 @@ describe('Flatfile', () => {
           onComplete: jest.fn(),
         }
         await flatfile.startOrResumeImportSession(importSessionConfig)
-        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(3)
+        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(4)
+        expect(ImportSession.prototype.on).toHaveBeenCalledWith('error', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('submit', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('init', importSessionConfig.onInit)
         expect(ImportSession.prototype.on).toHaveBeenCalledWith(

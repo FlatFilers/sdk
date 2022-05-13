@@ -18,13 +18,14 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     super()
     this.ui = this.flatfile.ui
     this.api = this.flatfile?.api as ApiService
+    this.bubble('error', this.flatfile)
   }
 
   public get batchId(): string {
     return this.meta.batchId
   }
 
-  public async init(): Promise<IImportMeta> {
+  public init(): IImportMeta {
     this.subscribeToBatchStatus()
     this.emit('init', { session: this, meta: this.meta })
     return this.meta
