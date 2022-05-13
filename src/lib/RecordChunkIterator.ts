@@ -30,14 +30,20 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    */
   private readonly callback: IteratorCallback
 
+  /**
+   * Holds the timeout tracking the time spent while running the callback
+   */
   private timerId?: ReturnType<typeof setTimeout>
 
+  /**
+   * Its true if a timeout error was emitted
+   */
   private isProcessingTimedOut = false
 
   constructor(
     private session: ImportSession,
     callback: IteratorCallback,
-    private options: { chunkSize: number; chunkTimeout?: number }
+    private options: { chunkSize: number; chunkTimeout: number }
   ) {
     super()
     this.callback = callback
@@ -90,8 +96,12 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    * @param err
    */
   public async next(chunk: RecordsChunk, err?: PartialRejection | Error): Promise<void> {
-    if (this.timerId) clearTimeout(this.timerId)
-    if (this.isProcessingTimedOut) this.emit('error', { error: new ChunkTimeoutExpiredError() })
+    if (this.timerId) {
+      clearTimeout(this.timerId)
+    }
+    if (this.isProcessingTimedOut) {
+      this.emit('error', { error: new ChunkTimeoutExpiredError() })
+    }
     try {
       await this.afterEach(chunk, err)
       const newChunk = await this.beforeOthers(chunk)
@@ -136,9 +146,9 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
     this.timerId = setTimeout(() => {
       this.timerId = undefined
       this.isProcessingTimedOut = true
-      console.warn('Did you forget to call next inside your onData callback?')
+      console.warn('Did you forget to call next() inside your onData callback?')
       this.emit('error', { error: new ChunkTimeoutError() })
-    }, this.options.chunkTimeout || 3000)
+    }, this.options.chunkTimeout)
 
     return this.callback(chunk, (err) => this.next(chunk, err))
   }

@@ -56,10 +56,7 @@ export class TypedEventManager<T> {
     return this
   }
 
-  public bubble<K extends keyof T>(
-    eventName: K,
-    em: TypedEventManager<Partial<Record<K, T[K]>>>
-  ): void {
+  public bubble<K extends keyof T>(eventName: K, em: TypedEventManager<Record<K, T[K]>>): void {
     this.on(eventName, (payload) => {
       em.emit(eventName, payload)
     })
