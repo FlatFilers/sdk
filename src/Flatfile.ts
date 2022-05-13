@@ -114,8 +114,11 @@ export class Flatfile extends TypedEventManager<IEvents> {
         }
       })
 
-      session.init()
-      this.emit('launch', { batchId: meta?.batchId }) // todo - should this happen here
+      setTimeout(() => {
+        session.init()
+        /** @deprecated */
+        this.emit('launch', { batchId: meta?.batchId })
+      }, 0)
 
       if (options?.open === 'iframe') {
         const importFrame = session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
