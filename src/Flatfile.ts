@@ -40,6 +40,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
       typeof tokenOrConfig === 'object' ? tokenOrConfig : { ...config, token: tokenOrConfig }
     this.config = this.mergeConfigDefaults(configWithToken)
     this.ui = new UIService()
+    if (this.config.onError) {
+      this.on('error', this.config.onError)
+    }
   }
 
   public async token(): Promise<JsonWebToken> {
@@ -160,8 +163,6 @@ export class Flatfile extends TypedEventManager<IEvents> {
   public handleError(error: FlatfileError): void {
     if (this.hasListener('error')) {
       this.emit('error', { error })
-    } else if (this.config.onError) {
-      this.config.onError({ error })
     } else {
       alert(`[${error.code}] ${error.userMessage}`)
     }
