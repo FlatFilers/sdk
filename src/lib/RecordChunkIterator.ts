@@ -1,3 +1,5 @@
+import { ChunkTimeoutError } from '../errors/ChunkTimeoutError'
+import { ChunkTimeoutExpiredError } from '../errors/ChunkTimeoutExpiredError'
 import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
 import { ERecordStatus } from '../service/FlatfileRecord'
@@ -88,7 +90,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    */
   public async next(chunk: RecordsChunk, err?: PartialRejection | Error): Promise<void> {
     if (this.timerId) clearTimeout(this.timerId)
-    if (this.isProcessingTimedOut) throw new Error('onData callback timeout')
+    if (this.isProcessingTimedOut) throw new ChunkTimeoutExpiredError()
     try {
       await this.afterEach(chunk, err)
       const newChunk = await this.beforeOthers(chunk)
@@ -134,6 +136,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
       this.timerId = undefined
       this.isProcessingTimedOut = true
       console.warn('Did you forget to call next inside your onData callback?')
+      throw new ChunkTimeoutError()
     }, this.options.chunkTimeout || 3000)
 
     return this.callback(chunk, (err) => this.next(chunk, err))
