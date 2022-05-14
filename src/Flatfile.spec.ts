@@ -33,7 +33,6 @@ describe('Flatfile', () => {
       token: 'JWT',
       org: undefined,
       user: undefined,
-      onAuth: undefined,
       apiUrl: undefined,
       mountUrl: 'http://localhost:3001/overriden',
     })
@@ -118,7 +117,7 @@ describe('Flatfile', () => {
       })
     })
 
-    describe('when no token onAuth callback or user and embedId info is provided', () => {
+    describe('when no token or embedId info is provided', () => {
       test('should throw implementation error', async () => {
         const flatfile = new Flatfile({ apiUrl: 'http://localhost:3000' })
         jest.spyOn(UIService.prototype, 'destroy')
@@ -254,7 +253,6 @@ describe('Flatfile', () => {
         embedId: 'embed id',
         user: { id: 1, name: 'John Doe', email: 'john@email.com' },
         org: { id: 1, name: 'Company' },
-        onAuth: jest.fn(),
         onError: jest.fn(),
       }
       const importSessionConfig = {

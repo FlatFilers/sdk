@@ -45,13 +45,16 @@ export class Flatfile extends TypedEventManager<IEvents> {
     }
   }
 
+  /**
+   * Returns / resolves a token or generates a JWT from embedId, user & org
+   */
   public async token(): Promise<JsonWebToken> {
-    if (this.config.token) return this.config.token
-    if (this.config.onAuth) {
+    if (typeof this.config.token === 'string') return this.config.token
+    if (typeof this.config.token === 'function') {
       this.ui.updateLoaderMessage(EDialogMessage.Authenticating)
-      const token = await this.config.onAuth()
+      const token = await this.config.token()
       if (!isJWT(token)) {
-        throw new ImplementationError('onAuth() has to return a valid JWT')
+        throw new ImplementationError('`token` has to return a valid JWT.')
       }
       this.ui.updateLoaderMessage(EDialogMessage.Default)
       return token
@@ -61,7 +64,10 @@ export class Flatfile extends TypedEventManager<IEvents> {
         org: this.config.org || { id: 1, name: 'Company' },
         user: this.config.user || { id: 1, name: 'John Doe', email: 'john@email.com' },
       })
-    } else throw new ImplementationError('No token or onAuth callback was provided')
+    } else
+      throw new ImplementationError(
+        '`embedId` or `token` property is required to initialize Flatfile.'
+      )
   }
 
   /**
@@ -227,7 +233,6 @@ export class Flatfile extends TypedEventManager<IEvents> {
       'apiUrl',
       'embedId',
       'mountUrl',
-      'onAuth',
       'onError',
       'org',
       'token',
@@ -237,9 +242,10 @@ export class Flatfile extends TypedEventManager<IEvents> {
     Object.entries(options).forEach(([key, val]) => {
       if (sessionConfigKeys.indexOf(key as keyof DataReqOptions) !== -1) {
         sessionConfig[key as keyof DataReqOptions] = val
-      }
-      if (importerConfigKeys.indexOf(key as keyof IFlatfileImporterConfig) !== -1) {
+      } else if (importerConfigKeys.indexOf(key as keyof IFlatfileImporterConfig) !== -1) {
         importerConfig[key as keyof IFlatfileImporterConfig] = val
+      } else {
+        throw new ImplementationError(`Field "${key}" should not exist on the config.`)
       }
     })
 
