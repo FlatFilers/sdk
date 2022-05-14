@@ -49,17 +49,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
    * Returns / resolves a token or generates a JWT from embedId, user & org
    */
   public async token(): Promise<JsonWebToken> {
-    if (typeof this.config.token === 'string') return this.config.token
-    if (typeof this.config.token === 'function') {
-      this.ui.updateLoaderMessage(EDialogMessage.Authenticating)
-      const token = await this.config.token()
-      if (!isJWT(token)) {
-        throw new ImplementationError('`token` has to return a valid JWT.')
-      }
-      this.ui.updateLoaderMessage(EDialogMessage.Default)
-      return token
-    }
-    if (this.config.embedId) {
+    if (typeof this.config.token !== 'undefined') return this.extractToken()
+    else if (this.config.embedId) {
       return Flatfile.getDevelopmentToken(this.config.embedId, {
         org: this.config.org || { id: 1, name: 'Company' },
         user: this.config.user || { id: 1, name: 'John Doe', email: 'john@email.com' },
@@ -68,6 +59,22 @@ export class Flatfile extends TypedEventManager<IEvents> {
       throw new ImplementationError(
         '`embedId` or `token` property is required to initialize Flatfile.'
       )
+  }
+
+  private async extractToken(): Promise<JsonWebToken> {
+    this.ui.updateLoaderMessage(EDialogMessage.Authenticating)
+    const { token: rawToken } = this.config
+    const token =
+      typeof rawToken === 'string'
+        ? rawToken
+        : typeof rawToken === 'function'
+        ? await rawToken()
+        : ''
+    if (!isJWT(token)) {
+      throw new ImplementationError('`token` has to return a valid JWT.')
+    }
+    this.ui.updateLoaderMessage(EDialogMessage.Default)
+    return token
   }
 
   /**
@@ -216,7 +223,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return flatfile.requestDataFromUser(sessionConfig)
   }
 
-  private static extractImporterOptions(options: DataReqOptions & IFlatfileImporterConfig): {
+  public static extractImporterOptions(options: DataReqOptions & IFlatfileImporterConfig): {
     sessionConfig: DataReqOptions
     importerConfig: IFlatfileImporterConfig
   } {

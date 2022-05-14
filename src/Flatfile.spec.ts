@@ -9,7 +9,7 @@ import { UIService } from './service/UIService'
 window.alert = jest.fn()
 window.open = jest.fn(() => window)
 jest.mock('./graphql/ApiService')
-jest.mock('./lib/jwt', () => ({ sign: jest.fn(() => 'token') }))
+jest.mock('./lib/jwt', () => ({ sign: jest.fn(() => 'token'), isJWT: jest.fn(() => true) }))
 
 const env = process.env
 const fakeImportMeta = { batchId: 'bId', workspaceId: 'wId', schemaIds: [] }
@@ -240,6 +240,57 @@ describe('Flatfile', () => {
         onData: callback,
         ...importSessionConfig,
       })
+    })
+  })
+
+  describe('extractImporterOptions', () => {
+    test('should successfully extract session & importer configs', async () => {
+      const importerConfig = {
+        token: 'token',
+        mountUrl: 'mount url',
+        apiUrl: 'api url',
+        embedId: 'embed id',
+        user: { id: 1, name: 'John Doe', email: 'john@email.com' },
+        org: { id: 1, name: 'Company' },
+        onError: jest.fn(),
+      }
+      const sessionConfig = {
+        open: 'window' as 'window' | 'iframe',
+        onInit: jest.fn(),
+        onData: jest.fn(),
+      }
+      expect(
+        Flatfile.extractImporterOptions({
+          ...importerConfig,
+          ...sessionConfig,
+        })
+      ).toEqual({
+        sessionConfig,
+        importerConfig,
+      })
+    })
+    test('should throw an error on the unexpected props', async () => {
+      const importerConfig = {
+        unexpectedProp: '1',
+        token: 'token',
+        mountUrl: 'mount url',
+        apiUrl: 'api url',
+        embedId: 'embed id',
+        user: { id: 1, name: 'John Doe', email: 'john@email.com' },
+        org: { id: 1, name: 'Company' },
+        onError: jest.fn(),
+      }
+      const sessionConfig = {
+        open: 'window' as 'window' | 'iframe',
+        onInit: jest.fn(),
+        onData: jest.fn(),
+      }
+      expect(() =>
+        Flatfile.extractImporterOptions({
+          ...importerConfig,
+          ...sessionConfig,
+        })
+      ).toThrowError('Field "unexpectedProp" should not exist on the config.')
     })
   })
 
