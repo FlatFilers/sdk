@@ -131,6 +131,7 @@ export interface IImportSessionEvents {
   error: {
     error: Error
   }
+  /** @deprecated */
   launch: {
     batchId: string
   }

@@ -40,6 +40,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
       typeof tokenOrConfig === 'object' ? tokenOrConfig : { ...config, token: tokenOrConfig }
     this.config = this.mergeConfigDefaults(configWithToken)
     this.ui = new UIService()
+    if (this.config.onError) {
+      this.on('error', this.config.onError)
+    }
   }
 
   public async token(): Promise<JsonWebToken> {
@@ -90,7 +93,6 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { chunkSize, chunkTimeout } = options ?? {}
 
       if (options?.onInit) session.on('init', options.onInit)
-      if (options?.onError) session.on('error', options.onError)
       session.on('submit', async () => {
         if (options?.onData) {
           const iterator = await session.processPendingRecords(options.onData, {
@@ -117,8 +119,11 @@ export class Flatfile extends TypedEventManager<IEvents> {
         }
       })
 
-      session.init()
-      this.emit('launch', { batchId: meta?.batchId }) // todo - should this happen here
+      setTimeout(() => {
+        session.init()
+        /** @deprecated */
+        this.emit('launch', { batchId: meta?.batchId })
+      }, 0)
 
       if (options?.open === 'iframe') {
         const importFrame = session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
@@ -202,7 +207,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return sign({ embed: embedId, sub: payload.user.email, ...payload, devModeOnly: true }, key)
   }
 
-  public static requestDataFromUser(options: DataReqOptions & IFlatfileImporterConfig): void {
+  public static requestDataFromUser(options: DataReqOptions & IFlatfileImporterConfig = {}): void {
     const { sessionConfig, importerConfig } = Flatfile.extractImporterOptions(options)
     const flatfile = new Flatfile(importerConfig)
     return flatfile.requestDataFromUser(sessionConfig)
@@ -217,7 +222,6 @@ export class Flatfile extends TypedEventManager<IEvents> {
       'chunkSize',
       'onComplete',
       'onData',
-      'onError',
       'onInit',
       'open',
     ]
@@ -227,6 +231,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       'embedId',
       'mountUrl',
       'onAuth',
+      'onError',
       'org',
       'token',
       'user',

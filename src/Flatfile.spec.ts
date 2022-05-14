@@ -141,11 +141,10 @@ describe('Flatfile', () => {
 
     test('should init an import session', async () => {
       jest.spyOn(flatfile, 'emit')
-      jest.spyOn(ImportSession.prototype, 'init')
       await flatfile.startOrResumeImportSession({ open: 'window' })
+      await new Promise((resolve) => setTimeout(resolve, 0))
       expect(flatfile.emit).toHaveBeenCalledTimes(1)
       expect(flatfile.emit).toHaveBeenCalledWith('launch', { batchId: fakeImportMeta.batchId })
-      expect(ImportSession.prototype.init).toHaveBeenCalledTimes(1)
     })
 
     describe('when import session config is provided ', () => {
@@ -163,18 +162,13 @@ describe('Flatfile', () => {
           chunkSize: 10,
           onInit: jest.fn(),
           onData: jest.fn(),
-          onError: jest.fn(),
           onComplete: jest.fn(),
         }
         await flatfile.startOrResumeImportSession(importSessionConfig)
-        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(4)
+        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(3)
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('error', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('submit', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('init', importSessionConfig.onInit)
-        expect(ImportSession.prototype.on).toHaveBeenCalledWith(
-          'error',
-          importSessionConfig.onError
-        )
       })
 
       test('should call on-complete event handler when rejected ids length is zero and on-data callback is provided', async () => {
@@ -262,12 +256,12 @@ describe('Flatfile', () => {
         user: { id: 1, name: 'John Doe', email: 'john@email.com' },
         org: { id: 1, name: 'Company' },
         onAuth: jest.fn(),
+        onError: jest.fn(),
       }
       const importSessionConfig = {
         open: 'window' as 'window' | 'iframe',
         onInit: jest.fn(),
         onData: jest.fn(),
-        onError: jest.fn(),
       }
 
       await Flatfile.requestDataFromUser({ ...flatfileConfig, ...importSessionConfig })
