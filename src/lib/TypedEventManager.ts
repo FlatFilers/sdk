@@ -56,6 +56,12 @@ export class TypedEventManager<T> {
     return this
   }
 
+  /**
+   * Forwards all the events of a given type to another event emitter
+   *
+   * @param eventName The event type to be forwarded
+   * @param em The event emitter the events will be forwarded to
+   */
   public bubble<K extends keyof T>(eventName: K, em: TypedEventManager<Record<K, T[K]>>): void {
     this.on(eventName, (payload) => {
       em.emit(eventName, payload)

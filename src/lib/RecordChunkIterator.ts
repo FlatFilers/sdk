@@ -36,7 +36,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
   private timerId?: ReturnType<typeof setTimeout>
 
   /**
-   * Its true if a timeout error was emitted
+   * Its true if the callback took longer than the
    */
   private isProcessingTimedOut = false
 
@@ -142,6 +142,10 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
     this.emit('complete')
   }
 
+  /**
+   * Runs the iterator callback function and adds a timeout tracking the time spent running it.
+   * If the iterator callback takes longer than expected, an error is emitted.
+   */
   private runCallback(chunk: RecordsChunk): Promise<void> | void {
     this.timerId = setTimeout(() => {
       this.timerId = undefined
