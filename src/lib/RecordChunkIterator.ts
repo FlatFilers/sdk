@@ -157,6 +157,10 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
     return this.callback(chunk, (err) => this.next(chunk, err))
   }
 
+  /**
+   * Handles the errors that produce an stop in the records processing.
+   * Only emits a 'complete' event the first time it is called (or when 'isProcessingStopped' flag is false).
+   */
   private stopDataProcessing(error: FlatfileError): void {
     this.emit('error', { error } as { error: FlatfileError })
     if (!this.isProcessingStopped) {
