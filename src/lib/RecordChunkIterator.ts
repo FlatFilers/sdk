@@ -1,3 +1,5 @@
+import { ChunkTimeoutError } from '../errors/ChunkTimeoutError'
+import { ChunkTimeoutExpiredError } from '../errors/ChunkTimeoutExpiredError'
 import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
 import { ERecordStatus } from '../service/FlatfileRecord'
@@ -28,14 +30,25 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    */
   private readonly callback: IteratorCallback
 
+  /**
+   * Holds the timeout tracking the time spent while running the callback
+   */
+  private timerId?: ReturnType<typeof setTimeout>
+
+  /**
+   * Its true if the callback took longer than the
+   */
+  private isProcessingTimedOut = false
+
   constructor(
     private session: ImportSession,
     callback: IteratorCallback,
-    private options: { chunkSize: number }
+    private options: { chunkSize: number; chunkTimeout: number }
   ) {
     super()
     this.callback = callback
     this.api = session.api
+    this.bubble('error', session)
   }
 
   /**
@@ -83,13 +96,17 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    * @param err
    */
   public async next(chunk: RecordsChunk, err?: PartialRejection | Error): Promise<void> {
+    if (this.timerId) {
+      clearTimeout(this.timerId)
+    }
+    if (this.isProcessingTimedOut) {
+      this.emit('error', { error: new ChunkTimeoutExpiredError() })
+    }
     try {
       await this.afterEach(chunk, err)
       const newChunk = await this.beforeOthers(chunk)
       if (newChunk) {
-        this.callback(newChunk, (err) => {
-          this.next(newChunk, err)
-        })
+        this.runCallback(newChunk)
       } else {
         await this.afterAll()
       }
@@ -104,7 +121,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
   public process(): Promise<void> {
     return new Promise(async (resolve, reject) => {
       const chunk: RecordsChunk = await this.beforeFirst()
-      this.callback(chunk, (err) => this.next(chunk, err))
+      this.runCallback(chunk)
       this.on('complete', (err) => {
         if (err) {
           reject(err)
@@ -124,6 +141,21 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
     }
     this.emit('complete')
   }
+
+  /**
+   * Runs the iterator callback function and adds a timeout tracking the time spent running it.
+   * If the iterator callback takes longer than expected, an error is emitted.
+   */
+  private runCallback(chunk: RecordsChunk): Promise<void> | void {
+    this.timerId = setTimeout(() => {
+      this.timerId = undefined
+      this.isProcessingTimedOut = true
+      console.warn('Did you forget to call next() inside your onData callback?')
+      this.emit('error', { error: new ChunkTimeoutError() })
+    }, this.options.chunkTimeout)
+
+    return this.callback(chunk, (err) => this.next(chunk, err))
+  }
 }
 
 export type IteratorCallback = (
@@ -133,4 +165,5 @@ export type IteratorCallback = (
 
 export interface IIteratorEvents {
   complete?: Error
+  error: { error: Error }
 }

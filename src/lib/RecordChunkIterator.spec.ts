@@ -34,6 +34,7 @@ describe('RecordChunkIterator', () => {
 
     iterator = new RecordChunkIterator(session, (chunk, next) => callbackFn(chunk, next), {
       chunkSize: 10,
+      chunkTimeout: 3000,
     })
 
     mockGraphQLRequest('getFinalDatabaseView', 200, {
