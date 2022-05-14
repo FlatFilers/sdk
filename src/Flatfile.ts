@@ -49,16 +49,18 @@ export class Flatfile extends TypedEventManager<IEvents> {
    * Returns / resolves a token or generates a JWT from embedId, user & org
    */
   public async token(): Promise<JsonWebToken> {
-    if (typeof this.config.token !== 'undefined') return this.extractToken()
-    else if (this.config.embedId) {
+    if (typeof this.config.token !== 'undefined') {
+      return this.extractToken()
+    } else if (this.config.embedId) {
       return Flatfile.getDevelopmentToken(this.config.embedId, {
         org: this.config.org || { id: 1, name: 'Company' },
         user: this.config.user || { id: 1, name: 'John Doe', email: 'john@email.com' },
       })
-    } else
+    } else {
       throw new ImplementationError(
         '`embedId` or `token` property is required to initialize Flatfile.'
       )
+    }
   }
 
   private async extractToken(): Promise<JsonWebToken> {
@@ -227,29 +229,12 @@ export class Flatfile extends TypedEventManager<IEvents> {
     sessionConfig: DataReqOptions
     importerConfig: IFlatfileImporterConfig
   } {
-    const sessionConfigKeys: (keyof DataReqOptions)[] = [
-      'autoContinue',
-      'chunkSize',
-      'onComplete',
-      'onData',
-      'onInit',
-      'open',
-    ]
     const sessionConfig = {} as DataReqOptions
-    const importerConfigKeys: (keyof IFlatfileImporterConfig)[] = [
-      'apiUrl',
-      'embedId',
-      'mountUrl',
-      'onError',
-      'org',
-      'token',
-      'user',
-    ]
     const importerConfig = {} as IFlatfileImporterConfig
     Object.entries(options).forEach(([key, val]) => {
-      if (sessionConfigKeys.indexOf(key as keyof DataReqOptions) !== -1) {
+      if (SESSION_CONFIG_KEYS.indexOf(key as keyof DataReqOptions) !== -1) {
         sessionConfig[key as keyof DataReqOptions] = val
-      } else if (importerConfigKeys.indexOf(key as keyof IFlatfileImporterConfig) !== -1) {
+      } else if (IMPORTER_CONFIG_KEYS.indexOf(key as keyof IFlatfileImporterConfig) !== -1) {
         importerConfig[key as keyof IFlatfileImporterConfig] = val
       } else {
         throw new ImplementationError(`Field "${key}" should not exist on the config.`)
@@ -281,6 +266,25 @@ export class Flatfile extends TypedEventManager<IEvents> {
     }
   }
 }
+
+export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
+  'autoContinue',
+  'chunkSize',
+  'onComplete',
+  'onData',
+  'onInit',
+  'open',
+]
+
+export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
+  'apiUrl',
+  'embedId',
+  'mountUrl',
+  'onError',
+  'org',
+  'token',
+  'user',
+]
 
 interface IOpenOptions {
   open?: 'iframe' | 'window'
