@@ -5,11 +5,12 @@ import { ApiService } from './graphql/ApiService'
 import { ImportSession } from './importer/ImportSession'
 import { RecordChunkIterator } from './lib/RecordChunkIterator'
 import { UIService } from './service/UIService'
+import { IFlatfileImporterConfig } from './types'
 
 window.alert = jest.fn()
 window.open = jest.fn(() => window)
 jest.mock('./graphql/ApiService')
-jest.mock('./lib/jwt', () => ({ sign: jest.fn(() => 'token') }))
+jest.mock('./lib/jwt', () => ({ sign: jest.fn(() => 'token'), isJWT: jest.fn(() => true) }))
 
 const env = process.env
 const fakeImportMeta = { batchId: 'bId', workspaceId: 'wId', schemaIds: [] }
@@ -33,7 +34,6 @@ describe('Flatfile', () => {
       token: 'JWT',
       org: undefined,
       user: undefined,
-      onAuth: undefined,
       apiUrl: undefined,
       mountUrl: 'http://localhost:3001/overriden',
     })
@@ -118,7 +118,7 @@ describe('Flatfile', () => {
       })
     })
 
-    describe('when no token onAuth callback or user and embedId info is provided', () => {
+    describe('when no token or embedId info is provided', () => {
       test('should throw implementation error', async () => {
         const flatfile = new Flatfile({ apiUrl: 'http://localhost:3000' })
         jest.spyOn(UIService.prototype, 'destroy')
@@ -245,6 +245,42 @@ describe('Flatfile', () => {
     })
   })
 
+  describe('extractImporterOptions', () => {
+    test('should successfully extract session & importer configs', async () => {
+      const importerConfig = {
+        token: 'token',
+        mountUrl: 'mount url',
+        apiUrl: 'api url',
+        embedId: 'embed id',
+        user: { id: 1, name: 'John Doe', email: 'john@email.com' },
+        org: { id: 1, name: 'Company' },
+        onError: jest.fn(),
+      }
+      const sessionConfig = {
+        open: 'window' as 'window' | 'iframe',
+        onInit: jest.fn(),
+        onData: jest.fn(),
+      }
+      expect(
+        Flatfile.extractImporterOptions({
+          ...importerConfig,
+          ...sessionConfig,
+        })
+      ).toEqual({
+        sessionConfig,
+        importerConfig,
+      })
+    })
+    test('should throw an error on the unexpected props', async () => {
+      const importerConfig = {
+        unexpectedProp: '1',
+      }
+      expect(() =>
+        Flatfile.extractImporterOptions(importerConfig as IFlatfileImporterConfig)
+      ).toThrowError('Field "unexpectedProp" should not exist on the config.')
+    })
+  })
+
   describe('Flatfile.requestDataFromUser', () => {
     test('should call startOrResumeImportSession', async () => {
       jest.spyOn(Flatfile.prototype, 'startOrResumeImportSession')
@@ -255,7 +291,6 @@ describe('Flatfile', () => {
         embedId: 'embed id',
         user: { id: 1, name: 'John Doe', email: 'john@email.com' },
         org: { id: 1, name: 'Company' },
-        onAuth: jest.fn(),
         onError: jest.fn(),
       }
       const importSessionConfig = {

@@ -45,23 +45,38 @@ export class Flatfile extends TypedEventManager<IEvents> {
     }
   }
 
+  /**
+   * Returns / resolves a token or generates a JWT from embedId, user & org
+   */
   public async token(): Promise<JsonWebToken> {
-    if (this.config.token) return this.config.token
-    if (this.config.onAuth) {
-      this.ui.updateLoaderMessage(EDialogMessage.Authenticating)
-      const token = await this.config.onAuth()
-      if (!isJWT(token)) {
-        throw new ImplementationError('onAuth() has to return a valid JWT')
-      }
-      this.ui.updateLoaderMessage(EDialogMessage.Default)
-      return token
-    }
-    if (this.config.embedId) {
+    if (typeof this.config.token !== 'undefined') {
+      return this.extractToken()
+    } else if (this.config.embedId) {
       return Flatfile.getDevelopmentToken(this.config.embedId, {
         org: this.config.org || { id: 1, name: 'Company' },
         user: this.config.user || { id: 1, name: 'John Doe', email: 'john@email.com' },
       })
-    } else throw new ImplementationError('No token or onAuth callback was provided')
+    } else {
+      throw new ImplementationError(
+        '`embedId` or `token` property is required to initialize Flatfile.'
+      )
+    }
+  }
+
+  private async extractToken(): Promise<JsonWebToken> {
+    this.ui.updateLoaderMessage(EDialogMessage.Authenticating)
+    const { token: rawToken } = this.config
+    const token =
+      typeof rawToken === 'string'
+        ? rawToken
+        : typeof rawToken === 'function'
+        ? await rawToken()
+        : ''
+    if (!isJWT(token)) {
+      throw new ImplementationError('`token` has to return a valid JWT.')
+    }
+    this.ui.updateLoaderMessage(EDialogMessage.Default)
+    return token
   }
 
   /**
@@ -213,36 +228,19 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return flatfile.requestDataFromUser(sessionConfig)
   }
 
-  private static extractImporterOptions(options: DataReqOptions & IFlatfileImporterConfig): {
+  public static extractImporterOptions(options: DataReqOptions & IFlatfileImporterConfig): {
     sessionConfig: DataReqOptions
     importerConfig: IFlatfileImporterConfig
   } {
-    const sessionConfigKeys: (keyof DataReqOptions)[] = [
-      'autoContinue',
-      'chunkSize',
-      'onComplete',
-      'onData',
-      'onInit',
-      'open',
-    ]
     const sessionConfig = {} as DataReqOptions
-    const importerConfigKeys: (keyof IFlatfileImporterConfig)[] = [
-      'apiUrl',
-      'embedId',
-      'mountUrl',
-      'onAuth',
-      'onError',
-      'org',
-      'token',
-      'user',
-    ]
     const importerConfig = {} as IFlatfileImporterConfig
     Object.entries(options).forEach(([key, val]) => {
-      if (sessionConfigKeys.indexOf(key as keyof DataReqOptions) !== -1) {
+      if (SESSION_CONFIG_KEYS.indexOf(key as keyof DataReqOptions) !== -1) {
         sessionConfig[key as keyof DataReqOptions] = val
-      }
-      if (importerConfigKeys.indexOf(key as keyof IFlatfileImporterConfig) !== -1) {
+      } else if (IMPORTER_CONFIG_KEYS.indexOf(key as keyof IFlatfileImporterConfig) !== -1) {
         importerConfig[key as keyof IFlatfileImporterConfig] = val
+      } else {
+        throw new ImplementationError(`Field "${key}" should not exist on the config.`)
       }
     })
 
@@ -271,6 +269,25 @@ export class Flatfile extends TypedEventManager<IEvents> {
     }
   }
 }
+
+export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
+  'autoContinue',
+  'chunkSize',
+  'onComplete',
+  'onData',
+  'onInit',
+  'open',
+]
+
+export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
+  'apiUrl',
+  'embedId',
+  'mountUrl',
+  'onError',
+  'org',
+  'token',
+  'user',
+]
 
 interface IOpenOptions {
   open?: 'iframe' | 'window'

@@ -7,11 +7,10 @@ import { GetFinalDatabaseViewResponse } from './graphql/queries/GET_FINAL_DATABA
 export interface IFlatfileImporterConfig {
   mountUrl?: string
   apiUrl?: string
-  token?: JsonWebToken
+  token?: JsonWebToken | (() => JsonWebToken | Promise<JsonWebToken>)
   embedId?: string
   user?: IUser
   org?: IOrganization
-  onAuth?: () => JsonWebToken | Promise<JsonWebToken>
   onError?: (payload: { error: FlatfileError }) => void | Promise<void>
 }
 
