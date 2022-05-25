@@ -35,8 +35,8 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    * Open the importer in an iframe (recommended)
    * todo: move launch event out of iframe helper
    */
-  public openInEmbeddedIframe(options?: IUrlOptions): ImportFrame {
-    return this.iframe.open(options)
+  public openInEmbeddedIframe(options?: IUrlOptions, mountOn?: string): ImportFrame {
+    return this.iframe.open(options, mountOn)
   }
 
   /**

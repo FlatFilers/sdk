@@ -62,7 +62,8 @@ describe('Flatfile', () => {
         await flatfile.startOrResumeImportSession({ open: 'iframe' })
         expect(ImportSession.prototype.openInEmbeddedIframe).toHaveBeenCalledTimes(1)
         expect(ImportSession.prototype.openInEmbeddedIframe).toHaveBeenCalledWith(
-          expect.objectContaining({ autoContinue: undefined })
+          expect.objectContaining({ autoContinue: undefined }),
+          undefined
         )
       })
     })

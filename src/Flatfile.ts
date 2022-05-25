@@ -2,6 +2,7 @@ import { FlatfileError } from './errors/FlatfileError'
 import { ImplementationError } from './errors/ImplementationError'
 import { ApiService } from './graphql/ApiService'
 import { IChunkOptions, ImportSession } from './importer/ImportSession'
+import { existsInDOM } from './lib/html'
 import { isJWT, sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
@@ -97,7 +98,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
     options?: IOpenOptions & IChunkOptions & IImportSessionConfig
   ): Promise<ImportSession> {
     try {
-      if (options?.open) {
+      if (!options?.mountOn && options?.open) {
         this.ui.showLoader()
       }
       const api = await this.initApi()
@@ -105,7 +106,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
-      const { chunkSize, chunkTimeout } = options ?? {}
+      const { chunkSize, chunkTimeout, mountOn } = options ?? {}
 
       if (options?.onInit) session.on('init', options.onInit)
       session.on('submit', async () => {
@@ -140,8 +141,16 @@ export class Flatfile extends TypedEventManager<IEvents> {
         this.emit('launch', { batchId: meta?.batchId })
       }, 0)
 
-      if (options?.open === 'iframe') {
-        const importFrame = session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
+      if (mountOn || options?.open === 'iframe') {
+        if (mountOn && !existsInDOM(mountOn)) {
+          throw new Error(
+            'Custom IFrame was not found in DOM. Did you provide a valid css selector?'
+          )
+        }
+        const importFrame = session.openInEmbeddedIframe(
+          { autoContinue: options?.autoContinue },
+          mountOn
+        )
         importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
@@ -277,6 +286,7 @@ export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
   'onData',
   'onInit',
   'open',
+  'mountOn',
 ]
 
 export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
@@ -291,6 +301,7 @@ export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
 
 interface IOpenOptions {
   open?: 'iframe' | 'window'
+  mountOn?: string
   autoContinue?: boolean
 }
 
