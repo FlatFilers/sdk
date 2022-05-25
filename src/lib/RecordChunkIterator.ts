@@ -121,7 +121,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    */
   public process(): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      const chunk: RecordsChunk = await this.beforeFirst()
+      const chunk = await this.beforeFirst()
       this.runCallback(chunk)
       this.on('complete', (error) => {
         if (error) {
@@ -162,7 +162,7 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    * Only emits a 'complete' event the first time it is called (or when 'isProcessingStopped' flag is false).
    */
   private stopDataProcessing(error: FlatfileError): void {
-    this.emit('error', { error } as { error: FlatfileError })
+    this.emit('error', { error })
     if (!this.isProcessingStopped) {
       this.emit('complete', error)
       this.isProcessingStopped = true
