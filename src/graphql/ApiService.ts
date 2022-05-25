@@ -231,7 +231,13 @@ export class ApiService {
   public handleGraphQLErrors(errors?: GraphQLError[], message?: string): void {
     if (errors?.length) {
       errors.forEach((e) => {
-        if (e.message === 'Unauthorized') {
+        if (
+          e.extensions?.response?.statusCode === 401 &&
+          typeof e.extensions.response.error === 'string'
+        ) {
+          const { error: debug, message: code } = e.extensions.response
+          throw new UnauthorizedError(debug, code)
+        } else if (e.message === 'Unauthorized') {
           throw new UnauthorizedError()
         }
 
