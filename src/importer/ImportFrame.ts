@@ -1,4 +1,4 @@
-import { $, addClass, removeClass } from '../lib/html'
+import { $, addClass, existsInDOM, removeClass } from '../lib/html'
 import { TypedEventManager } from '../lib/TypedEventManager'
 import { UIService } from '../service/UIService'
 import { ImportSession, IUrlOptions } from './ImportSession'
@@ -11,24 +11,30 @@ export class ImportFrame extends TypedEventManager<IImportFrameEvents> {
   public ui: UIService
   private $iframe?: HTMLIFrameElement
 
-  constructor(private session: ImportSession, private selector?: string) {
+  constructor(private session: ImportSession) {
     super()
     this.ui = this.session.ui
     this.close = this.close.bind(this)
   }
 
-  public open(options?: IUrlOptions, mountOn?: string): this {
+  public open(options?: IUrlOptions): this {
     this.ui.initialize()
     const url = this.session.signedImportUrl(options)
-    const iFrameEl = this.createIFrameElement(url, mountOn)
-    iFrameEl.addEventListener('load', () => this.emit('load'))
-    if (!mountOn) {
-      this.ui.$container.append(iFrameEl)
-      addClass(document.body, 'flatfile-active')
-    }
+    const iFrameEl = this.createIFrameElement(url)
+    this.ui.$container.append(iFrameEl)
+    addClass(document.body, 'flatfile-active')
     this.session.emit('launch')
 
     this.ui.$close.addEventListener('click', this.close)
+    return this
+  }
+
+  public mountOn(mountingPoint: string, options?: IUrlOptions): this {
+    const url = this.session.signedImportUrl(options)
+    const iframe = $<HTMLIFrameElement>(mountingPoint)
+    iframe.addEventListener('load', () => this.emit('load'))
+    iframe.src = url
+    this.$iframe = iframe
     return this
   }
 
@@ -37,14 +43,17 @@ export class ImportFrame extends TypedEventManager<IImportFrameEvents> {
    */
   public close(): void {
     removeClass(document.body, 'flatfile-active')
-    this.$iframe?.remove()
-    this.session.emit('close')
+    if (existsInDOM('.flatfile-sdk')) {
+      this.$iframe?.remove()
+      this.session.emit('close')
 
-    this.ui.$close?.removeEventListener('click', this.close)
+      this.ui.$close?.removeEventListener('click', this.close)
+    }
   }
 
-  private createIFrameElement(url: string, mountOn?: string): HTMLIFrameElement {
-    const iframeElement = mountOn ? $<HTMLIFrameElement>(mountOn) : document.createElement('iframe')
+  private createIFrameElement(url: string): HTMLIFrameElement {
+    const iframeElement = document.createElement('iframe')
+    iframeElement.addEventListener('load', () => this.emit('load'))
     iframeElement.src = url
     return (this.$iframe = iframeElement)
   }
