@@ -142,9 +142,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
       }, 0)
 
       if (mountOn || options?.open === 'iframe') {
-        if (mountOn && !existsInDOM(mountOn, 'iframe')) {
-          throw new Error(
-            'Custom iframe was not found in DOM. Did you provide a valid css selector?'
+        if (mountOn && !existsInDOM(mountOn)) {
+          throw new ImplementationError(
+            'Targent mounting point was not found in DOM. Did you provide a valid css selector?'
           )
         }
         const importFrame = session.openInEmbeddedIframe(

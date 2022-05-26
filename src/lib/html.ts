@@ -41,15 +41,10 @@ export function $<T extends HTMLElement = HTMLElement>(query: string): T {
  * Returns true if an element is found matching a given css selector.
  * @param query
  */
-export function existsInDOM(query?: string, tagName?: string): boolean {
-  if (!query) return false
-  else {
-    const element = $(query)
-    if (!element) return false
-    if (!tagName) {
-      return Boolean(element)
-    } else {
-      return element.tagName.toLowerCase() === tagName
-    }
+export function existsInDOM(query?: string): boolean {
+  if (!query) {
+    return false
+  } else {
+    return Boolean($(query))
   }
 }

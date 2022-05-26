@@ -31,10 +31,10 @@ export class ImportFrame extends TypedEventManager<IImportFrameEvents> {
 
   public mountOn(mountingPoint: string, options?: IUrlOptions): this {
     const url = this.session.signedImportUrl(options)
-    const iframe = $<HTMLIFrameElement>(mountingPoint)
-    iframe.addEventListener('load', () => this.emit('load'))
-    iframe.src = url
-    this.$iframe = iframe
+    const iframe = this.createIFrameElement(url)
+    const container = $<HTMLIFrameElement>(mountingPoint)
+    container.append(iframe)
+    this.session.emit('launch')
     return this
   }
 
