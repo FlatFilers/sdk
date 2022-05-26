@@ -82,7 +82,9 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
       chunkSize: options?.chunkSize || 100,
       chunkTimeout: options?.chunkTimeout || 3000,
     })
-    await chunkIterator.process()
+    await chunkIterator
+      .process()
+      .catch(() => console.warn('Something went wrong. Records processing was stopped.'))
 
     return chunkIterator
   }
