@@ -15,6 +15,7 @@ describe('ImportSession', () => {
   let flatfile: Flatfile
 
   beforeEach(async () => {
+    jest.clearAllMocks()
     flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
     flatfile.api = new ApiService('toke', 'http://localhost:3000')
     session = new ImportSession(flatfile, {
@@ -85,6 +86,35 @@ describe('ImportSession', () => {
       const spy = jest.spyOn(session, 'emit')
       session.openInNewWindow()
       expect(spy).toHaveBeenCalledWith('launch', { batchId: session.batchId })
+    })
+
+    describe('close', () => {
+      test('calls ImportFrame.close if session was opened in iframe mode', () => {
+        jest.spyOn(ImportFrame.prototype, 'close')
+        session.openInEmbeddedIframe()
+
+        session.close()
+        expect(ImportFrame.prototype.close).toHaveBeenCalled()
+      })
+
+      test('do not call ImportFrame.close if session was opened in new window', () => {
+        jest.spyOn(console, 'warn').mockImplementationOnce((s) => s)
+        jest.spyOn(ImportFrame.prototype, 'close')
+        session.openInNewWindow()
+
+        session.close()
+        expect(ImportFrame.prototype.close).not.toHaveBeenCalled()
+        expect(console.warn).toHaveBeenCalled()
+      })
+
+      test('do not call ImportFrame.close if Flatfile importer is not opened', () => {
+        jest.spyOn(console, 'warn').mockImplementationOnce((s) => s)
+        jest.spyOn(ImportFrame.prototype, 'close')
+
+        session.close()
+        expect(ImportFrame.prototype.close).not.toHaveBeenCalled()
+        expect(console.warn).toHaveBeenCalled()
+      })
     })
   })
 })

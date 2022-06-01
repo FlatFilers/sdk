@@ -124,6 +124,18 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     }
     return `${MOUNT_URL}/e?${toQs(qs)}`
   }
+
+  /**
+   * Close the importer iframe
+   * @todo: kill batch status subscription
+   */
+  public close(): void {
+    if (this.$iframe) {
+      this.$iframe?.close()
+    } else {
+      console.warn('No Flatfile importer iframe was found in the DOM.')
+    }
+  }
 }
 
 export interface IImportSessionEvents {

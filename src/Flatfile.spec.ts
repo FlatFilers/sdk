@@ -244,6 +244,16 @@ describe('Flatfile', () => {
         ...importSessionConfig,
       })
     })
+
+    test('should return close callback', async () => {
+      jest.spyOn(flatfile, 'startOrResumeImportSession')
+      const { close } = await flatfile.requestDataFromUser()
+
+      expect(document.querySelector('iframe')).toBeDefined()
+
+      close()
+      expect(document.querySelector('iframe')).toBeNull()
+    })
   })
 
   describe('extractImporterOptions', () => {

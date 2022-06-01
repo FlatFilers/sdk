@@ -144,7 +144,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       if (mountOn || options?.open === 'iframe') {
         if (mountOn && !existsInDOM(mountOn)) {
           throw new ImplementationError(
-            'Targent mounting point was not found in DOM. Did you provide a valid css selector?'
+            'Target mounting point was not found in DOM. Did you provide a valid css selector?'
           )
         }
         const importFrame = session.openInEmbeddedIframe(
@@ -170,13 +170,16 @@ export class Flatfile extends TypedEventManager<IEvents> {
    * Simple function that abstracts away some of the complexity for a single line call
    * also provides some level of backwards compatability
    */
-  public requestDataFromUser(): void
-  public requestDataFromUser(opts: DataReqOptions): void
-  public requestDataFromUser(cb: IteratorCallback, opts?: DataReqOptions): void
-  public requestDataFromUser(
+  public async requestDataFromUser(): Promise<{ close: () => void }>
+  public async requestDataFromUser(opts: DataReqOptions): Promise<{ close: () => void }>
+  public async requestDataFromUser(
+    cb: IteratorCallback,
+    opts?: DataReqOptions
+  ): Promise<{ close: () => void }>
+  public async requestDataFromUser(
     callbackOrOptions?: IteratorCallback | DataReqOptions,
     opts?: DataReqOptions
-  ): void {
+  ): Promise<{ close: () => void }> {
     let options: DataReqOptions = { open: 'iframe' }
     if (typeof callbackOrOptions === 'function') {
       options = opts ? { ...options, ...opts, onData: callbackOrOptions } : options
@@ -184,7 +187,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
       options = { ...options, ...callbackOrOptions }
     }
 
-    this.startOrResumeImportSession(options)
+    const session = await this.startOrResumeImportSession(options)
+    return { close: () => session.close() }
   }
 
   public handleError(error: FlatfileError): void {
@@ -231,7 +235,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return sign({ embed: embedId, sub: payload.user.email, ...payload, devModeOnly: true }, key)
   }
 
-  public static requestDataFromUser(options: DataReqOptions & IFlatfileImporterConfig = {}): void {
+  public static requestDataFromUser(
+    options: DataReqOptions & IFlatfileImporterConfig = {}
+  ): Promise<{ close: () => void }> {
     const { sessionConfig, importerConfig } = Flatfile.extractImporterOptions(options)
     const flatfile = new Flatfile(importerConfig)
     return flatfile.requestDataFromUser(sessionConfig)
