@@ -22,7 +22,11 @@ describe('RecordChunkIterator', () => {
   let callbackFn: IteratorCallback
 
   beforeEach(async () => {
-    flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
+    flatfile = new Flatfile('token', {
+      apiUrl: 'http://localhost:3000',
+      org: { id: 'oId' },
+      user: { id: 'uId' },
+    })
     flatfile.api = new ApiService('toke', 'http://localhost:3000')
     session = new ImportSession(flatfile, {
       batchId: 'abc',

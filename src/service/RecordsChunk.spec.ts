@@ -15,7 +15,11 @@ describe('RecordsChunk', function () {
   beforeEach(async () => {
     records = [1, 2, 3, 4, 5].map((id) => new FlatfileRecord({ ...BASE_RECORD, id }))
 
-    flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
+    flatfile = new Flatfile('token', {
+      apiUrl: 'http://localhost:3000',
+      org: { id: 'oId' },
+      user: { id: 'uId' },
+    })
     flatfile.api = new ApiService('token', 'http://localhost:3000')
     session = new ImportSession(flatfile, {
       batchId: 'abc',

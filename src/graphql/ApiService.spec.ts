@@ -15,7 +15,11 @@ describe('ApiService', () => {
 
   beforeEach(async () => {
     api = new ApiService('token', 'http://localhost')
-    flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
+    flatfile = new Flatfile('token', {
+      apiUrl: 'http://localhost:3000',
+      org: { id: 'oId' },
+      user: { id: 'uId' },
+    })
     flatfile.api = api
     session = new ImportSession(flatfile, {
       batchId: 'abc',
