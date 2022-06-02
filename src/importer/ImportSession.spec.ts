@@ -98,22 +98,18 @@ describe('ImportSession', () => {
       })
 
       test('do not call ImportFrame.close if session was opened in new window', () => {
-        jest.spyOn(console, 'warn').mockImplementationOnce((s) => s)
         jest.spyOn(ImportFrame.prototype, 'close')
         session.openInNewWindow()
 
         session.close()
         expect(ImportFrame.prototype.close).not.toHaveBeenCalled()
-        expect(console.warn).toHaveBeenCalled()
       })
 
       test('do not call ImportFrame.close if Flatfile importer is not opened', () => {
-        jest.spyOn(console, 'warn').mockImplementationOnce((s) => s)
         jest.spyOn(ImportFrame.prototype, 'close')
 
         session.close()
         expect(ImportFrame.prototype.close).not.toHaveBeenCalled()
-        expect(console.warn).toHaveBeenCalled()
       })
     })
   })
