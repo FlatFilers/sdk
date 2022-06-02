@@ -3,13 +3,22 @@
   "sourceRoot": "packages/sdk/src",
   "targets": {
     "build": {
-      "executor": "@nrwl/js:tsc",
+      "executor": "@nrwl/web:rollup",
       "outputs": ["{options.outputPath}"],
       "options": {
+        "project": "packages/sdk/package.json",
         "outputPath": "dist/packages/sdk",
-        "main": "packages/sdk/src/index.ts",
+        "entryFile": "packages/sdk/src/index.ts",
         "tsConfig": "packages/sdk/tsconfig.lib.json",
-        "assets": ["packages/sdk/*.md"]
+        "babelConfig": "packages/sdk/babel.config.json",
+        "rollupConfig": ["packages/sdk/rollup.config.js"],
+        "external": ["graphql-request", "eventemitter3", "graphql-subscriptions-client", "transferable-function"],
+        "buildableProjectDepsInPackageJsonType": "dependencies",
+        "updateBuildableProjectDepsInPackageJson": true,
+        "compiler": "babel",
+        "umdName": "index",
+        "format": ["umd"],
+        "assets": ["packages/sdk/src/README.md"]
       }
     },
     "publish": {
