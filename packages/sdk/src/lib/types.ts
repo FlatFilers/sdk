@@ -7,28 +7,22 @@ import { GetFinalDatabaseViewResponse } from './graphql/queries/GET_FINAL_DATABA
 export interface IFlatfileImporterConfig {
   mountUrl?: string
   apiUrl?: string
-  token?: JsonWebToken
+  token?: JsonWebToken | (() => JsonWebToken | Promise<JsonWebToken>)
   embedId?: string
   user?: IUser
   org?: IOrganization
-  onAuth?: () => JsonWebToken | Promise<JsonWebToken>
+  onError?: (payload: { error: FlatfileError }) => void | Promise<void>
 }
 
-export interface IFlatfileConfig {
+export interface IFlatfileConfig extends IFlatfileImporterConfig {
   mountUrl: string
   apiUrl: string
-  token?: JsonWebToken
-  embedId?: string
-  user?: IUser
-  org?: IOrganization
-  onAuth?: () => JsonWebToken | Promise<JsonWebToken>
 }
 
 export interface IImportSessionConfig {
   onInit?: (payload: IImportSessionEvents['init']) => void | Promise<void>
   onData?: IteratorCallback
   onComplete?: (payload: IImportSessionEvents['complete']) => void | Promise<void>
-  onError?: (payload: { error: Error }) => void | Promise<void>
 }
 
 export interface IEvents {

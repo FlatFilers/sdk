@@ -1,3 +1,6 @@
+import { ChunkTimeoutError } from '../errors/ChunkTimeoutError'
+import { ChunkTimeoutExpiredError } from '../errors/ChunkTimeoutExpiredError'
+import { FlatfileError } from '../errors/FlatfileError'
 import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
 import { ERecordStatus } from '../service/FlatfileRecord'
@@ -28,14 +31,25 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    */
   private readonly callback: IteratorCallback
 
+  /**
+   * Holds the timeout tracking the time spent while running the callback
+   */
+  private timerId?: ReturnType<typeof setTimeout>
+
+  /**
+   * Its true if the data processing was stopped
+   */
+  private isProcessingStopped = false
+
   constructor(
     private session: ImportSession,
     callback: IteratorCallback,
-    private options: { chunkSize: number }
+    private options: { chunkSize: number; chunkTimeout: number }
   ) {
     super()
     this.callback = callback
     this.api = session.api
+    this.bubble('error', session)
   }
 
   /**
@@ -84,17 +98,21 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    */
   public async next(chunk: RecordsChunk, err?: PartialRejection | Error): Promise<void> {
     try {
+      if (this.timerId) {
+        clearTimeout(this.timerId)
+      }
+      if (this.isProcessingStopped) {
+        throw new ChunkTimeoutExpiredError('Error ')
+      }
       await this.afterEach(chunk, err)
       const newChunk = await this.beforeOthers(chunk)
       if (newChunk) {
-        this.callback(newChunk, (err) => {
-          this.next(newChunk, err)
-        })
+        this.runCallback(newChunk)
       } else {
         await this.afterAll()
       }
-    } catch (e) {
-      this.emit('complete', e as Error)
+    } catch (error) {
+      this.stopDataProcessing(error as FlatfileError)
     }
   }
 
@@ -103,11 +121,11 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    */
   public process(): Promise<void> {
     return new Promise(async (resolve, reject) => {
-      const chunk: RecordsChunk = await this.beforeFirst()
-      this.callback(chunk, (err) => this.next(chunk, err))
-      this.on('complete', (err) => {
-        if (err) {
-          reject(err)
+      const chunk = await this.beforeFirst()
+      this.runCallback(chunk)
+      this.on('complete', (error) => {
+        if (error) {
+          reject(error)
         } else {
           resolve()
         }
@@ -124,6 +142,32 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
     }
     this.emit('complete')
   }
+
+  /**
+   * Runs the iterator callback function and adds a timeout tracking the time spent running it.
+   * If the iterator callback takes longer than expected, an error is emitted.
+   */
+  private runCallback(chunk: RecordsChunk): Promise<void> | void {
+    this.timerId = setTimeout(() => {
+      this.timerId = undefined
+      console.warn('Did you forget to call next() inside your onData callback?')
+      this.stopDataProcessing(new ChunkTimeoutError())
+    }, this.options.chunkTimeout)
+
+    return this.callback(chunk, (err) => this.next(chunk, err))
+  }
+
+  /**
+   * Handles the errors that produce an stop in the records processing.
+   * Only emits a 'complete' event the first time it is called (or when 'isProcessingStopped' flag is false).
+   */
+  private stopDataProcessing(error: FlatfileError): void {
+    this.emit('error', { error })
+    if (!this.isProcessingStopped) {
+      this.emit('complete', error)
+      this.isProcessingStopped = true
+    }
+  }
 }
 
 export type IteratorCallback = (
@@ -133,4 +177,5 @@ export type IteratorCallback = (
 
 export interface IIteratorEvents {
   complete?: Error
+  error: { error: Error }
 }

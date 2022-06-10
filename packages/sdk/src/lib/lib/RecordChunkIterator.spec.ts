@@ -1,3 +1,5 @@
+import { ChunkTimeoutError } from '../errors/ChunkTimeoutError'
+import { ChunkTimeoutExpiredError } from '../errors/ChunkTimeoutExpiredError'
 import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
@@ -8,6 +10,8 @@ import { IteratorCallback, RecordChunkIterator } from './RecordChunkIterator'
 import { createChunk, makeRecords, mockGraphQLRequest } from './test-helper'
 
 jest.mock('../graphql/ApiService')
+
+const wait = async (time = 0) => await new Promise((resolve) => setTimeout(resolve, time))
 
 describe('RecordChunkIterator', () => {
   let session: ImportSession
@@ -34,6 +38,7 @@ describe('RecordChunkIterator', () => {
 
     iterator = new RecordChunkIterator(session, (chunk, next) => callbackFn(chunk, next), {
       chunkSize: 10,
+      chunkTimeout: 3000,
     })
 
     mockGraphQLRequest('getFinalDatabaseView', 200, {
@@ -132,6 +137,36 @@ describe('RecordChunkIterator', () => {
       const err = new Error('test error')
       jest.spyOn(iterator, 'afterEach').mockRejectedValue(err)
       await expect(iterator.process()).rejects.toThrow(err)
+    })
+    test('emits error when callback takes too long', async () => {
+      jest.spyOn(RecordChunkIterator.prototype, 'emit')
+      jest.spyOn(RecordChunkIterator.prototype, 'beforeFirst').mockResolvedValueOnce(chunk)
+      jest.spyOn(console, 'warn').mockImplementationOnce((msg) => msg)
+      const callback: IteratorCallback = async (_, next) => {
+        await wait(11)
+        next()
+      }
+      const iterator = new RecordChunkIterator(session, callback, {
+        chunkSize: 10,
+        chunkTimeout: 10,
+      })
+      await iterator.process().catch((error) => {
+        expect(error).toBeInstanceOf(ChunkTimeoutError)
+      })
+      await wait()
+      expect(RecordChunkIterator.prototype.emit).toBeCalledTimes(3)
+      expect(RecordChunkIterator.prototype.emit).toHaveBeenCalledWith(
+        'complete',
+        expect.any(ChunkTimeoutError)
+      )
+      expect(RecordChunkIterator.prototype.emit).toHaveBeenCalledWith(
+        'error',
+        expect.objectContaining({ error: expect.any(ChunkTimeoutError) })
+      )
+      expect(RecordChunkIterator.prototype.emit).toHaveBeenCalledWith(
+        'error',
+        expect.objectContaining({ error: expect.any(ChunkTimeoutExpiredError) })
+      )
     })
   })
 
