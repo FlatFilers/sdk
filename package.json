@@ -81,7 +81,7 @@
   },
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx}": [
-      "npm run lint",
+      "nx lint",
       "prettier --check"
     ]
   }
