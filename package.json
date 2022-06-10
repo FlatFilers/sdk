@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "build:sdk:umd": "cd packages/sdk && npm run build"
+    "build:sdk": "nx build sdk && npm run build:sdk:umd",
+    "build:sdk:umd": "cd packages/sdk && webpack --progress --config webpack.prod.js"
   },
   "private": true,
   "devDependencies": {

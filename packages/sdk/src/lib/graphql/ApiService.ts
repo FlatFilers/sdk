@@ -26,7 +26,11 @@ import {
   BatchStatusUpdatedResponse,
 } from './subscriptions/BATCH_STATUS_UPDATED'
 
-const DEFAULT_PAGE_LIMIT = process.env.DEFAULT_PAGE_LIMIT
+/**
+ * @note interestingly, babel minify can't handle Function parameters that have defaults set by a "const" 🤷‍♂️
+ * https://github.com/babel/minify/issues/974#issuecomment-576719419
+ */
+let DEFAULT_PAGE_LIMIT = process.env.DEFAULT_PAGE_LIMIT
   ? parseInt(process.env.DEFAULT_PAGE_LIMIT, 10)
   : 1000
 

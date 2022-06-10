@@ -21,8 +21,5 @@
     "eventemitter3": "^4.0.7",
     "graphql-subscriptions-client": "^0.16.0",
     "transferable-function": "^1.0.2"
-  },
-  "scripts": {
-    "build": "webpack --progress --config webpack.prod.js"
   }
 }
