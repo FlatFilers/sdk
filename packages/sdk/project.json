@@ -1,15 +1,25 @@
 {
-  "root": "packages/sdk",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/sdk/src",
   "targets": {
     "build": {
       "executor": "@nrwl/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
         "outputPath": "dist/packages/sdk",
         "main": "packages/sdk/src/index.ts",
         "tsConfig": "packages/sdk/tsconfig.lib.json",
-        "assets": ["packages/sdk/*.md"]
+        "assets": [
+          "packages/sdk/*.md"
+        ]
+      }
+    },
+    "build:bundle": {
+      "executor": "nx:run-script",
+      "options": {
+        "script": "build:umd"
       }
     },
     "publish": {
@@ -21,19 +31,29 @@
         {
           "projects": "self",
           "target": "build"
+        },
+        {
+          "projects": "self",
+          "target": "build:bundle"
         }
       ]
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
+      "outputs": [
+        "{options.outputFile}"
+      ],
       "options": {
-        "lintFilePatterns": ["packages/sdk/**/*.ts"]
+        "lintFilePatterns": [
+          "packages/sdk/**/*.ts"
+        ]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/packages/sdk"],
+      "outputs": [
+        "coverage/packages/sdk"
+      ],
       "options": {
         "jestConfig": "packages/sdk/jest.config.ts",
         "passWithNoTests": true
