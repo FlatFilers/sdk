@@ -101,6 +101,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
         this.ui.showLoader()
       }
       const api = await this.initApi()
+      // pass all configs to api.init()
       const meta = await api.init()
       const { mountUrl } = this.config
 
@@ -110,11 +111,18 @@ export class Flatfile extends TypedEventManager<IEvents> {
       if (options?.onInit) session.on('init', options.onInit)
       session.on('submit', async () => {
         if (options?.onData) {
+          // assume passing in onData v3submitflag is on
           const iterator = await session.processPendingRecords(options.onData, {
             chunkSize,
             chunkTimeout,
           })
+          // move all non-rejected records to accepted
+          // move all rejected records to in review [iterator.rejectedIds]
+          // don't close iframe if !featureFlag
+
           if (iterator.rejectedIds.length === 0) {
+            // should never close the iframe w/ v3submit flag on
+            // requires more user interaction
             session.iframe?.close()
             options.onComplete?.({
               batchId: meta.batchId,
@@ -174,7 +182,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
     } else if (typeof callbackOrOptions === 'object') {
       options = { ...options, ...callbackOrOptions }
     }
-
+    // options would contain all configs
     this.startOrResumeImportSession(options)
   }
 

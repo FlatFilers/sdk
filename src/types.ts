@@ -11,6 +11,7 @@ export interface IFlatfileImporterConfig {
   embedId?: string
   user?: IUser
   org?: IOrganization
+  config?: IConfig
   onError?: (payload: { error: FlatfileError }) => void | Promise<void>
 }
 
@@ -57,10 +58,20 @@ export interface IOrganization {
   name: string
 }
 
+export interface IConfig {
+  // https://stackoverflow.com/questions/51813272/declaring-string-type-with-min-max-length-in-typescript
+  submitLoadingText?: string
+  submitCompleteText?: string
+  logo?: any
+  displayName?: string
+}
+
 export interface IRawToken {
   user?: IUser
   org?: IOrganization
   env?: Record<string, unknown>
+  config?: IConfig
+  // do config settings go here? submit message?
 }
 
 export type JsonWebToken = string

@@ -94,7 +94,24 @@ export function Sandbox(): any {
         } else {
           setFrameUrl(session.signedImportUrl())
         }
-      }
+      },
+      onData: (chunk, next) => {
+        // Do something that causes a failure...
+        chunk.records.forEach(console.log)
+        next(
+          // A PartialRejection could be created with a list or a single RecordError.
+          new PartialRejection(
+            // A RecordError should be created with an record (or record id)
+            // and a list of validation errors.
+            chunk.records.map(
+              (r) =>
+                new RecordError(r.recordId, [
+                  { field: 'firstName', message: 'This person already exists.' },
+                ])
+            )
+          )
+        )
+      },
     })
 
     // can be triggered n times
