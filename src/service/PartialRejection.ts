@@ -1,4 +1,5 @@
 import { RequestError } from '../errors/RequestError'
+import { QUEUE_UPDATE_RECORD_STATUS } from '../graphql/queries/QUEUE_UPDATE_RECORDS'
 import { UPDATE_RECORDS } from '../graphql/queries/UPDATE_RECORDS'
 import { ImportSession } from '../importer/ImportSession'
 import { ClientResponse } from './ClientResponse'
@@ -34,11 +35,26 @@ export class PartialRejection extends ClientResponse {
    */
   async executeResponse(session: ImportSession): Promise<this> {
     // todo: we should move this to ApiService
+    // set status for records id back to in review
     const client = session.api.client
+    // set errors on records
     await client
       .request(UPDATE_RECORDS, {
         batchId: session.batchId,
         edits: this.errors.map((r) => r.toGraphQLEdits()),
+      })
+      .catch((err) => {
+        throw new RequestError(err)
+      })
+    // set status back to review
+
+    console.log('recordIds', this.recordIds)
+    await client
+      .request(QUEUE_UPDATE_RECORD_STATUS, {
+        rowIds: this.recordIds,
+        validationState: 'review',
+        workbookId: session.workbookId,
+        schemaId: session.schemaId,
       })
       .catch((err) => {
         throw new RequestError(err)

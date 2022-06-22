@@ -123,6 +123,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
           if (iterator.rejectedIds.length === 0) {
             // should never close the iframe w/ v3submit flag on
             // requires more user interaction
+            // set records that still have status submitted to approved
             session.iframe?.close()
             options.onComplete?.({
               batchId: meta.batchId,

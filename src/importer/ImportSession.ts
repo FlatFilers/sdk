@@ -25,6 +25,14 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     return this.meta.batchId
   }
 
+  public get workbookId(): string | undefined {
+    return this.meta.workbookId
+  }
+
+  public get schemaId(): number {
+    return parseInt(this.meta.schemaIds[0], 10)
+  }
+
   public init(): IImportMeta {
     this.subscribeToBatchStatus()
     this.emit('init', { session: this, meta: this.meta })

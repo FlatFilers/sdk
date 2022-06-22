@@ -73,9 +73,11 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    * Used to load the first payload for the first chunk
    */
   public beforeFirst(): Promise<RecordsChunk> {
+    // with "buffer" all records have status submitted
+    // we should only do this in new submit flow
     return this.api.getRecordsByStatus(
       this.session,
-      ERecordStatus.REVIEW,
+      ERecordStatus.SUBMITTED,
       0,
       this.options.chunkSize
     )

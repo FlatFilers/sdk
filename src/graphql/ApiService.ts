@@ -154,7 +154,7 @@ export class ApiService {
     )
 
     const res = await this.handleResponse('getFinalDatabaseView', req)
-
+    console.log('response to getRecordsByStatus', res)
     return new RecordsChunk(
       session,
       res.rows.map((r) => new FlatfileRecord(r)),

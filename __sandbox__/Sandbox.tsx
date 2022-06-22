@@ -30,6 +30,7 @@ export function Sandbox(): any {
   const recordCallback = useCallback<IteratorCallback>((chunk, next) => {
     console.log(
       `CHUNK ${chunk.currentChunkIndex}`,
+      chunk,
       chunk.records.map((r) => r.data)
     )
     setOutput((prevOutput) => {
@@ -40,7 +41,12 @@ export function Sandbox(): any {
 
     next(
       new PartialRejection(
-        new RecordError(1, [{ field: 'full_name', message: 'This person already exists.' }])
+        chunk.records.map(
+          (r) =>
+            new RecordError(r.recordId, [
+              { field: 'name', message: 'This person already exists.' },
+            ])
+        )
       )
     )
   }, [])
@@ -98,6 +104,7 @@ export function Sandbox(): any {
       onData: (chunk, next) => {
         // Do something that causes a failure...
         chunk.records.forEach(console.log)
+        console.log('chunk records in on data', chunk.records)
         next(
           // A PartialRejection could be created with a list or a single RecordError.
           new PartialRejection(
@@ -106,7 +113,7 @@ export function Sandbox(): any {
             chunk.records.map(
               (r) =>
                 new RecordError(r.recordId, [
-                  { field: 'firstName', message: 'This person already exists.' },
+                  { field: 'name', message: 'This person already exists.' },
                 ])
             )
           )
