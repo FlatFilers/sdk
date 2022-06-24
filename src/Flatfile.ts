@@ -101,8 +101,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
         this.ui.showLoader()
       }
       const api = await this.initApi()
-      // pass all configs to api.init()
-      const meta = await api.init()
+      // pass 'synced' to batch if onData to have two downstream paths
+      const meta = await api.init(!!options?.onData)
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
@@ -110,29 +110,27 @@ export class Flatfile extends TypedEventManager<IEvents> {
 
       if (options?.onInit) session.on('init', options.onInit)
       session.on('submit', async () => {
+        // if !onData move all records to 'approved'
         if (options?.onData) {
           // assume passing in onData v3submitflag is on
           const iterator = await session.processPendingRecords(options.onData, {
             chunkSize,
             chunkTimeout,
           })
-          // move all non-rejected records to accepted
-          // move all rejected records to in review [iterator.rejectedIds]
-          // don't close iframe if !featureFlag
 
           if (iterator.rejectedIds.length === 0) {
             // should never close the iframe w/ v3submit flag on
             // requires more user interaction
             // set records that still have status submitted to approved
-            session.iframe?.close()
             options.onComplete?.({
               batchId: meta.batchId,
+              // getFinalizeDatabaseView
               data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
             })
           }
         } else {
           if (options?.onComplete) {
-            session.iframe?.close()
+            // session.iframe?.close()
             options.onComplete?.({
               batchId: meta.batchId,
               data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),

@@ -57,11 +57,14 @@ export class ApiService {
    *
    * @private
    */
-  public async initEmptyBatch(): Promise<InitializeEmptyBatchResponse['initializeEmptyBatch']> {
+  public async initEmptyBatch(
+    synced?: boolean
+  ): Promise<InitializeEmptyBatchResponse['initializeEmptyBatch']> {
     const req = this.client.request<InitializeEmptyBatchResponse, InitializeEmptyBatchPayload>(
       INITIALIZE_EMPTY_BATCH,
       {
         importedFromUrl: location.href,
+        synced,
       }
     )
     return this.handleResponse('initializeEmptyBatch', req)
@@ -71,9 +74,9 @@ export class ApiService {
    * Initialize an empty batch or obtain the current one, returns normalized
    * payload.
    */
-  async init(): Promise<IImportMeta> {
+  async init(synced?: boolean): Promise<IImportMeta> {
     // pass all config options to .initEmptyBatch()
-    const { batchId, workspaceId, schemas } = await this.initEmptyBatch()
+    const { batchId, workspaceId, schemas } = await this.initEmptyBatch(synced)
     const schemaIds = schemas.map((s) => s.id)
     return { batchId, workspaceId, schemaIds }
   }

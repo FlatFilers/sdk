@@ -43,9 +43,7 @@ export function Sandbox(): any {
       new PartialRejection(
         chunk.records.map(
           (r) =>
-            new RecordError(r.recordId, [
-              { field: 'name', message: 'This person already exists.' },
-            ])
+            new RecordError(r.recordId, [{ field: 'name', message: 'This person already exists.' }])
         )
       )
     )
@@ -101,30 +99,33 @@ export function Sandbox(): any {
           setFrameUrl(session.signedImportUrl())
         }
       },
-      onData: (chunk, next) => {
-        // Do something that causes a failure...
-        chunk.records.forEach(console.log)
-        console.log('chunk records in on data', chunk.records)
-        next(
-          // A PartialRejection could be created with a list or a single RecordError.
-          new PartialRejection(
-            // A RecordError should be created with an record (or record id)
-            // and a list of validation errors.
-            chunk.records.map(
-              (r) =>
-                new RecordError(r.recordId, [
-                  { field: 'name', message: 'This person already exists.' },
-                ])
-            )
-          )
-        )
-      },
+      // onData: (chunk, next) => {
+      //   // Do something that causes a failure...
+      //   chunk.records.forEach(console.log)
+      //   console.log('chunk records in on data', chunk.records)
+      //   // mark everything as approved except what is defined inside of partialRejection
+      //   // everything is done when all records are either approved or rejected
+      //   // buffer is empty when no more submitted records
+      //   next(
+      //     // A PartialRejection could be created with a list or a single RecordError.
+      //     new PartialRejection(
+      //       // A RecordError should be created with an record (or record id)
+      //       // and a list of validation errors.
+      //       chunk.records.map(
+      //         (r) =>
+      //           new RecordError(r.recordId, [
+      //             { field: 'email', message: 'This person already exists.' },
+      //           ])
+      //       )
+      //     )
+      //   )
+      // },
     })
 
     // can be triggered n times
     session.on('submit', async () => {
       // display my on processing dialog
-      await session.processPendingRecords(recordCallback, { chunkSize: 5 })
+      // await session.processPendingRecords(recordCallback, { chunkSize: 5 })
       console.log('done')
       // todo: handling of submit progress
     })
