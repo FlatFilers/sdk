@@ -104,6 +104,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
 
   private subscribeToBatchStatus(): void {
     return this.api.subscribeBatchStatusUpdated(this.batchId, async (status) => {
+      // instead of listening to submitted -> we need to listen to batchStatus === matchCompleted && some records have status === submitted 
       if (status === 'submitted') {
         this.emit('submit', this)
         this.emit('complete', {
@@ -118,6 +119,10 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
         this.init()
       }
     })
+  }
+
+  private subscribeToEmbedCompleted(): void {
+
   }
 
   /**
