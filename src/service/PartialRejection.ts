@@ -48,7 +48,7 @@ export class PartialRejection extends ClientResponse {
       })
     // set status back to review
 
-    console.log('recordIds', this.recordIds)
+    console.log('recordIds!', this.recordIds)
     await client
       .request(QUEUE_UPDATE_RECORD_STATUS, {
         rowIds: this.recordIds,

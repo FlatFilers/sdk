@@ -104,8 +104,10 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
 
   private subscribeToBatchStatus(): void {
     return this.api.subscribeBatchStatusUpdated(this.batchId, async (status) => {
+      console.log('status', status)
       // instead of listening to submitted -> we need to listen to batchStatus === matchCompleted && some records have status === submitted 
-      if (status === 'submitted') {
+      if (status === 'submitted' || status === 'inspect') {
+        console.log('here in import session subitted or inspect')
         this.emit('submit', this)
         this.emit('complete', {
           batchId: this.batchId,
