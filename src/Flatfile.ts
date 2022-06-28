@@ -286,6 +286,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
 
 export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
   'autoContinue',
+  'customFields',
   'chunkSize',
   'onComplete',
   'onData',
