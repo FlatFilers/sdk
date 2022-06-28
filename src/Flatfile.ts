@@ -1,7 +1,7 @@
 import { FlatfileError } from './errors/FlatfileError'
 import { ImplementationError } from './errors/ImplementationError'
 import { ApiService } from './graphql/ApiService'
-import { IChunkOptions, ImportSession } from './importer/ImportSession'
+import { IChunkOptions, ImportSession, IUrlOptions } from './importer/ImportSession'
 import { isJWT, sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
@@ -272,6 +272,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
 
 export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
   'autoContinue',
+  'customFields',
   'chunkSize',
   'onComplete',
   'onData',
@@ -289,9 +290,8 @@ export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
   'user',
 ]
 
-interface IOpenOptions {
+type IOpenOptions = {
   open?: 'iframe' | 'window'
-  autoContinue?: boolean
-}
+} & IUrlOptions
 
 type DataReqOptions = IOpenOptions & IChunkOptions & IImportSessionConfig
