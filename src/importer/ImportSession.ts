@@ -147,6 +147,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
       ...(this.batchId ? { batchId: this.batchId } : {}),
       ...(options?.autoContinue ? { autoContinue: '1' } : {}),
       ...(theme ? { theme: JSON.stringify(theme) } : {}),
+      ...(options?.customFields ? { customFields: JSON.stringify(options.customFields) } : {}),
     }
     return `${MOUNT_URL}/e/?${toQs(qs)}`
   }
@@ -192,4 +193,5 @@ export interface IChunkOptions {
 export interface IUrlOptions {
   theme?: ITheme
   autoContinue?: boolean
+  customFields?: any
 }
