@@ -27,7 +27,7 @@ export function flatfileImporter(
     }
 
     const o = document.createElement('iframe')
-    o.src = `${config.mountUrl || process.env.MOUNT_URL}/e?jwt=${encodeURI(api.token)}${
+    o.src = `${config.mountUrl || process.env.MOUNT_URL}/e/?jwt=${encodeURI(api.token)}${
       batchId ? `&batchId=${batchId}` : ''
     }`
 
