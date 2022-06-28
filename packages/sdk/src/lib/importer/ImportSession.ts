@@ -118,7 +118,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
       ...(this.batchId ? { batchId: this.batchId } : {}),
       ...(options?.autoContinue ? { autoContinue: '1' } : {}),
     }
-    return `${MOUNT_URL}/e?${toQs(qs)}`
+    return `${MOUNT_URL}/e/?${toQs(qs)}`
   }
 }
 
