@@ -1,7 +1,7 @@
 import { FlatfileError } from './errors/FlatfileError'
 import { ImplementationError } from './errors/ImplementationError'
 import { ApiService } from './graphql/ApiService'
-import { IChunkOptions, ImportSession } from './importer/ImportSession'
+import { IChunkOptions, ImportSession, IUrlOptions } from './importer/ImportSession'
 import { isJWT, sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
@@ -12,6 +12,7 @@ import {
   IFlatfileImporterConfig,
   IImportSessionConfig,
   IRawToken,
+  ITheme,
   JsonWebToken,
 } from './types'
 import { EDialogMessage } from './types/enums/EDialogMessage'
@@ -28,6 +29,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
   public api?: ApiService
 
   public ui: UIService
+
+  public theme?: ITheme
 
   constructor(config: IFlatfileImporterConfig)
   constructor(token: string, config: IFlatfileImporterConfig)
@@ -105,7 +108,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
-      const { chunkSize, chunkTimeout } = options ?? {}
+      const { chunkSize, chunkTimeout, theme } = options ?? {}
+      this.theme = theme
 
       if (options?.onInit) session.on('init', options.onInit)
 
@@ -295,13 +299,13 @@ export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
   'mountUrl',
   'onError',
   'org',
+  'theme',
   'token',
   'user',
 ]
 
-interface IOpenOptions {
+type IOpenOptions = {
   open?: 'iframe' | 'window'
-  autoContinue?: boolean
-}
+} & IUrlOptions
 
 type DataReqOptions = IOpenOptions & IChunkOptions & IImportSessionConfig

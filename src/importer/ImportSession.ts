@@ -1,5 +1,4 @@
 import { Flatfile } from 'Flatfile'
-import { UIService } from 'service/UIService'
 
 import { ApiService } from '../graphql/ApiService'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
@@ -7,6 +6,8 @@ import { toQs, useOrInit } from '../lib/general'
 import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
 import { TypedEventManager } from '../lib/TypedEventManager'
 import { TPrimitive } from '../service/FlatfileRecord'
+import { UIService } from '../service/UIService'
+import { ITheme } from '../types'
 import { ImportFrame } from './ImportFrame'
 
 export class ImportSession extends TypedEventManager<IImportSessionEvents> {
@@ -139,11 +140,13 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    * @todo fix the fact that the JWT is sent in raw query params
    */
   public signedImportUrl(options?: IUrlOptions): string {
+    const theme = this.flatfile.theme
     const MOUNT_URL = this.meta.mountUrl
     const qs = {
       jwt: this.api.token,
       ...(this.batchId ? { batchId: this.batchId } : {}),
       ...(options?.autoContinue ? { autoContinue: '1' } : {}),
+      ...(theme ? { theme: JSON.stringify(theme) } : {}),
     }
     return `${MOUNT_URL}/e/?${toQs(qs)}`
   }
@@ -187,5 +190,6 @@ export interface IChunkOptions {
   chunkTimeout?: number
 }
 export interface IUrlOptions {
+  theme?: ITheme
   autoContinue?: boolean
 }

@@ -4,6 +4,12 @@ import { IteratorCallback } from 'lib/RecordChunkIterator'
 import { FlatfileError } from './errors/FlatfileError'
 import { GetFinalDatabaseViewResponse } from './graphql/queries/GET_FINAL_DATABASE_VIEW'
 
+export interface ITheme {
+  logo?: string
+  loadingText?: string
+  submitCompleteText?: string
+}
+
 export interface IFlatfileImporterConfig {
   mountUrl?: string
   apiUrl?: string
@@ -13,6 +19,7 @@ export interface IFlatfileImporterConfig {
   org?: IOrganization
   config?: IConfig
   onError?: (payload: { error: FlatfileError }) => void | Promise<void>
+  theme?: ITheme
 }
 
 export interface IFlatfileConfig extends IFlatfileImporterConfig {
