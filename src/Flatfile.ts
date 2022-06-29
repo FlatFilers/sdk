@@ -122,8 +122,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
             })
           }
         } else {
+          session.iframe?.close()
           if (options?.onComplete) {
-            session.iframe?.close()
             options.onComplete?.({
               batchId: meta.batchId,
               data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
