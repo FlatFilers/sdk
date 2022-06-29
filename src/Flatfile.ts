@@ -155,11 +155,17 @@ export class Flatfile extends TypedEventManager<IEvents> {
       }, 0)
 
       if (options?.open === 'iframe') {
-        const importFrame = session.openInEmbeddedIframe({ autoContinue: options?.autoContinue })
+        const importFrame = session.openInEmbeddedIframe({
+          autoContinue: options?.autoContinue,
+          customFields: options?.customFields,
+        })
         importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
-        session.openInNewWindow({ autoContinue: options?.autoContinue })
+        session.openInNewWindow({
+          autoContinue: options?.autoContinue,
+          customFields: options?.customFields,
+        })
         this.ui.destroy()
       }
       return session
