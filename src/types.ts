@@ -4,13 +4,16 @@ import { IteratorCallback } from 'lib/RecordChunkIterator'
 import { FlatfileError } from './errors/FlatfileError'
 import { GetFinalDatabaseViewResponse } from './graphql/queries/GET_FINAL_DATABASE_VIEW'
 
+export type PartiallyOptional<Type, OptionalKey extends keyof Type> = Pick<Type, OptionalKey> &
+  Partial<Omit<Type, OptionalKey>>
+
 export interface IFlatfileImporterConfig {
   mountUrl?: string
   apiUrl?: string
   token?: JsonWebToken | (() => JsonWebToken | Promise<JsonWebToken>)
   embedId?: string
-  user?: IUser
-  org?: IOrganization
+  user?: PartiallyOptional<IUser, 'id'>
+  org?: PartiallyOptional<IOrganization, 'id'>
   onError?: (payload: { error: FlatfileError }) => void | Promise<void>
 }
 
@@ -58,8 +61,8 @@ export interface IOrganization {
 }
 
 export interface IRawToken {
-  user?: IUser
-  org?: IOrganization
+  user?: PartiallyOptional<IUser, 'id'>
+  org?: PartiallyOptional<IOrganization, 'id'>
   env?: Record<string, unknown>
 }
 

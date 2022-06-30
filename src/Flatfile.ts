@@ -38,6 +38,13 @@ export class Flatfile extends TypedEventManager<IEvents> {
     super()
     const configWithToken =
       typeof tokenOrConfig === 'object' ? tokenOrConfig : { ...config, token: tokenOrConfig }
+
+    if (!configWithToken.org?.id || !configWithToken.user?.id) {
+      throw new ImplementationError(
+        'Organization id and user id are required to initialize Flatfile.'
+      )
+    }
+
     this.config = this.mergeConfigDefaults(configWithToken)
     this.ui = new UIService()
     if (this.config.onError) {
@@ -53,8 +60,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
       return this.extractToken()
     } else if (this.config.embedId) {
       return Flatfile.getDevelopmentToken(this.config.embedId, {
-        org: this.config.org || { id: 1, name: 'Company' },
-        user: this.config.user || { id: 1, name: 'John Doe', email: 'john@email.com' },
+        org: this.config.org,
+        user: this.config.user,
       })
     } else {
       throw new ImplementationError(

@@ -21,7 +21,11 @@ describe('Flatfile', () => {
   beforeEach(async () => {
     jest.clearAllMocks()
     jest.spyOn(ApiService.prototype, 'init').mockResolvedValue(fakeImportMeta)
-    flatfile = new Flatfile('token', { apiUrl: 'http://localhost:3000' })
+    flatfile = new Flatfile('token', {
+      apiUrl: 'http://localhost:3000',
+      org: { id: 'oId' },
+      user: { id: 'uId' },
+    })
     process.env = { ...env, API_URL: 'http://localhost:3002', MOUNT_URL: 'http://localhost:3001' }
   })
 
@@ -31,16 +35,41 @@ describe('Flatfile', () => {
 
   test('should only merge not undefined config fields', async () => {
     const flatfile = new Flatfile({
-      token: 'JWT',
-      org: undefined,
-      user: undefined,
+      token: undefined,
+      org: { id: 'oId' },
+      user: { id: 'uId' },
       apiUrl: undefined,
       mountUrl: 'http://localhost:3001/overriden',
     })
     expect(flatfile.config).toEqual({
-      token: 'JWT',
       apiUrl: 'http://localhost:3002',
       mountUrl: 'http://localhost:3001/overriden',
+      org: { id: 'oId' },
+      user: { id: 'uId' },
+    })
+  })
+
+  describe('should throw error', () => {
+    const org = { id: 'oId' }
+    const user = { id: 'uId' }
+
+    test.each([
+      ['org is undefined', undefined, user],
+      ['no org info is provided', {}, user],
+      ['no org id is provided', { name: 'org' }, user],
+      ['user is undefined', org, undefined],
+      ['no user info is provided', org, {}],
+      ['no user id is provided', org, { name: 'user', email: 'user@email.com' }],
+    ])('when %p', (_, org, user) => {
+      const config = {
+        org,
+        user,
+        apiUrl: undefined,
+        mountUrl: 'http://localhost:3001/overriden',
+      } as IFlatfileImporterConfig
+      const fn = () => new Flatfile(config)
+
+      expect(fn).toThrow(ImplementationError)
     })
   })
 
@@ -84,19 +113,12 @@ describe('Flatfile', () => {
     })
 
     describe('when embed id is provided', () => {
-      const org = { id: 1, name: 'Flatfile' }
-      const user = { id: 1, name: 'John Doe', email: 'john@email.io' }
-      const defaultConfig = {
+      const orgAndUserConfig = {
         org: { id: 1, name: 'Company' },
         user: { id: 1, name: 'John Doe', email: 'john@email.com' },
       }
 
-      describe.each([
-        ['org', { org }, { org, user: defaultConfig.user }],
-        ['user', { user }, { org: defaultConfig.org, user }],
-        ['user and org', { org, user }, { org, user }],
-        ['no user and no org', {}, defaultConfig],
-      ])('and %p info is proided', (_, orgAndUserConfig, expectedOrAndUserConfig) => {
+      describe('and org and user info are provided', () => {
         test('should create a development token', async () => {
           jest.spyOn(Flatfile, 'getDevelopmentToken')
           jest.spyOn(console, 'warn').mockImplementationOnce(() => null)
@@ -110,17 +132,18 @@ describe('Flatfile', () => {
           await flatfile.startOrResumeImportSession({ open: 'window' })
           expect(console.warn).toHaveBeenCalled()
           expect(Flatfile.getDevelopmentToken).toHaveBeenCalledTimes(1)
-          expect(Flatfile.getDevelopmentToken).toHaveBeenCalledWith(
-            'embedId',
-            expectedOrAndUserConfig
-          )
+          expect(Flatfile.getDevelopmentToken).toHaveBeenCalledWith('embedId', orgAndUserConfig)
         })
       })
     })
 
     describe('when no token or embedId info is provided', () => {
       test('should throw implementation error', async () => {
-        const flatfile = new Flatfile({ apiUrl: 'http://localhost:3000' })
+        const flatfile = new Flatfile({
+          apiUrl: 'http://localhost:3000',
+          org: { id: 'oId' },
+          user: { id: 'uId' },
+        })
         jest.spyOn(UIService.prototype, 'destroy')
         jest.spyOn(flatfile, 'handleError')
         jest.spyOn(flatfile, 'cleanup')
