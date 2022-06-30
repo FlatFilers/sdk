@@ -2,6 +2,7 @@ import { FlatfileError } from './errors/FlatfileError'
 import { ImplementationError } from './errors/ImplementationError'
 import { ApiService } from './graphql/ApiService'
 import { IChunkOptions, ImportSession, IUrlOptions } from './importer/ImportSession'
+import { existsInDOM } from './lib/html'
 import { isJWT, sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 import { TypedEventManager } from './lib/TypedEventManager'
@@ -100,7 +101,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
     options?: IOpenOptions & IChunkOptions & IImportSessionConfig
   ): Promise<ImportSession> {
     try {
-      if (options?.open) {
+      if (!options?.mountOn && options?.open) {
         this.ui.showLoader()
       }
       const api = await this.initApi()
@@ -108,8 +109,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
-      const { chunkSize, chunkTimeout, theme } = options ?? {}
-      this.theme = theme
+      const { chunkSize, chunkTimeout, mountOn } = options ?? {}
 
       if (options?.onInit) session.on('init', options.onInit)
 
@@ -154,11 +154,16 @@ export class Flatfile extends TypedEventManager<IEvents> {
         this.emit('launch', { batchId: meta?.batchId })
       }, 0)
 
-      if (options?.open === 'iframe') {
-        const importFrame = session.openInEmbeddedIframe({
-          autoContinue: options?.autoContinue,
-          customFields: options?.customFields,
-        })
+      if (mountOn || options?.open === 'iframe') {
+        if (mountOn && !existsInDOM(mountOn)) {
+          throw new ImplementationError(
+            'Target mounting point was not found in DOM. Did you provide a valid css selector?'
+          )
+        }
+        const importFrame = session.openInEmbeddedIframe(
+          { autoContinue: options?.autoContinue, customFields: options?.customFields },
+          mountOn
+        )
         importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
@@ -181,21 +186,25 @@ export class Flatfile extends TypedEventManager<IEvents> {
    * Simple function that abstracts away some of the complexity for a single line call
    * also provides some level of backwards compatability
    */
-  public requestDataFromUser(): void
-  public requestDataFromUser(opts: DataReqOptions): void
-  public requestDataFromUser(cb: IteratorCallback, opts?: DataReqOptions): void
-  public requestDataFromUser(
+  public async requestDataFromUser(): Promise<{ close: () => void }>
+  public async requestDataFromUser(opts: DataReqOptions): Promise<{ close: () => void }>
+  public async requestDataFromUser(
+    cb: IteratorCallback,
+    opts?: DataReqOptions
+  ): Promise<{ close: () => void }>
+  public async requestDataFromUser(
     callbackOrOptions?: IteratorCallback | DataReqOptions,
     opts?: DataReqOptions
-  ): void {
+  ): Promise<{ close: () => void }> {
     let options: DataReqOptions = { open: 'iframe' }
     if (typeof callbackOrOptions === 'function') {
       options = opts ? { ...options, ...opts, onData: callbackOrOptions } : options
     } else if (typeof callbackOrOptions === 'object') {
       options = { ...options, ...callbackOrOptions }
     }
-    // options would contain all configs
-    this.startOrResumeImportSession(options)
+
+    const session = await this.startOrResumeImportSession(options)
+    return { close: () => session.close() }
   }
 
   public handleError(error: FlatfileError): void {
@@ -242,7 +251,9 @@ export class Flatfile extends TypedEventManager<IEvents> {
     return sign({ embed: embedId, sub: payload.user.email, ...payload, devModeOnly: true }, key)
   }
 
-  public static requestDataFromUser(options: DataReqOptions & IFlatfileImporterConfig = {}): void {
+  public static requestDataFromUser(
+    options: DataReqOptions & IFlatfileImporterConfig = {}
+  ): Promise<{ close: () => void }> {
     const { sessionConfig, importerConfig } = Flatfile.extractImporterOptions(options)
     const flatfile = new Flatfile(importerConfig)
     return flatfile.requestDataFromUser(sessionConfig)
@@ -298,6 +309,7 @@ export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
   'onData',
   'onInit',
   'open',
+  'mountOn',
 ]
 
 export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
@@ -313,6 +325,7 @@ export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
 
 type IOpenOptions = {
   open?: 'iframe' | 'window'
+  mountOn?: string
 } & IUrlOptions
 
 type DataReqOptions = IOpenOptions & IChunkOptions & IImportSessionConfig

@@ -36,3 +36,15 @@ export const removeClass = (el: HTMLElement, className: string): void => {
 export function $<T extends HTMLElement = HTMLElement>(query: string): T {
   return document.querySelector(query) as T
 }
+
+/**
+ * Returns true if an element is found matching a given css selector.
+ * @param query
+ */
+export function existsInDOM(query?: string): boolean {
+  if (!query) {
+    return false
+  } else {
+    return Boolean($(query))
+  }
+}
