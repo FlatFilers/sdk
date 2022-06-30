@@ -35,8 +35,12 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    * Open the importer in an iframe (recommended)
    * todo: move launch event out of iframe helper
    */
-  public openInEmbeddedIframe(options?: IUrlOptions): ImportFrame {
-    return this.iframe.open(options)
+  public openInEmbeddedIframe(options?: IUrlOptions, mountingPoint?: string): ImportFrame {
+    if (mountingPoint) {
+      return this.iframe.mountOn(mountingPoint, options)
+    } else {
+      return this.iframe.open(options)
+    }
   }
 
   /**
@@ -120,6 +124,18 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
       ...(options?.customFields ? { customFields: JSON.stringify(options.customFields) } : {}),
     }
     return `${MOUNT_URL}/e/?${toQs(qs)}`
+  }
+
+  /**
+   * Close the importer iframe
+   * @todo: kill batch status subscription
+   */
+  public close(): void {
+    if (this.$iframe) {
+      this.$iframe?.close()
+    } else {
+      console.warn('No Flatfile importer iframe was found in the DOM.')
+    }
   }
 }
 
