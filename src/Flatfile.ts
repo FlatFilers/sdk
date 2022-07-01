@@ -13,7 +13,6 @@ import {
   IFlatfileImporterConfig,
   IImportSessionConfig,
   IRawToken,
-  ITheme,
   JsonWebToken,
 } from './types'
 import { EDialogMessage } from './types/enums/EDialogMessage'
@@ -30,8 +29,6 @@ export class Flatfile extends TypedEventManager<IEvents> {
   public api?: ApiService
 
   public ui: UIService
-
-  public theme?: ITheme
 
   constructor(config: IFlatfileImporterConfig)
   constructor(token: string, config: IFlatfileImporterConfig)
@@ -109,7 +106,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
-      const { chunkSize, chunkTimeout, mountOn } = options ?? {}
+      const { chunkSize, chunkTimeout, mountOn, autoContinue, customFields, theme } = options ?? {}
 
       if (options?.onInit) session.on('init', options.onInit)
 
@@ -161,16 +158,13 @@ export class Flatfile extends TypedEventManager<IEvents> {
           )
         }
         const importFrame = session.openInEmbeddedIframe(
-          { autoContinue: options?.autoContinue, customFields: options?.customFields },
+          { theme, autoContinue, customFields },
           mountOn
         )
         importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
-        session.openInNewWindow({
-          autoContinue: options?.autoContinue,
-          customFields: options?.customFields,
-        })
+        session.openInNewWindow({ theme, autoContinue, customFields })
         this.ui.destroy()
       }
       return session
