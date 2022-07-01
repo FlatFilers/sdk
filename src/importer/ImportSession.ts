@@ -117,13 +117,12 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    * @todo fix the fact that the JWT is sent in raw query params
    */
   public signedImportUrl(options?: IUrlOptions): string {
-    const theme = this.flatfile.theme
     const MOUNT_URL = this.meta.mountUrl
     const qs = {
       jwt: this.api.token,
       ...(this.batchId ? { batchId: this.batchId } : {}),
       ...(options?.autoContinue ? { autoContinue: '1' } : {}),
-      ...(theme ? { theme: JSON.stringify(theme) } : {}),
+      ...(options?.theme ? { theme: JSON.stringify(options.theme) } : {}),
       ...(options?.customFields ? { customFields: JSON.stringify(options.customFields) } : {}),
     }
     return `${MOUNT_URL}/e/?${toQs(qs)}`
