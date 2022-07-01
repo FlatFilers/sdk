@@ -70,8 +70,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
       typeof rawToken === 'string'
         ? rawToken
         : typeof rawToken === 'function'
-        ? await rawToken()
-        : ''
+          ? await rawToken()
+          : ''
     if (!isJWT(token)) {
       throw new ImplementationError('`token` has to return a valid JWT.')
     }
@@ -101,7 +101,6 @@ export class Flatfile extends TypedEventManager<IEvents> {
         this.ui.showLoader()
       }
       const api = await this.initApi()
-      // pass 'synced' to batch if onData to have two downstream paths
       const meta = await api.init(!!options?.onData)
       const { mountUrl } = this.config
 
@@ -109,8 +108,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { chunkSize, chunkTimeout } = options ?? {}
 
       if (options?.onInit) session.on('init', options.onInit)
-      session.on('submit', async () => {
-        // if !onData move all records to 'approved'
+
+      session.on('inspect', async () => {
         if (options?.onData) {
           // assume passing in onData v3submitflag is on
           const iterator = await session.processPendingRecords(options.onData, {
@@ -128,17 +127,21 @@ export class Flatfile extends TypedEventManager<IEvents> {
               data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
             })
           }
-        } else {
-          if (options?.onComplete) {
-            // session.iframe?.close()
-            options.onComplete?.({
-              batchId: meta.batchId,
-              data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
-            })
-          } else {
-            console.log('[Flatfile]: Register `onComplete` event to receive your payload')
-          }
         }
+      })
+
+      session.on('submit', async () => {
+        if (options?.onComplete) {
+          session.iframe?.close()
+          options.onComplete?.({
+            batchId: meta.batchId,
+            data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
+          })
+        } else {
+          session.iframe?.close()
+          console.log('[Flatfile]: Register `onComplete` event to receive your payload')
+        }
+
       })
 
       setTimeout(() => {
@@ -209,7 +212,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
   ): Promise<JsonWebToken> {
     console.warn(
       'Creating an insecure token that can only be used in dev mode.' +
-        ' Make sure to sign properly before releasing to production'
+      ' Make sure to sign properly before releasing to production'
     )
     // todo: move these defaults somewhere better
     const payload = {

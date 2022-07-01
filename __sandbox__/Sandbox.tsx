@@ -107,14 +107,9 @@ export function Sandbox(): any {
         next(
           // A PartialRejection could be created with a list or a single RecordError.
           new PartialRejection(
-            // A RecordError should be created with an record (or record id)
-            // and a list of validation errors.
-            chunk.records.map(
-              (r) =>
-                new RecordError(1, [
-                  { field: 'name', message: 'This person already exists.' },
-                ])
-            )
+            new RecordError(1, [
+              { field: 'name', message: 'This person already exists.' },
+            ])
           )
         )
       },
@@ -123,7 +118,7 @@ export function Sandbox(): any {
     // can be triggered n times
     session.on('submit', async () => {
       // display my on processing dialog
-      // await session.processPendingRecords(recordCallback, { chunkSize: 5 })
+      await session.processPendingRecords(recordCallback, { chunkSize: 5 })
       console.log('done')
       // todo: handling of submit progress
     })

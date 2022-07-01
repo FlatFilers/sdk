@@ -39,6 +39,10 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     return this.meta
   }
 
+  public get synced(): boolean | undefined {
+    return this.meta.synced
+  }
+
   /**
    * Open the importer in an iframe (recommended)
    * todo: move launch event out of iframe helper
@@ -104,10 +108,16 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
 
   private subscribeToBatchStatus(): void {
     return this.api.subscribeBatchStatusUpdated(this.batchId, async (status) => {
-      console.log('status', status)
-      // instead of listening to submitted -> we need to listen to batchStatus === matchCompleted && some records have status === submitted 
-      if (status === 'submitted' || status === 'inspect') {
-        console.log('here in import session subitted or inspect')
+
+      if (status === 'inspect') {
+        this.emit('inspect', this)
+        this.emit('complete', {
+          batchId: this.batchId,
+          data: (sample = false) => this.api.getAllRecords(this.batchId, 0, sample),
+        })
+      }
+
+      if (status === 'submitted') {
         this.emit('submit', this)
         this.emit('complete', {
           batchId: this.batchId,
@@ -123,9 +133,6 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     })
   }
 
-  private subscribeToEmbedCompleted(): void {
-
-  }
 
   /**
    * Get the URL necessary to load the importer and manipulate the data
@@ -162,6 +169,7 @@ export interface IImportSessionEvents {
     batchId: string
     data: (sample?: boolean) => Promise<GetFinalDatabaseViewResponse['getFinalDatabaseView']>
   }
+  inspect: ImportSession
   close: void
 }
 
@@ -171,6 +179,7 @@ export interface IImportMeta {
   workspaceId: string
   workbookId?: string
   schemaIds: string[]
+  synced?: boolean
 }
 
 export interface IChunkOptions {
