@@ -1,7 +1,7 @@
 import { FlatfileError } from './errors/FlatfileError'
 import { ImplementationError } from './errors/ImplementationError'
 import { ApiService } from './graphql/ApiService'
-import { IChunkOptions, ImportSession } from './importer/ImportSession'
+import { IChunkOptions, ImportSession, IUrlOptions } from './importer/ImportSession'
 import { existsInDOM } from './lib/html'
 import { isJWT, sign } from './lib/jwt'
 import { IteratorCallback } from './lib/RecordChunkIterator'
@@ -148,13 +148,16 @@ export class Flatfile extends TypedEventManager<IEvents> {
           )
         }
         const importFrame = session.openInEmbeddedIframe(
-          { autoContinue: options?.autoContinue },
+          { autoContinue: options?.autoContinue, customFields: options?.customFields },
           mountOn
         )
         importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
-        session.openInNewWindow({ autoContinue: options?.autoContinue })
+        session.openInNewWindow({
+          autoContinue: options?.autoContinue,
+          customFields: options?.customFields,
+        })
         this.ui.destroy()
       }
       return session
@@ -287,6 +290,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
 
 export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
   'autoContinue',
+  'customFields',
   'chunkSize',
   'onComplete',
   'onData',
@@ -305,10 +309,9 @@ export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
   'user',
 ]
 
-interface IOpenOptions {
+type IOpenOptions = {
   open?: 'iframe' | 'window'
   mountOn?: string
-  autoContinue?: boolean
-}
+} & IUrlOptions
 
 type DataReqOptions = IOpenOptions & IChunkOptions & IImportSessionConfig
