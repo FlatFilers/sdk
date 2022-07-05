@@ -1,4 +1,4 @@
-import { addClass, removeClass } from '../lib/html'
+import { $, addClass, existsInDOM, removeClass } from '../lib/html'
 import { TypedEventManager } from '../lib/TypedEventManager'
 import { UIService } from '../service/UIService'
 import { ImportSession, IUrlOptions } from './ImportSession'
@@ -21,7 +21,6 @@ export class ImportFrame extends TypedEventManager<IImportFrameEvents> {
     this.ui.initialize()
     const url = this.session.signedImportUrl(options)
     const iFrameEl = this.createIFrameElement(url)
-    iFrameEl.addEventListener('load', () => this.emit('load'))
     this.ui.$container.append(iFrameEl)
     addClass(document.body, 'flatfile-active')
     this.session.emit('launch')
@@ -30,19 +29,31 @@ export class ImportFrame extends TypedEventManager<IImportFrameEvents> {
     return this
   }
 
+  public mountOn(mountingPoint: string, options?: IUrlOptions): this {
+    const url = this.session.signedImportUrl(options)
+    const iframe = this.createIFrameElement(url)
+    const container = $<HTMLIFrameElement>(mountingPoint)
+    container.append(iframe)
+    this.session.emit('launch')
+    return this
+  }
+
   /**
    * todo: handle the close better, support cleaner transition
    */
   public close(): void {
     removeClass(document.body, 'flatfile-active')
-    this.$iframe?.remove()
-    this.session.emit('close')
+    if (existsInDOM('.flatfile-sdk')) {
+      this.$iframe?.remove()
+      this.session.emit('close')
 
-    this.ui.$close?.removeEventListener('click', this.close)
+      this.ui.$close?.removeEventListener('click', this.close)
+    }
   }
 
   private createIFrameElement(url: string): HTMLIFrameElement {
     const iframeElement = document.createElement('iframe')
+    iframeElement.addEventListener('load', () => this.emit('load'))
     iframeElement.src = url
     return (this.$iframe = iframeElement)
   }

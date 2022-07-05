@@ -94,7 +94,22 @@ export function Sandbox(): any {
           HOOK_HELPER,
         })
         if (useWindow) {
-          session.openInNewWindow()
+          session.openInNewWindow({
+            customFields: [
+              {
+                field: 'custom_test',
+                type: 'string',
+                label: 'Real Test',
+                custom: true,
+              },
+              {
+                field: 'custom_foo',
+                type: 'string',
+                label: 'Fax Bar',
+                custom: true,
+              },
+            ],
+          })
         } else {
           setFrameUrl(session.signedImportUrl())
         }
