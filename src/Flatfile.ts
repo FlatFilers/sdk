@@ -106,7 +106,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
-      const { chunkSize, chunkTimeout, mountOn } = options ?? {}
+      const { chunkSize, chunkTimeout, mountOn, autoContinue, customFields, theme } = options ?? {}
 
       if (options?.onInit) session.on('init', options.onInit)
 
@@ -157,16 +157,13 @@ export class Flatfile extends TypedEventManager<IEvents> {
           )
         }
         const importFrame = session.openInEmbeddedIframe(
-          { autoContinue: options?.autoContinue, customFields: options?.customFields },
+          { theme, autoContinue, customFields },
           mountOn
         )
         importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
-        session.openInNewWindow({
-          autoContinue: options?.autoContinue,
-          customFields: options?.customFields,
-        })
+        session.openInNewWindow({ theme, autoContinue, customFields })
         this.ui.destroy()
       }
       return session
@@ -314,6 +311,7 @@ export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
   'mountUrl',
   'onError',
   'org',
+  'theme',
   'token',
   'user',
 ]

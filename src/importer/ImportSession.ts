@@ -1,5 +1,4 @@
 import { Flatfile } from 'Flatfile'
-import { UIService } from 'service/UIService'
 
 import { ApiService } from '../graphql/ApiService'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
@@ -7,6 +6,8 @@ import { toQs, useOrInit } from '../lib/general'
 import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
 import { TypedEventManager } from '../lib/TypedEventManager'
 import { TPrimitive } from '../service/FlatfileRecord'
+import { UIService } from '../service/UIService'
+import { ITheme } from '../types'
 import { ImportFrame } from './ImportFrame'
 
 export class ImportSession extends TypedEventManager<IImportSessionEvents> {
@@ -146,6 +147,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
       jwt: this.api.token,
       ...(this.batchId ? { batchId: this.batchId } : {}),
       ...(options?.autoContinue ? { autoContinue: '1' } : {}),
+      ...(options?.theme ? { theme: JSON.stringify(options.theme) } : {}),
       ...(options?.customFields ? { customFields: JSON.stringify(options.customFields) } : {}),
     }
     return `${MOUNT_URL}/e/?${toQs(qs)}`
@@ -202,6 +204,7 @@ export interface IChunkOptions {
   chunkTimeout?: number
 }
 export interface IUrlOptions {
+  theme?: ITheme
   autoContinue?: boolean
   customFields?: any
 }
