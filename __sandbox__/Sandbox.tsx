@@ -115,7 +115,7 @@ export function Sandbox(): any {
             theme: {
               loadingText: 'Custom loading text ...',
               submitCompleteText: 'Custom submit text ...',
-              orgName: 'Company Name'
+              displayName: 'Company Name'
             }
           }))
         }

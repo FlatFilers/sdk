@@ -8,7 +8,7 @@ export interface ITheme {
   logo?: string
   loadingText?: string
   submitCompleteText?: string
-  orgName?: string
+  displayName?: string
 }
 
 export interface IFlatfileImporterConfig {
