@@ -112,22 +112,10 @@ export class Flatfile extends TypedEventManager<IEvents> {
 
       session.on('inspect', async () => {
         if (options?.onData) {
-          // assume passing in onData v3submitflag is on
-          const iterator = await session.processPendingRecords(options.onData, {
+          await session.processPendingRecords(options.onData, {
             chunkSize,
             chunkTimeout,
           })
-
-          if (iterator.rejectedIds.length === 0) {
-            // should never close the iframe w/ v3submit flag on
-            // requires more user interaction
-            // set records that still have status submitted to approved
-            options.onComplete?.({
-              batchId: meta.batchId,
-              // getFinalizeDatabaseView
-              data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
-            })
-          }
         }
       })
 

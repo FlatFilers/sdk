@@ -38,15 +38,15 @@ export function Sandbox(): any {
       const newData = chunk.records.map((r) => r.data)
       return [...newData, ...prevData]
     })
-
-    next(
-      new PartialRejection(
-        chunk.records.map(
-          (r) =>
-            new RecordError(r.recordId, [{ field: 'name', message: 'This person already exists.' }])
-        )
-      )
-    )
+    next()
+    // next(
+    //   new PartialRejection(
+    //     chunk.records.map(
+    //       (r) =>
+    //         new RecordError(r.recordId, [{ field: 'name', message: 'This person already exists.' }])
+    //     )
+    //   )
+    // )
   }, [])
 
   const handleInit = useCallback(async () => {
@@ -74,7 +74,7 @@ export function Sandbox(): any {
     const flatfile = new Flatfile({
       token,
       mountUrl,
-      apiUrl,
+      apiUrl
     })
 
     flatfile.on('error', ({ error }) => {
@@ -111,14 +111,17 @@ export function Sandbox(): any {
             ],
           })
         } else {
-          setFrameUrl(session.signedImportUrl())
+          setFrameUrl(session.signedImportUrl({
+            theme: {
+              loadingText: 'Custom loading text ...',
+              submitCompleteText: 'Custom submit text ...',
+              orgName: 'Company Name'
+            }
+          }))
         }
       },
       onData: (chunk, next) => {
-        // Do something that causes a failure..
-        // mark everything as approved except what is defined inside of partialRejection
-        // everything is done when all records are either approved or rejected
-        // buffer is empty when no more submitted records
+        // next()
         next(
           // A PartialRejection could be created with a list or a single RecordError.
           new PartialRejection(
@@ -127,13 +130,13 @@ export function Sandbox(): any {
             ])
           )
         )
-      },
+      }
     })
 
     // can be triggered n times
     session.on('submit', async () => {
       // display my on processing dialog
-      await session.processPendingRecords(recordCallback, { chunkSize: 5 })
+      // await session.processPendingRecords(recordCallback, { chunkSize: 5 })
       console.log('done')
       // todo: handling of submit progress
     })

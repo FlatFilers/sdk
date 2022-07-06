@@ -115,10 +115,6 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     return this.api.subscribeBatchStatusUpdated(this.batchId, async (status) => {
       if (status === 'inspect') {
         this.emit('inspect', this)
-        this.emit('complete', {
-          batchId: this.batchId,
-          data: (sample = false) => this.api.getAllRecords(this.batchId, 0, sample),
-        })
       }
 
       if (status === 'submitted') {
