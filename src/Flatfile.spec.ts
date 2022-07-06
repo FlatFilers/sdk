@@ -163,30 +163,24 @@ describe('Flatfile', () => {
           chunkSize: 10,
           onInit: jest.fn(),
           onData: jest.fn(),
-          onComplete: jest.fn(),
         }
         await flatfile.startOrResumeImportSession(importSessionConfig)
-        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(3)
+        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(4)
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('error', expect.any(Function))
+        expect(ImportSession.prototype.on).toHaveBeenCalledWith('evaluate', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('submit', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('init', importSessionConfig.onInit)
       })
 
-      test('should call on-complete event handler when rejected ids length is zero and on-data callback is provided', async () => {
+      test('should call processing pending records on evaluate', async () => {
         const importSessionConfig = {
           chunkSize: 10,
           onData: jest.fn(),
-          onComplete: jest.fn(),
         }
         const session = await flatfile.startOrResumeImportSession(importSessionConfig)
-        session.emit('submit')
+        session.emit('evaluate')
         await new Promise(process.nextTick)
 
-        expect(importSessionConfig.onComplete).toHaveBeenCalledTimes(1)
-        expect(importSessionConfig.onComplete).toHaveBeenCalledWith({
-          batchId: fakeImportMeta.batchId,
-          data: expect.any(Function),
-        })
         expect(ImportSession.prototype.processPendingRecords).toHaveBeenCalledWith(
           importSessionConfig.onData,
           { chunkSize: 10 }

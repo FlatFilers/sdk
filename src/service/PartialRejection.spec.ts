@@ -57,11 +57,13 @@ describe('PartialRejection', () => {
     })
     test('sends a graphql bulk edit update', async () => {
       mockGraphQLRequest('updateWorkbookRows', 200, { rows: [] })
+      mockGraphQLRequest('queueUpdateRecordStatus', 200, { id: '1' })
       await rejection.executeResponse(session)
     })
 
     test('handles a network failure', async () => {
       mockGraphQLRequest('updateWorkbookRows', 500, { rows: [] })
+      mockGraphQLRequest('queueUpdateRecordStatus', 200, { id: '1' })
       await expect(rejection.executeResponse(session)).rejects.toThrow(RequestError)
     })
   })
