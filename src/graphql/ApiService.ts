@@ -75,7 +75,6 @@ export class ApiService {
    * payload.
    */
   async init(synced?: boolean): Promise<IImportMeta> {
-    // pass all config options to .initEmptyBatch()
     const { batchId, workspaceId, schemas } = await this.initEmptyBatch(synced)
     const schemaIds = schemas.map((s) => s.id)
     return { batchId, workspaceId, schemaIds, synced }

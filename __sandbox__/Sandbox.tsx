@@ -27,27 +27,6 @@ export function Sandbox(): any {
   const [apiUrl, setApiUrl] = useState(localStorage.getItem('api_url') || '')
   const [frameUrl, setFrameUrl] = useState<string>()
 
-  const recordCallback = useCallback<IteratorCallback>((chunk, next) => {
-    console.log(
-      `CHUNK ${chunk.currentChunkIndex}`,
-      chunk,
-      chunk.records.map((r) => r.data)
-    )
-    setOutput((prevOutput) => {
-      const prevData = prevOutput || []
-      const newData = chunk.records.map((r) => r.data)
-      return [...newData, ...prevData]
-    })
-    next()
-    // next(
-    //   new PartialRejection(
-    //     chunk.records.map(
-    //       (r) =>
-    //         new RecordError(r.recordId, [{ field: 'name', message: 'This person already exists.' }])
-    //     )
-    //   )
-    // )
-  }, [])
 
   const handleInit = useCallback(async () => {
     localStorage.setItem('embed_id', embedId)
@@ -135,8 +114,6 @@ export function Sandbox(): any {
 
     // can be triggered n times
     session.on('submit', async () => {
-      // display my on processing dialog
-      // await session.processPendingRecords(recordCallback, { chunkSize: 5 })
       console.log('done')
       // todo: handling of submit progress
     })

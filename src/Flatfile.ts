@@ -110,7 +110,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
 
       if (options?.onInit) session.on('init', options.onInit)
 
-      session.on('inspect', async () => {
+      session.on('evaluate', async () => {
         if (options?.onData) {
           await session.processPendingRecords(options.onData, {
             chunkSize,
