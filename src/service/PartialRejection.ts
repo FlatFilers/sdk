@@ -34,9 +34,7 @@ export class PartialRejection extends ClientResponse {
    */
   async executeResponse(session: ImportSession): Promise<this> {
     // todo: we should move this to ApiService
-    // set status for records id back to in review
     const client = session.api.client
-    // set errors on records
     await client
       .request(UPDATE_RECORDS, {
         batchId: session.batchId,

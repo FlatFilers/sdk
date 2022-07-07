@@ -6,7 +6,7 @@ import { Button, Columns, Container, Form } from 'react-bulma-components'
 import Highlight from 'react-highlight'
 import styled from 'styled-components'
 
-import { Flatfile, IteratorCallback, PartialRejection, RecordError } from '../src'
+import { Flatfile, PartialRejection, RecordError } from '../src'
 import { serializeFunction } from '../src'
 import { FlatfileError } from '../src/errors/FlatfileError'
 import { BrowserFrame } from './BrowserFrame'
@@ -26,7 +26,6 @@ export function Sandbox(): any {
   const [mountUrl, setMountUrl] = useState(localStorage.getItem('mount_url') || '')
   const [apiUrl, setApiUrl] = useState(localStorage.getItem('api_url') || '')
   const [frameUrl, setFrameUrl] = useState<string>()
-
 
   const handleInit = useCallback(async () => {
     localStorage.setItem('embed_id', embedId)
@@ -53,7 +52,7 @@ export function Sandbox(): any {
     const flatfile = new Flatfile({
       token,
       mountUrl,
-      apiUrl
+      apiUrl,
     })
 
     flatfile.on('error', ({ error }) => {
@@ -90,17 +89,27 @@ export function Sandbox(): any {
             ],
           })
         } else {
-          setFrameUrl(session.signedImportUrl({
-            theme: {
-              loadingText: 'Custom loading text ...',
-              submitCompleteText: 'Custom submit text ...',
-              displayName: 'Company Name'
-            }
-          }))
+          setFrameUrl(
+            session.signedImportUrl({
+              theme: {
+                loadingText: 'Custom loading text ...',
+                submitCompleteText: 'Custom submit text ...',
+                displayName: 'Company Name',
+              },
+            })
+          )
         }
       },
       onData: (chunk, next) => {
-        // next()
+        console.log(
+          `CHUNK ${chunk.currentChunkIndex}`,
+          chunk.records.map((r) => r.data)
+        )
+        setOutput((prevOutput) => {
+          const prevData = prevOutput || []
+          const newData = chunk.records.map((r) => r.data)
+          return [...newData, ...prevData]
+        })
 
         next(
           // A PartialRejection could be created with a list or a single RecordError.
@@ -110,7 +119,7 @@ export function Sandbox(): any {
             ])
           )
         )
-      }
+      },
     })
 
     // can be triggered n times
