@@ -165,10 +165,9 @@ describe('Flatfile', () => {
           onData: jest.fn(),
         }
         await flatfile.startOrResumeImportSession(importSessionConfig)
-        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(4)
+        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(3)
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('error', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('evaluate', expect.any(Function))
-        expect(ImportSession.prototype.on).toHaveBeenCalledWith('submit', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('init', importSessionConfig.onInit)
       })
 
@@ -187,7 +186,7 @@ describe('Flatfile', () => {
         )
       })
 
-      test('should only call on-complete event handler when on-data callback is not provided', async () => {
+      test('should call on-complete event handler on submit', async () => {
         const importSessionConfig = { onComplete: jest.fn() }
         const session = await flatfile.startOrResumeImportSession(importSessionConfig)
         session.emit('submit')

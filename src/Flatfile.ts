@@ -98,39 +98,48 @@ export class Flatfile extends TypedEventManager<IEvents> {
     options?: IOpenOptions & IChunkOptions & IImportSessionConfig
   ): Promise<ImportSession> {
     try {
-      if (!options?.mountOn && options?.open) {
+      const {
+        chunkSize,
+        chunkTimeout,
+        mountOn,
+        autoContinue,
+        customFields,
+        theme,
+        onInit,
+        onData,
+        onComplete,
+      } = options ?? {}
+      if (!mountOn && options?.open) {
         this.ui.showLoader()
       }
       const api = await this.initApi()
-      const meta = await api.init(!!options?.onData)
+      const meta = await api.init(!!onData)
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
-      const { chunkSize, chunkTimeout, mountOn, autoContinue, customFields, theme } = options ?? {}
 
-      if (options?.onInit) session.on('init', options.onInit)
+      if (onInit) session.on('init', onInit)
 
-      session.on('evaluate', async () => {
-        if (options?.onData) {
-          await session.processPendingRecords(options.onData, {
+      if (onData) {
+        session.on('evaluate', async () => {
+          await session.processPendingRecords(onData, {
             chunkSize,
             chunkTimeout,
           })
-        }
-      })
-
-      session.on('submit', async () => {
-        if (options?.onComplete) {
-          session.iframe?.close()
-          options.onComplete?.({
-            batchId: meta.batchId,
-            data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
-          })
-        } else {
-          session.iframe?.close()
-          console.log('[Flatfile]: Register `onComplete` event to receive your payload')
-        }
-      })
+        })
+      } else {
+        session.on('submit', async () => {
+          if (onComplete) {
+            session.iframe?.close()
+            onComplete({
+              batchId: meta.batchId,
+              data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
+            })
+          } else {
+            console.log('[Flatfile]: Register `onComplete` event to receive your payload')
+          }
+        })
+      }
 
       setTimeout(() => {
         session.init()
