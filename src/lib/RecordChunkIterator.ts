@@ -142,6 +142,9 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
     if (this.acceptedIds.length > 0) {
       await this.api.updateRecordStatus(this.session, this.acceptedIds, ERecordStatus.ACCEPTED)
     }
+    if (this.rejectedIds.length > 0) {
+      await this.api.updateRecordStatus(this.session, this.rejectedIds, ERecordStatus.REVIEW)
+    }
     this.emit('complete')
   }
 

@@ -101,10 +101,11 @@ export function Sandbox(): any {
       },
       onData: (chunk, next) => {
         // next()
+
         next(
           // A PartialRejection could be created with a list or a single RecordError.
           new PartialRejection(
-            new RecordError(1, [
+            new RecordError(chunk.records[0].recordId, [
               { field: 'name', message: 'This person already exists.' },
             ])
           )

@@ -1,5 +1,4 @@
 import { RequestError } from '../errors/RequestError'
-import { QUEUE_UPDATE_RECORD_STATUS } from '../graphql/queries/QUEUE_UPDATE_RECORDS'
 import { UPDATE_RECORDS } from '../graphql/queries/UPDATE_RECORDS'
 import { ImportSession } from '../importer/ImportSession'
 import { ClientResponse } from './ClientResponse'
@@ -42,17 +41,6 @@ export class PartialRejection extends ClientResponse {
       .request(UPDATE_RECORDS, {
         batchId: session.batchId,
         edits: this.errors.map((r) => r.toGraphQLEdits()),
-      })
-      .catch((err) => {
-        throw new RequestError(err)
-      })
-
-    await client
-      .request(QUEUE_UPDATE_RECORD_STATUS, {
-        rowIds: this.recordIds,
-        validationState: 'review',
-        workbookId: session.workbookId,
-        schemaId: session.schemaId,
       })
       .catch((err) => {
         throw new RequestError(err)
