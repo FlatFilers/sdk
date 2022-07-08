@@ -1,12 +1,11 @@
-import { Flatfile } from 'Flatfile'
-import { UIService } from 'service/UIService'
-
+import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { toQs, useOrInit } from '../lib/general'
 import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
 import { TypedEventManager } from '../lib/TypedEventManager'
 import { TPrimitive } from '../service/FlatfileRecord'
+import { UIService } from '../service/UIService'
 import { ImportFrame } from './ImportFrame'
 
 export class ImportSession extends TypedEventManager<IImportSessionEvents> {
