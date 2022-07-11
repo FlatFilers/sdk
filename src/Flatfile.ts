@@ -177,16 +177,16 @@ export class Flatfile extends TypedEventManager<IEvents> {
    * also provides some level of backwards compatability
    */
   public async requestDataFromUser(): Promise<{ close: () => void }>
-  public async requestDataFromUser(opts: DataReqOptions): Promise<{ close: () => void }>
+  public async requestDataFromUser(opts: DataRequestOptions): Promise<{ close: () => void }>
   public async requestDataFromUser(
     cb: IteratorCallback,
-    opts?: DataReqOptions
+    opts?: DataRequestOptions
   ): Promise<{ close: () => void }>
   public async requestDataFromUser(
-    callbackOrOptions?: IteratorCallback | DataReqOptions,
-    opts?: DataReqOptions
+    callbackOrOptions?: IteratorCallback | DataRequestOptions,
+    opts?: DataRequestOptions
   ): Promise<{ close: () => void }> {
-    let options: DataReqOptions = { open: 'iframe' }
+    let options: DataRequestOptions = { open: 'iframe' }
     if (typeof callbackOrOptions === 'function') {
       options = opts ? { ...options, ...opts, onData: callbackOrOptions } : options
     } else if (typeof callbackOrOptions === 'object') {
@@ -242,22 +242,22 @@ export class Flatfile extends TypedEventManager<IEvents> {
   }
 
   public static requestDataFromUser(
-    options: DataReqOptions & IFlatfileImporterConfig = {}
+    options: DataRequestOptions & IFlatfileImporterConfig = {}
   ): Promise<{ close: () => void }> {
     const { sessionConfig, importerConfig } = Flatfile.extractImporterOptions(options)
     const flatfile = new Flatfile(importerConfig)
     return flatfile.requestDataFromUser(sessionConfig)
   }
 
-  public static extractImporterOptions(options: DataReqOptions & IFlatfileImporterConfig): {
-    sessionConfig: DataReqOptions
+  public static extractImporterOptions(options: DataRequestOptions & IFlatfileImporterConfig): {
+    sessionConfig: DataRequestOptions
     importerConfig: IFlatfileImporterConfig
   } {
-    const sessionConfig = {} as DataReqOptions
+    const sessionConfig = {} as DataRequestOptions
     const importerConfig = {} as IFlatfileImporterConfig
     Object.entries(options).forEach(([key, val]) => {
-      if (SESSION_CONFIG_KEYS.indexOf(key as keyof DataReqOptions) !== -1) {
-        sessionConfig[key as keyof DataReqOptions] = val
+      if (SESSION_CONFIG_KEYS.indexOf(key as keyof DataRequestOptions) !== -1) {
+        sessionConfig[key as keyof DataRequestOptions] = val
       } else if (IMPORTER_CONFIG_KEYS.indexOf(key as keyof IFlatfileImporterConfig) !== -1) {
         importerConfig[key as keyof IFlatfileImporterConfig] = val
       } else {
@@ -291,7 +291,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
   }
 }
 
-export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
+export const SESSION_CONFIG_KEYS: (keyof DataRequestOptions)[] = [
   'autoContinue',
   'customFields',
   'chunkSize',
@@ -318,4 +318,4 @@ type IOpenOptions = {
   mountOn?: string
 } & IUrlOptions
 
-type DataReqOptions = IOpenOptions & IChunkOptions & IImportSessionConfig
+export type DataRequestOptions = IOpenOptions & IChunkOptions & IImportSessionConfig
