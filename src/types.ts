@@ -8,6 +8,7 @@ export interface ITheme {
   loadingText?: string
   submitCompleteText?: string
   displayName?: string
+  hideConfetti?: boolean
 }
 
 export interface IFlatfileImporterConfig {
