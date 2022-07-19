@@ -5,12 +5,7 @@ export class RecordsChunk {
   constructor(
     private session: ImportSession,
     public readonly records: FlatfileRecord[],
-    private meta: {
-      status: ERecordStatus
-      skip: number
-      totalRecords: number
-      limit: number
-    }
+    private meta: RecordChunkMeta
   ) {}
 
   public get recordIds(): number[] {
@@ -21,10 +16,25 @@ export class RecordsChunk {
    * Get the next chunk of data based on the current chunk
    */
   public async getNextChunk(): Promise<RecordsChunk | null> {
-    if (this.meta.skip >= this.meta.totalRecords) {
+    const { skip, totalRecords, index, limit, status } = this.meta ?? {}
+    const response = await this.session.api.getRecordsByStatus(this.session, status, 0, limit)
+    const { rows = [], totalRows } = response ?? {}
+
+    if (skip >= totalRecords || response?.totalRows < 1) {
       return null
     }
-    return this.session.api.getRecordsByStatus(this.session, this.meta.status, 0, this.meta.limit)
+
+    return new RecordsChunk(
+      this.session,
+      rows.map((r) => new FlatfileRecord(r)),
+      {
+        status,
+        skip: 0,
+        limit,
+        totalRecords: totalRows,
+        index: typeof index === 'number' ? index + 1 : undefined,
+      }
+    )
   }
 
   /**
@@ -38,6 +48,14 @@ export class RecordsChunk {
    * Which chunk is this? (0 indexed)
    */
   public get currentChunkIndex(): number {
-    return Math.floor(this.meta.skip / this.meta.limit)
+    return this.meta.index || Math.floor(this.meta.skip / this.meta.limit)
   }
+}
+
+export type RecordChunkMeta = {
+  status: ERecordStatus
+  skip: number
+  totalRecords: number
+  limit: number
+  index?: number
 }

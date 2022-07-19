@@ -3,7 +3,7 @@ import { ChunkTimeoutExpiredError } from '../errors/ChunkTimeoutExpiredError'
 import { FlatfileError } from '../errors/FlatfileError'
 import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
-import { ERecordStatus } from '../service/FlatfileRecord'
+import { ERecordStatus, FlatfileRecord } from '../service/FlatfileRecord'
 import { PartialRejection } from '../service/PartialRejection'
 import { RecordsChunk } from '../service/RecordsChunk'
 import { TypedEventManager } from './TypedEventManager'
@@ -68,6 +68,8 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
     promises.push(this.api.updateRecordStatus(this.session, acceptedIds, ERecordStatus.ACCEPTED))
 
     await Promise.all(promises)
+    this.acceptedIds = this.acceptedIds.concat(acceptedIds)
+    this.rejectedIds = this.rejectedIds.concat(rejectedIds)
 
     if (err instanceof PartialRejection) {
       await err.executeResponse(this.session)
@@ -79,14 +81,26 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
   /**
    * Used to load the first payload for the first chunk
    */
-  public beforeFirst(): Promise<RecordsChunk> {
+  public async beforeFirst(): Promise<RecordsChunk> {
     // with "buffer" all records have status submitted
     // we should only do this in new submit flow
-    return this.api.getRecordsByStatus(
+    const response = await this.api.getRecordsByStatus(
       this.session,
       ERecordStatus.SUBMITTED,
       0,
       this.options.chunkSize
+    )
+
+    return new RecordsChunk(
+      this.session,
+      response.rows.map((r) => new FlatfileRecord(r)),
+      {
+        index: 0,
+        skip: 0,
+        limit: this.options.chunkSize,
+        totalRecords: response.totalRows,
+        status: ERecordStatus.SUBMITTED,
+      }
     )
   }
 
