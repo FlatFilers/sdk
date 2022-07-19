@@ -16,11 +16,11 @@ export class RecordsChunk {
    * Get the next chunk of data based on the current chunk
    */
   public async getNextChunk(): Promise<RecordsChunk | null> {
-    const { skip, totalRecords, index, limit, status } = this.meta ?? {}
+    const { index, limit, status } = this.meta ?? {}
     const response = await this.session.api.getRecordsByStatus(this.session, status, 0, limit)
     const { rows = [], totalRows } = response ?? {}
 
-    if (skip >= totalRecords || response?.totalRows < 1) {
+    if (response?.totalRows < 1) {
       return null
     }
 
