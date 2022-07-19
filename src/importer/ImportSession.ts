@@ -96,7 +96,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     this.meta.workbookId = await this.api.getWorkbookId(this.batchId)
 
     const chunkIterator = new RecordChunkIterator(this, cb, {
-      chunkSize: options?.chunkSize || 100,
+      chunkSize: options?.chunkSize || 1000,
       chunkTimeout: options?.chunkTimeout || 3000,
     })
     await chunkIterator

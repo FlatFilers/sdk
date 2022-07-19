@@ -59,10 +59,17 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    * @param err
    */
   public async afterEach(prevChunk: RecordsChunk, err?: PartialRejection | Error): Promise<void> {
-    this.acceptedIds = this.acceptedIds.concat(prevChunk.recordIds)
+    const rejectedIds = (err instanceof PartialRejection && err?.recordIds) || []
+    if (rejectedIds.length) {
+      await this.api.updateRecordStatus(this.session, rejectedIds, ERecordStatus.REVIEW)
+    }
+
+    const acceptedIds = prevChunk.recordIds.filter((recordId) => !rejectedIds.includes(recordId))
+    if (acceptedIds) {
+      await this.api.updateRecordStatus(this.session, acceptedIds, ERecordStatus.ACCEPTED)
+    }
+
     if (err instanceof PartialRejection) {
-      this.rejectedIds = this.rejectedIds.concat(err.recordIds)
-      this.acceptedIds = this.acceptedIds.filter((recordId) => !err.recordIds.includes(recordId))
       await err.executeResponse(this.session)
     } else if (err) {
       throw err
@@ -139,12 +146,6 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    * After all the chunks have finished iterating. This hook is run to wrap things up
    */
   public async afterAll(): Promise<void> {
-    if (this.acceptedIds.length > 0) {
-      await this.api.updateRecordStatus(this.session, this.acceptedIds, ERecordStatus.ACCEPTED)
-    }
-    if (this.rejectedIds.length > 0) {
-      await this.api.updateRecordStatus(this.session, this.rejectedIds, ERecordStatus.REVIEW)
-    }
     this.emit('complete')
   }
 

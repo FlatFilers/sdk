@@ -25,12 +25,7 @@ export class RecordsChunk {
     if (nextSkip >= this.meta.totalRecords) {
       return null
     }
-    return this.session.api.getRecordsByStatus(
-      this.session,
-      this.meta.status,
-      nextSkip,
-      this.meta.limit
-    )
+    return this.session.api.getRecordsByStatus(this.session, this.meta.status, 0, this.meta.limit)
   }
 
   /**
