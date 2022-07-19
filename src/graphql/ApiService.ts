@@ -175,14 +175,16 @@ export class ApiService {
     session: ImportSession,
     recordIds: number[],
     status: ERecordStatus
-  ): Promise<{ id: string }> {
-    const req = this.client.request(UPDATE_RECORD_STATUS, {
-      workbookId: session.meta.workbookId,
-      schemaId: parseInt(session.meta.schemaIds[0], 10),
-      validationState: status,
-      rowIds: recordIds,
-    })
-    return this.handleResponse('queueUpdateRecordStatus', req)
+  ): Promise<{ id: string }> | void {
+    if (recordIds.length > 0) {
+      const req = this.client.request(UPDATE_RECORD_STATUS, {
+        workbookId: session.meta.workbookId,
+        schemaId: parseInt(session.meta.schemaIds[0], 10),
+        validationState: status,
+        rowIds: recordIds,
+      })
+      return this.handleResponse('queueUpdateRecordStatus', req)
+    }
   }
 
   /**

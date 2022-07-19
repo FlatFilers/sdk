@@ -21,8 +21,7 @@ export class RecordsChunk {
    * Get the next chunk of data based on the current chunk
    */
   public async getNextChunk(): Promise<RecordsChunk | null> {
-    const nextSkip = this.meta.skip + this.meta.limit
-    if (nextSkip >= this.meta.totalRecords) {
+    if (this.meta.skip >= this.meta.totalRecords) {
       return null
     }
     return this.session.api.getRecordsByStatus(this.session, this.meta.status, 0, this.meta.limit)

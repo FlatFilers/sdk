@@ -59,15 +59,15 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    * @param err
    */
   public async afterEach(prevChunk: RecordsChunk, err?: PartialRejection | Error): Promise<void> {
-    const rejectedIds = (err instanceof PartialRejection && err?.recordIds) || []
-    if (rejectedIds.length) {
-      await this.api.updateRecordStatus(this.session, rejectedIds, ERecordStatus.REVIEW)
-    }
+    const promises = []
+
+    const rejectedIds = err instanceof PartialRejection ? err.recordIds : []
+    promises.push(this.api.updateRecordStatus(this.session, this.rejectedIds, ERecordStatus.REVIEW))
 
     const acceptedIds = prevChunk.recordIds.filter((recordId) => !rejectedIds.includes(recordId))
-    if (acceptedIds) {
-      await this.api.updateRecordStatus(this.session, acceptedIds, ERecordStatus.ACCEPTED)
-    }
+    promises.push(this.api.updateRecordStatus(this.session, acceptedIds, ERecordStatus.ACCEPTED))
+
+    await Promise.all(promises)
 
     if (err instanceof PartialRejection) {
       await err.executeResponse(this.session)
