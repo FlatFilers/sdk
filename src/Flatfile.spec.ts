@@ -165,9 +165,10 @@ describe('Flatfile', () => {
           onData: jest.fn(),
         }
         await flatfile.startOrResumeImportSession(importSessionConfig)
-        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(3)
+        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(4)
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('error', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('evaluate', expect.any(Function))
+        expect(ImportSession.prototype.on).toHaveBeenCalledWith('submit', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('init', importSessionConfig.onInit)
       })
 
@@ -212,6 +213,18 @@ describe('Flatfile', () => {
         expect(console.log).toHaveBeenCalledWith(
           '[Flatfile]: Register `onComplete` event to receive your payload'
         )
+      })
+
+      test('should not log warning message when no on-complete callback is provided but on-data callback is provided', async () => {
+        jest.spyOn(console, 'log').mockImplementation((s) => s)
+
+        const importSessionConfig = { onData: jest.fn() }
+        const session = await flatfile.startOrResumeImportSession(importSessionConfig)
+        session.emit('submit')
+        await new Promise(process.nextTick)
+
+        expect(ImportSession.prototype.processPendingRecords).not.toHaveBeenCalled()
+        expect(console.log).not.toHaveBeenCalled()
       })
     })
   })

@@ -1,5 +1,4 @@
-import { Flatfile } from 'Flatfile'
-
+import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
 import { GetFinalDatabaseViewResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { toQs, useOrInit } from '../lib/general'

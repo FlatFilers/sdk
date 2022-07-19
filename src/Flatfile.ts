@@ -127,19 +127,21 @@ export class Flatfile extends TypedEventManager<IEvents> {
             chunkTimeout,
           })
         })
-      } else {
-        session.on('submit', async () => {
-          if (onComplete) {
-            session.iframe?.close()
-            onComplete({
-              batchId: meta.batchId,
-              data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
-            })
-          } else {
+      }
+
+      session.on('submit', async () => {
+        if (onComplete) {
+          session.iframe?.close()
+          onComplete({
+            batchId: meta.batchId,
+            data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
+          })
+        } else {
+          if (!onData) {
             console.log('[Flatfile]: Register `onComplete` event to receive your payload')
           }
-        })
-      }
+        }
+      })
 
       setTimeout(() => {
         session.init()
@@ -319,3 +321,4 @@ type IOpenOptions = {
 } & IUrlOptions
 
 type DataReqOptions = IOpenOptions & IChunkOptions & IImportSessionConfig
+export type DataRequestConfig = DataReqOptions & IFlatfileImporterConfig
