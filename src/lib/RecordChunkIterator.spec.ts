@@ -7,7 +7,7 @@ import { PartialRejection } from '../service/PartialRejection'
 import { RecordError } from '../service/RecordError'
 import { RecordsChunk } from '../service/RecordsChunk'
 import { IteratorCallback, RecordChunkIterator } from './RecordChunkIterator'
-import { createChunk, makeRecords, mockGraphQLRequest } from './test-helper'
+import { createChunk, makeRecords, makeRows, mockGraphQLRequest } from './test-helper'
 
 jest.mock('../graphql/ApiService')
 
@@ -18,7 +18,6 @@ describe('RecordChunkIterator', () => {
   let flatfile: Flatfile
   let iterator: RecordChunkIterator
   let chunk: RecordsChunk
-  let chunk2: RecordsChunk
   let callbackFn: IteratorCallback
 
   beforeEach(async () => {
@@ -31,10 +30,12 @@ describe('RecordChunkIterator', () => {
       schemaIds: ['99'],
     })
     chunk = createChunk(session, makeRecords(0, 10), 20, 0, 10)
-    chunk2 = createChunk(session, makeRecords(10, 10), 20, 10, 10)
     callbackFn = jest.fn((chunk, next) => next())
-    jest.spyOn(flatfile.api, 'getRecordsByStatus').mockResolvedValue(chunk)
-    jest.spyOn(chunk, 'getNextChunk').mockResolvedValue(chunk2)
+    jest
+      .spyOn(flatfile.api, 'getRecordsByStatus')
+      .mockResolvedValueOnce({ totalRows: 20, rows: makeRows(0, 10) })
+      .mockResolvedValueOnce({ totalRows: 10, rows: makeRows(10, 10) })
+      .mockResolvedValueOnce({ totalRows: 0, rows: [] })
 
     iterator = new RecordChunkIterator(session, (chunk, next) => callbackFn(chunk, next), {
       chunkSize: 10,
@@ -72,11 +73,9 @@ describe('RecordChunkIterator', () => {
     })
 
     test('gets the next chunk data', async () => {
-      const spy = jest.spyOn(chunk, 'getNextChunk')
-      const spy2 = jest.spyOn(chunk2, 'getNextChunk')
+      const spy = jest.spyOn(RecordsChunk.prototype, 'getNextChunk')
       await iterator.process()
-      expect(spy).toHaveBeenCalledTimes(1)
-      expect(spy2).toHaveBeenCalledTimes(1)
+      expect(spy).toHaveBeenCalledTimes(2)
     })
   })
 
@@ -178,11 +177,6 @@ describe('RecordChunkIterator', () => {
     })
     test('calls emit event and completes', async () => {
       const spy = jest.spyOn(iterator, 'emit')
-      await iterator.process()
-      expect(spy).toHaveBeenCalledTimes(1)
-    })
-    test('updates record status for processed records', async () => {
-      const spy = jest.spyOn(iterator.api, 'updateRecordStatus')
       await iterator.process()
       expect(spy).toHaveBeenCalledTimes(1)
     })
