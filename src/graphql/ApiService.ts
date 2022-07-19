@@ -164,11 +164,11 @@ export class ApiService {
    * @param recordIds
    * @param status
    */
-  public updateRecordStatus(
+  public async updateRecordStatus(
     session: ImportSession,
     recordIds: number[],
     status: ERecordStatus
-  ): Promise<{ id: string }> | void {
+  ): Promise<{ id: string } | void> {
     if (recordIds.length > 0) {
       const req = this.client.request(UPDATE_RECORD_STATUS, {
         workbookId: session.meta.workbookId,
