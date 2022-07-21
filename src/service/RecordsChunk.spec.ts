@@ -1,7 +1,7 @@
 import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
-import { createChunk, mockGraphQLRequest } from '../lib/test-helper'
+import { createChunk } from '../lib/test-helper'
 import { FlatfileRecord } from './FlatfileRecord'
 import { BASE_RECORD } from './FlatfileRecord.spec'
 import { RecordsChunk } from './RecordsChunk'
@@ -32,10 +32,11 @@ describe('RecordsChunk', function () {
 
   describe('getNextChunk', () => {
     test('increments properly', async () => {
-      mockGraphQLRequest('getFinalDatabaseView', 200, {
-        rows: [],
-        totalRows: 100,
-      })
+      const response = { rows: [], totalRows: 100 }
+      jest
+        .spyOn(ApiService.prototype, 'getRecordsByStatus')
+        .mockResolvedValueOnce(response)
+        .mockResolvedValueOnce({ ...response, totalRows: 0 })
 
       const nextChunk = await chunk.getNextChunk()
       expect(nextChunk?.currentChunkIndex).toEqual(1)

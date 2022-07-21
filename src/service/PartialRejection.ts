@@ -34,15 +34,17 @@ export class PartialRejection extends ClientResponse {
    */
   async executeResponse(session: ImportSession): Promise<this> {
     // todo: we should move this to ApiService
-    const client = session.api.client
-    await client
-      .request(UPDATE_RECORDS, {
-        batchId: session.batchId,
-        edits: this.errors.map((r) => r.toGraphQLEdits()),
-      })
-      .catch((err) => {
-        throw new RequestError(err)
-      })
+    if (this.errors.length > 0) {
+      const client = session.api.client
+      await client
+        .request(UPDATE_RECORDS, {
+          batchId: session.batchId,
+          edits: this.errors.map((r) => r.toGraphQLEdits()),
+        })
+        .catch((err) => {
+          throw new RequestError(err)
+        })
+    }
 
     return this
   }

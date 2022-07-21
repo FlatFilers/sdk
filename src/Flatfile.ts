@@ -98,38 +98,46 @@ export class Flatfile extends TypedEventManager<IEvents> {
     options?: IOpenOptions & IChunkOptions & IImportSessionConfig
   ): Promise<ImportSession> {
     try {
-      if (!options?.mountOn && options?.open) {
+      const {
+        chunkSize,
+        chunkTimeout,
+        mountOn,
+        autoContinue,
+        customFields,
+        theme,
+        onInit,
+        onData,
+        onComplete,
+      } = options ?? {}
+      if (!mountOn && options?.open) {
         this.ui.showLoader()
       }
       const api = await this.initApi()
-      const meta = await api.init()
+      const meta = await api.init(!!onData)
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
-      const { chunkSize, chunkTimeout, mountOn } = options ?? {}
 
-      if (options?.onInit) session.on('init', options.onInit)
-      session.on('submit', async () => {
-        if (options?.onData) {
-          const iterator = await session.processPendingRecords(options.onData, {
+      if (onInit) session.on('init', onInit)
+
+      if (onData) {
+        session.on('evaluate', async () => {
+          await session.processPendingRecords(onData, {
             chunkSize,
             chunkTimeout,
           })
-          if (iterator.rejectedIds.length === 0) {
-            session.iframe?.close()
-            options.onComplete?.({
-              batchId: meta.batchId,
-              data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
-            })
-          }
+        })
+      }
+
+      session.on('submit', async () => {
+        if (onComplete) {
+          session.iframe?.close()
+          onComplete({
+            batchId: meta.batchId,
+            data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
+          })
         } else {
-          if (options?.onComplete) {
-            session.iframe?.close()
-            options.onComplete?.({
-              batchId: meta.batchId,
-              data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
-            })
-          } else {
+          if (!onData) {
             console.log('[Flatfile]: Register `onComplete` event to receive your payload')
           }
         }
@@ -148,16 +156,13 @@ export class Flatfile extends TypedEventManager<IEvents> {
           )
         }
         const importFrame = session.openInEmbeddedIframe(
-          { autoContinue: options?.autoContinue, customFields: options?.customFields },
+          { theme, autoContinue, customFields },
           mountOn
         )
         importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
-        session.openInNewWindow({
-          autoContinue: options?.autoContinue,
-          customFields: options?.customFields,
-        })
+        session.openInNewWindow({ theme, autoContinue, customFields })
         this.ui.destroy()
       }
       return session
@@ -305,6 +310,7 @@ export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
   'mountUrl',
   'onError',
   'org',
+  'theme',
   'token',
   'user',
 ]
@@ -315,3 +321,4 @@ type IOpenOptions = {
 } & IUrlOptions
 
 type DataReqOptions = IOpenOptions & IChunkOptions & IImportSessionConfig
+export type DataRequestConfig = DataReqOptions & IFlatfileImporterConfig

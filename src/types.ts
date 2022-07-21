@@ -3,6 +3,14 @@ import { GetFinalDatabaseViewResponse } from './graphql/queries/GET_FINAL_DATABA
 import { IImportMeta, IImportSessionEvents, ImportSession } from './importer/ImportSession'
 import { IteratorCallback } from './lib/RecordChunkIterator'
 
+export interface ITheme {
+  logo?: string
+  loadingText?: string
+  submitCompleteText?: string
+  displayName?: string
+  hideConfetti?: boolean
+}
+
 export interface IFlatfileImporterConfig {
   mountUrl?: string
   apiUrl?: string
@@ -11,6 +19,7 @@ export interface IFlatfileImporterConfig {
   user?: IUser
   org?: IOrganization
   onError?: (payload: { error: FlatfileError }) => void | Promise<void>
+  theme?: ITheme
 }
 
 export interface IFlatfileConfig extends IFlatfileImporterConfig {

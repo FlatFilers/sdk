@@ -117,7 +117,7 @@ describe('ApiService', () => {
       }
       mockGraphQLRequest('getFinalDatabaseView', 200, payload)
       const res = await req()
-      await expect(res.recordIds).toEqual([1, 2, 3, 4, 5])
+      await expect(res.rows.map((r) => r.id)).toEqual([1, 2, 3, 4, 5])
     })
 
     test('handles errors', async () => {

@@ -1,5 +1,6 @@
 import nock, { Scope } from 'nock'
 
+import { IRowResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { ImportSession } from '../importer/ImportSession'
 import { ERecordStatus, FlatfileRecord } from '../service/FlatfileRecord'
 import { BASE_RECORD } from '../service/FlatfileRecord.spec'
@@ -49,14 +50,32 @@ export function createChunk(
   records: FlatfileRecord[],
   totalRecords = 100,
   skip = 0,
-  limit = 50
+  limit = 50,
+  index = 0
 ): RecordsChunk {
   return new RecordsChunk(session, records, {
-    status: ERecordStatus.REVIEW,
+    status: ERecordStatus.SUBMITTED,
     skip,
     totalRecords,
     limit,
+    index,
   })
+}
+
+/**
+ * Make a series of sample rows for testing purposes
+ *
+ * @param start
+ * @param limit
+ */
+export function makeRows(start = 0, limit = 10): IRowResponse[] {
+  const list = []
+  const highEnd = start + limit
+  for (let i = start + 1; i <= highEnd; i++) {
+    list.push({ ...BASE_RECORD, id: i })
+  }
+
+  return list
 }
 
 /**

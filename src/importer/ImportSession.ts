@@ -6,6 +6,7 @@ import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterato
 import { TypedEventManager } from '../lib/TypedEventManager'
 import { TPrimitive } from '../service/FlatfileRecord'
 import { UIService } from '../service/UIService'
+import { ITheme } from '../types'
 import { ImportFrame } from './ImportFrame'
 
 export class ImportSession extends TypedEventManager<IImportSessionEvents> {
@@ -24,10 +25,22 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     return this.meta.batchId
   }
 
+  public get workbookId(): string | undefined {
+    return this.meta.workbookId
+  }
+
+  public get schemaId(): number {
+    return parseInt(this.meta.schemaIds[0], 10)
+  }
+
   public init(): IImportMeta {
     this.subscribeToBatchStatus()
     this.emit('init', { session: this, meta: this.meta })
     return this.meta
+  }
+
+  public get synced(): boolean | undefined {
+    return this.meta.synced
   }
 
   /**
@@ -82,7 +95,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     this.meta.workbookId = await this.api.getWorkbookId(this.batchId)
 
     const chunkIterator = new RecordChunkIterator(this, cb, {
-      chunkSize: options?.chunkSize || 100,
+      chunkSize: options?.chunkSize || 1000,
       chunkTimeout: options?.chunkTimeout || 3000,
     })
     await chunkIterator
@@ -94,6 +107,10 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
 
   private subscribeToBatchStatus(): void {
     return this.api.subscribeBatchStatusUpdated(this.batchId, async (status) => {
+      if (status === 'evaluate') {
+        this.emit('evaluate', this)
+      }
+
       if (status === 'submitted') {
         this.emit('submit', this)
         this.emit('complete', {
@@ -120,6 +137,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
       jwt: this.api.token,
       ...(this.batchId ? { batchId: this.batchId } : {}),
       ...(options?.autoContinue ? { autoContinue: '1' } : {}),
+      ...(options?.theme ? { theme: JSON.stringify(options.theme) } : {}),
       ...(options?.customFields ? { customFields: JSON.stringify(options.customFields) } : {}),
     }
     return `${MOUNT_URL}/e/?${toQs(qs)}`
@@ -158,6 +176,7 @@ export interface IImportSessionEvents {
     batchId: string
     data: (sample?: boolean) => Promise<GetFinalDatabaseViewResponse['getFinalDatabaseView']>
   }
+  evaluate: ImportSession
   close: void
 }
 
@@ -167,6 +186,7 @@ export interface IImportMeta {
   workspaceId: string
   workbookId?: string
   schemaIds: string[]
+  synced?: boolean
 }
 
 export interface IChunkOptions {
@@ -174,6 +194,7 @@ export interface IChunkOptions {
   chunkTimeout?: number
 }
 export interface IUrlOptions {
+  theme?: ITheme
   autoContinue?: boolean
   customFields?: any
 }
