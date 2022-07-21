@@ -43,10 +43,8 @@ export class ImportFrame extends TypedEventManager<IImportFrameEvents> {
    */
   public close(): void {
     removeClass(document.body, 'flatfile-active')
+    this.$iframe?.remove()
     if (existsInDOM('.flatfile-sdk')) {
-      this.$iframe?.remove()
-      this.session.emit('close')
-
       this.ui.$close?.removeEventListener('click', this.close)
     }
   }

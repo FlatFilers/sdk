@@ -204,9 +204,12 @@ export class ApiService {
    * @param observe
    */
   /* istanbul ignore next */
-  public subscribeBatchStatusUpdated(batchId: string, observe: (status: string) => void): void {
+  public subscribeBatchStatusUpdated(
+    batchId: string,
+    observe: (status: string) => void
+  ): { unsubscribe: () => void } {
     const query = BATCH_STATUS_UPDATED
-    this.pubsub.request({ query, variables: { batchId } }).subscribe({
+    return this.pubsub.request({ query, variables: { batchId } }).subscribe({
       next: ({ data, errors }: IBatchStatusSubscription) => {
         const batch = data?.batchStatusUpdated
         if (errors) this.handleGraphQLErrors(errors)

@@ -131,7 +131,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
 
       session.on('submit', async () => {
         if (onComplete) {
-          session.iframe?.close()
+          session.close()
           onComplete({
             batchId: meta.batchId,
             data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),

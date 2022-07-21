@@ -13,6 +13,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
   public ui: UIService
   public api: ApiService
   private $iframe?: ImportFrame
+  private subscriptions: { unsubscribe: () => void }[] = []
 
   constructor(public flatfile: Flatfile, public meta: IImportMeta) {
     super()
@@ -34,7 +35,8 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
   }
 
   public init(): IImportMeta {
-    this.subscribeToBatchStatus()
+    const subscription = this.subscribeToBatchStatus()
+    this.subscriptions.push(subscription)
     this.emit('init', { session: this, meta: this.meta })
     return this.meta
   }
@@ -105,7 +107,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     return chunkIterator
   }
 
-  private subscribeToBatchStatus(): void {
+  private subscribeToBatchStatus(): { unsubscribe: () => void } {
     return this.api.subscribeBatchStatusUpdated(this.batchId, async (status) => {
       if (status === 'evaluate') {
         this.emit('evaluate', this)
@@ -144,15 +146,13 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
   }
 
   /**
-   * Close the importer iframe
-   * @todo: kill batch status subscription
+   * Closes the importer iframe and kills subscriptions
    */
   public close(): void {
-    if (this.$iframe) {
-      this.$iframe?.close()
-    } else {
-      console.warn('No Flatfile importer iframe was found in the DOM.')
-    }
+    this.$iframe?.close()
+    this.subscriptions.forEach((s) => s.unsubscribe())
+    this.subscriptions = []
+    this.emit('close')
   }
 }
 
