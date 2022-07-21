@@ -1,8 +1,7 @@
 import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
 import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
-import { createChunk, makeRecords } from '../lib/test-helper'
-import { RecordsChunk } from '../service/RecordsChunk'
+import { makeRows } from '../lib/test-helper'
 import { ImportFrame } from './ImportFrame'
 import { ImportSession } from './ImportSession'
 
@@ -10,7 +9,6 @@ jest.mock('../graphql/ApiService')
 
 describe('ImportSession', () => {
   let session: ImportSession
-  let chunk: RecordsChunk
   let callbackFn: IteratorCallback
   let flatfile: Flatfile
 
@@ -25,10 +23,11 @@ describe('ImportSession', () => {
       workbookId: 'hij',
       schemaIds: ['99'],
     })
-
-    chunk = createChunk(session, makeRecords(0, 10), 10, 0, 10)
     callbackFn = jest.fn((chunk, next) => next())
-    jest.spyOn(flatfile.api, 'getRecordsByStatus').mockResolvedValue(chunk)
+    jest
+      .spyOn(flatfile.api, 'getRecordsByStatus')
+      .mockResolvedValueOnce({ totalRows: 10, rows: makeRows(10, 10) })
+      .mockResolvedValueOnce({ totalRows: 0, rows: [] })
     Object.defineProperty(flatfile.api, 'token', { get: () => 'token' })
   })
 

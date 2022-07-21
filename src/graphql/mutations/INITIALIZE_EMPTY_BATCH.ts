@@ -10,11 +10,12 @@ export interface InitializeEmptyBatchResponse {
 
 export interface InitializeEmptyBatchPayload {
   importedFromUrl: string
+  synced?: boolean
 }
 
 export const INITIALIZE_EMPTY_BATCH = gql`
-  mutation InitializeEmptyBatch($importedFromUrl: String!) {
-    initializeEmptyBatch(importedFromUrl: $importedFromUrl) {
+  mutation InitializeEmptyBatch($importedFromUrl: String!, $synced: Boolean) {
+    initializeEmptyBatch(importedFromUrl: $importedFromUrl, synced: $synced) {
       batchId
       workspaceId
       schemas {

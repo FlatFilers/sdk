@@ -3,7 +3,7 @@ import { ChunkTimeoutExpiredError } from '../errors/ChunkTimeoutExpiredError'
 import { FlatfileError } from '../errors/FlatfileError'
 import { ApiService } from '../graphql/ApiService'
 import { ImportSession } from '../importer/ImportSession'
-import { ERecordStatus } from '../service/FlatfileRecord'
+import { ERecordStatus, FlatfileRecord } from '../service/FlatfileRecord'
 import { PartialRejection } from '../service/PartialRejection'
 import { RecordsChunk } from '../service/RecordsChunk'
 import { TypedEventManager } from './TypedEventManager'
@@ -59,10 +59,19 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    * @param err
    */
   public async afterEach(prevChunk: RecordsChunk, err?: PartialRejection | Error): Promise<void> {
-    this.acceptedIds = this.acceptedIds.concat(prevChunk.recordIds)
+    const promises = []
+
+    const rejectedIds = err instanceof PartialRejection ? err.recordIds : []
+    promises.push(this.api.updateRecordStatus(this.session, this.rejectedIds, ERecordStatus.REVIEW))
+
+    const acceptedIds = prevChunk.recordIds.filter((recordId) => !rejectedIds.includes(recordId))
+    promises.push(this.api.updateRecordStatus(this.session, acceptedIds, ERecordStatus.ACCEPTED))
+
+    await Promise.all(promises)
+    this.acceptedIds = this.acceptedIds.concat(acceptedIds)
+    this.rejectedIds = this.rejectedIds.concat(rejectedIds)
+
     if (err instanceof PartialRejection) {
-      this.rejectedIds = this.rejectedIds.concat(err.recordIds)
-      this.acceptedIds = this.acceptedIds.filter((recordId) => !err.recordIds.includes(recordId))
       await err.executeResponse(this.session)
     } else if (err) {
       throw err
@@ -72,12 +81,26 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
   /**
    * Used to load the first payload for the first chunk
    */
-  public beforeFirst(): Promise<RecordsChunk> {
-    return this.api.getRecordsByStatus(
+  public async beforeFirst(): Promise<RecordsChunk> {
+    // with "buffer" all records have status submitted
+    // we should only do this in new submit flow
+    const response = await this.api.getRecordsByStatus(
       this.session,
-      ERecordStatus.REVIEW,
+      ERecordStatus.SUBMITTED,
       0,
       this.options.chunkSize
+    )
+
+    return new RecordsChunk(
+      this.session,
+      response.rows.map((r) => new FlatfileRecord(r)),
+      {
+        index: 0,
+        skip: 0,
+        limit: this.options.chunkSize,
+        totalRecords: response.totalRows,
+        status: ERecordStatus.SUBMITTED,
+      }
     )
   }
 
@@ -137,9 +160,6 @@ export class RecordChunkIterator extends TypedEventManager<IIteratorEvents> {
    * After all the chunks have finished iterating. This hook is run to wrap things up
    */
   public async afterAll(): Promise<void> {
-    if (this.acceptedIds.length > 0) {
-      await this.api.updateRecordStatus(this.session, this.acceptedIds, ERecordStatus.ACCEPTED)
-    }
     this.emit('complete')
   }
 

@@ -65,4 +65,5 @@ export enum ERecordStatus {
   REVIEW = 'review',
   DISMISSED = 'dismissed',
   ACCEPTED = 'accepted',
+  SUBMITTED = 'submitted',
 }

@@ -55,6 +55,7 @@ describe('PartialRejection', () => {
         schemaIds: ['99'],
       })
     })
+
     test('sends a graphql bulk edit update', async () => {
       mockGraphQLRequest('updateWorkbookRows', 200, { rows: [] })
       await rejection.executeResponse(session)
