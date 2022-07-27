@@ -19,7 +19,6 @@ export interface IFlatfileImporterConfig {
   user?: IUser
   org?: IOrganization
   onError?: (payload: { error: FlatfileError }) => void | Promise<void>
-  theme?: ITheme
 }
 
 export interface IFlatfileConfig extends IFlatfileImporterConfig {
@@ -28,6 +27,7 @@ export interface IFlatfileConfig extends IFlatfileImporterConfig {
 }
 
 export interface IImportSessionConfig {
+  theme?: ITheme
   onInit?: (payload: IImportSessionEvents['init']) => void | Promise<void>
   onData?: IteratorCallback
   onComplete?: (payload: IImportSessionEvents['complete']) => void | Promise<void>

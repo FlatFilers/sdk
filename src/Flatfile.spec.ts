@@ -311,6 +311,7 @@ describe('Flatfile', () => {
         onError: jest.fn(),
       }
       const importSessionConfig = {
+        theme: { logo: 'http//url.to.logo', displayName: 'Display name' },
         open: 'window' as 'window' | 'iframe',
         onInit: jest.fn(),
         onData: jest.fn(),

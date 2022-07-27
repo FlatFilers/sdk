@@ -302,6 +302,7 @@ export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
   'onInit',
   'open',
   'mountOn',
+  'theme',
 ]
 
 export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
@@ -310,7 +311,6 @@ export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
   'mountUrl',
   'onError',
   'org',
-  'theme',
   'token',
   'user',
 ]
