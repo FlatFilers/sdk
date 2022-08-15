@@ -3,7 +3,7 @@ export * from './importer/DeprecatedImporter'
 export * from './importer/ImportFrame'
 export * from './importer/ImportSession'
 export * from './Flatfile'
-export * from './importer/flatfileImporter'
+export * from './old/importer'
 
 export * from './graphql/ApiService'
 export * from './service/ClientResponse'
