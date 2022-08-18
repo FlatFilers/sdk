@@ -7,7 +7,7 @@ npm install @flatfile/sdk --save
 
 ## Getting started
 
-Make sure you are in Developer Mode by clicking the toggle in the bottom right corner of the Flatfile dashboard.
+Make sure you are in Developer Mode by clicking the toggle in the bottom left corner of the Flatfile dashboard.
 
 ### Get your Embed ID
 
