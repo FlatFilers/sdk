@@ -47,9 +47,9 @@ Check out additional options for `requestDataFromUser` in the [Flatilfe develope
 
 ## Next steps
 
-Check out the (Flatfile developer docs)[https://flatfile.com/docs] to see what's needed to get your Portal working in production, including:
+Check out the [Flatfile developer docs](https://flatfile.com/docs) to see what's needed to get your Portal working in production, including:
 
-1. (Accepting data)[https://flatfile.com/docs/embedding-flatfile/accepting-data]
-2. (Securing data)[https://flatfile.com/docs/embedding-flatfile/securing-data/]
-3. (Using Data Hooks®)[https://flatfile.com/docs/data-hooks/overview/]
+1. [Accepting data](https://flatfile.com/docs/embedding-flatfile/accepting-data)
+2. [Securing data](https://flatfile.com/docs/embedding-flatfile/securing-data/)
+3. [Using Data Hooks®](https://flatfile.com/docs/data-hooks/overview/)
 
