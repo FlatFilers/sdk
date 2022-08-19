@@ -2,7 +2,7 @@
 
 ## Install
 ```
-npm install @flatfile/sdk --save
+npm install @flatfile/sdk
 ```
 
 ## Getting started
