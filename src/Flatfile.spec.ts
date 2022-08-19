@@ -45,13 +45,27 @@ describe('Flatfile', () => {
   })
 
   describe('startOrResumeImportSession', () => {
+    test('should open flatfile importer without auto contninuing when autoContinue flag is false', async () => {
+      jest.spyOn(ImportSession.prototype, 'openInNewWindow')
+      jest.spyOn(ImportSession.prototype, 'signedImportUrl')
+      await flatfile.startOrResumeImportSession({ open: 'window', autoContinue: false })
+      expect(ImportSession.prototype.openInNewWindow).toHaveBeenCalledTimes(1)
+      expect(ImportSession.prototype.openInNewWindow).toHaveBeenCalledWith(
+        expect.objectContaining({ autoContinue: false })
+      )
+      expect(ImportSession.prototype.signedImportUrl).toHaveBeenCalledTimes(1)
+      expect(ImportSession.prototype.signedImportUrl).toHaveBeenCalledWith(
+        expect.objectContaining({ autoContinue: false })
+      )
+    })
+
     describe('when open option is equals to "window"', () => {
       test('should open flatfile importer in new window ', async () => {
         jest.spyOn(ImportSession.prototype, 'openInNewWindow')
         await flatfile.startOrResumeImportSession({ open: 'window' })
         expect(ImportSession.prototype.openInNewWindow).toHaveBeenCalledTimes(1)
         expect(ImportSession.prototype.openInNewWindow).toHaveBeenCalledWith(
-          expect.objectContaining({ autoContinue: undefined })
+          expect.objectContaining({ autoContinue: true })
         )
       })
     })
@@ -62,7 +76,7 @@ describe('Flatfile', () => {
         await flatfile.startOrResumeImportSession({ open: 'iframe' })
         expect(ImportSession.prototype.openInEmbeddedIframe).toHaveBeenCalledTimes(1)
         expect(ImportSession.prototype.openInEmbeddedIframe).toHaveBeenCalledWith(
-          expect.objectContaining({ autoContinue: undefined }),
+          expect.objectContaining({ autoContinue: true }),
           undefined
         )
       })

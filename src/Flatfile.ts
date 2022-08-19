@@ -102,7 +102,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
         chunkSize,
         chunkTimeout,
         mountOn,
-        autoContinue,
+        autoContinue = true,
         customFields,
         theme,
         onInit,

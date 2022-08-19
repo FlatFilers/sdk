@@ -133,10 +133,11 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    */
   public signedImportUrl(options?: IUrlOptions): string {
     const MOUNT_URL = this.meta.mountUrl
+    const autoContinue = options?.autoContinue ?? true
     const qs = {
       jwt: this.api.token,
       ...(this.batchId ? { batchId: this.batchId } : {}),
-      ...(options?.autoContinue ? { autoContinue: '1' } : {}),
+      ...(autoContinue ? { autoContinue: '1' } : {}),
       ...(options?.theme ? { theme: JSON.stringify(options.theme) } : {}),
       ...(options?.customFields ? { customFields: JSON.stringify(options.customFields) } : {}),
     }
