@@ -96,7 +96,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
 
     const chunkIterator = new RecordChunkIterator(this, cb, {
       chunkSize: options?.chunkSize || 1000,
-      chunkTimeout: options?.chunkTimeout || 3000,
+      chunkTimeout: options?.chunkTimeout || 30000,
     })
     await chunkIterator
       .process()
