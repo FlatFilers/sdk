@@ -196,5 +196,11 @@ export interface IChunkOptions {
 export interface IUrlOptions {
   theme?: ITheme
   autoContinue?: boolean
-  customFields?: any
+  customFields?: ICustomField[]
+}
+
+export interface ICustomField {
+  field: string
+  type: 'string'
+  label: string
 }

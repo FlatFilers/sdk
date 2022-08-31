@@ -75,16 +75,14 @@ export function Sandbox(): any {
           session.openInNewWindow({
             customFields: [
               {
-                field: 'custom_test',
+                field: 'test',
                 type: 'string',
-                label: 'Real Test',
-                custom: true,
+                label: 'Real Tests',
               },
               {
-                field: 'custom_foo',
+                field: 'foos',
                 type: 'string',
-                label: 'Fax Bar',
-                custom: true,
+                label: 'Fax Bars',
               },
             ],
           })
