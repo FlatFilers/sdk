@@ -187,6 +187,10 @@ export function Sandbox(): any {
                   <Button color={'primary'} onClick={() => handleInit()}>
                     Start
                   </Button>
+                  {' '}
+                  {importerRef.current && <Button color={'danger'} onClick={() => importerRef.current.close()}>
+                    Close
+                  </Button>}
                   <Form.Checkbox
                     style={{ color: '#fff', margin: '10px 0 0 20px' }}
                     onChange={(e) => {
