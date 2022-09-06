@@ -108,12 +108,13 @@ export class Flatfile extends TypedEventManager<IEvents> {
         onInit,
         onData,
         onComplete,
+        showProgress,
       } = options ?? {}
       if (!mountOn && options?.open) {
         this.ui.showLoader()
       }
       const api = await this.initApi()
-      const meta = await api.init(!!onData)
+      const meta = await api.init(!!onData || !!showProgress)
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
