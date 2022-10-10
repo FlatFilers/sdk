@@ -42,7 +42,7 @@ export class ApiService {
         Authorization: `Bearer ${this.token}`,
       },
     })
-    this.pubsub = new SubscriptionClient(`${apiUrl.replace(/^http/, 'ws')}/graphql`, {
+    this.pubsub = new SubscriptionClient(`${apiUrl.replace(/^http/, 'ws')}/graphql1`, {
       reconnect: true,
       lazy: true,
       connectionParams: {
