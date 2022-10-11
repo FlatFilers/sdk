@@ -220,7 +220,7 @@ export class ApiService {
    */
   fallbackGetBatchSubscription = async (batchId: string): Promise<IBatch | null> => {
     const result = await this.getBatch(batchId)
-    if (['submitted', 'cancelled', 'evaluate'].includes(result?.status)) {
+    if (['submitted', 'cancelled', 'evaluate'].includes(result.status)) {
       return result
     }
     return null

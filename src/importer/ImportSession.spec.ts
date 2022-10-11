@@ -2,6 +2,7 @@ import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
 import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
 import { makeRows } from '../lib/test-helper'
+import { IBatch } from '../old/graphql/subscriptions/BATCH_STATUS_UPDATED'
 import { ImportFrame } from './ImportFrame'
 import { ImportSession } from './ImportSession'
 
@@ -46,6 +47,59 @@ describe('ImportSession', () => {
       const firstFrame = session.iframe
       expect(firstFrame).toBeInstanceOf(ImportFrame)
       expect(session.iframe).toBe(firstFrame)
+    })
+  })
+
+  describe('init', () => {
+    test('should emit evaluate on batch subscription after init', async () => {
+      const spy = jest.spyOn(session, 'emit')
+      jest
+        .spyOn(flatfile.api as ApiService, 'subscribeBatchStatusUpdated')
+        .mockImplementation((batchId: string, method: (batch: IBatch) => void) =>
+          Promise.resolve(method({ id: batchId, status: 'evaluate' }))
+        )
+
+      session.init()
+
+      expect(spy).toHaveBeenNthCalledWith(
+        1,
+        'evaluate',
+        expect.objectContaining({
+          workbookId: 'hij',
+        })
+      )
+    })
+
+    test('should emit complete on batch subscription after and batch was submitted', async () => {
+      const spy = jest.spyOn(session, 'emit')
+      jest
+        .spyOn(flatfile.api as ApiService, 'subscribeBatchStatusUpdated')
+        .mockImplementation((batchId: string, method: (batch: IBatch) => void) =>
+          Promise.resolve(method({ id: batchId, status: 'submitted' }))
+        )
+
+      session.init()
+
+      expect(spy).toHaveBeenNthCalledWith(
+        2,
+        'complete',
+        expect.objectContaining({
+          batchId: 'abc',
+        })
+      )
+    })
+
+    test('should init if batch got cancelled', async () => {
+      const spy = jest.spyOn(flatfile.api as ApiService, 'init')
+      jest
+        .spyOn(flatfile.api as ApiService, 'subscribeBatchStatusUpdated')
+        .mockImplementation((batchId: string, method: (batch: IBatch) => void) =>
+          Promise.resolve(method({ id: batchId, status: 'cancelled' }))
+        )
+
+      session.init()
+
+      expect(spy).toHaveBeenCalled()
     })
   })
 
