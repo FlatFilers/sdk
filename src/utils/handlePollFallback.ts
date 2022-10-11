@@ -1,5 +1,5 @@
-export const WAIT_TIME_BEFORE_START_POLLING = 20 * 1000
-export const POLLING_INTERVAL = 10 * 1000
+export const WAIT_TIME_BEFORE_START_POLLING = 5 * 1000
+export const POLLING_INTERVAL = 1 * 1000
 
 export const handlePollFallback = (
   fallbackMethod: () => Promise<any | null>,
