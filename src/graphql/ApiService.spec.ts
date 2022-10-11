@@ -155,25 +155,6 @@ describe('ApiService', () => {
     })
   })
 
-  describe('getBatch', () => {
-    const req = () => api.getBatch('batchId')
-
-    test('resolves successfully', async () => {
-      const payload = {
-        status: 'success',
-        id: 'batchId',
-      }
-      mockGraphQLRequest('getBatch', 200, payload)
-      const res = await req()
-      await expect(res.status).toEqual('success')
-    })
-
-    test('handles errors', async () => {
-      mockError()
-      await expect(req()).rejects.toThrow(RequestError)
-    })
-  })
-
   describe('fallbackGetBatchSubscription', () => {
     test.each(['submitted', 'cancelled', 'evaluate'])(
       'should get batch on execute fallback',

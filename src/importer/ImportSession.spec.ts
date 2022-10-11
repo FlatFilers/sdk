@@ -51,14 +51,16 @@ describe('ImportSession', () => {
   })
 
   describe('init', () => {
-    test('should emit evaluate on batch subscription after init', async () => {
-      const spy = jest.spyOn(session, 'emit')
+    const spy = jest.spyOn(session, 'emit')
+    const mockSubscription = (status: string) =>
       jest
         .spyOn(flatfile.api as ApiService, 'subscribeBatchStatusUpdated')
         .mockImplementation((batchId: string, method: (batch: IBatch) => void) =>
-          Promise.resolve(method({ id: batchId, status: 'evaluate' }))
+          Promise.resolve(method({ id: batchId, status }))
         )
 
+    test('should emit evaluate on batch subscription after init', async () => {
+      mockSubscription('evaluate')
       session.init()
 
       expect(spy).toHaveBeenNthCalledWith(
@@ -71,13 +73,7 @@ describe('ImportSession', () => {
     })
 
     test('should emit complete on batch subscription after and batch was submitted', async () => {
-      const spy = jest.spyOn(session, 'emit')
-      jest
-        .spyOn(flatfile.api as ApiService, 'subscribeBatchStatusUpdated')
-        .mockImplementation((batchId: string, method: (batch: IBatch) => void) =>
-          Promise.resolve(method({ id: batchId, status: 'submitted' }))
-        )
-
+      mockSubscription('submitted')
       session.init()
 
       expect(spy).toHaveBeenNthCalledWith(
@@ -90,12 +86,7 @@ describe('ImportSession', () => {
     })
 
     test('should init if batch got cancelled', async () => {
-      const spy = jest.spyOn(flatfile.api as ApiService, 'init')
-      jest
-        .spyOn(flatfile.api as ApiService, 'subscribeBatchStatusUpdated')
-        .mockImplementation((batchId: string, method: (batch: IBatch) => void) =>
-          Promise.resolve(method({ id: batchId, status: 'cancelled' }))
-        )
+      mockSubscription('cancelled')
 
       session.init()
 
