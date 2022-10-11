@@ -1,18 +1,21 @@
 import { ClientError, GraphQLClient } from 'graphql-request'
 import { GraphQLError } from 'graphql-request/dist/types'
 import { SubscriptionClient } from 'graphql-subscriptions-client'
+import { IBatch } from 'old/graphql/subscriptions/BATCH_STATUS_UPDATED'
 
 import { FlatfileError } from '../errors/FlatfileError'
 import { RequestError } from '../errors/RequestError'
 import { UnauthorizedError } from '../errors/UnauthorizedError'
 import { IImportMeta, ImportSession } from '../importer/ImportSession'
 import { ERecordStatus, TPrimitive } from '../service/FlatfileRecord'
+import { handlePollFallback } from '../utils/handlePollFallback'
 import {
   INITIALIZE_EMPTY_BATCH,
   InitializeEmptyBatchPayload,
   InitializeEmptyBatchResponse,
 } from './mutations/INITIALIZE_EMPTY_BATCH'
 import { UPDATE_WORKSPACE_ENV } from './mutations/UPDATE_WORKSPACE_ENV'
+import { GET_BATCH } from './queries/GET_BATCH'
 import {
   GET_FINAL_DATABASE_VIEW,
   GetFinalDatabaseViewPayload,
@@ -198,19 +201,50 @@ export class ApiService {
   }
 
   /**
+   * Get batch
+   *
+   * @param batchId
+   */
+  async getBatch(batchId: string): Promise<{ id: string; status: string }> {
+    const req = this.client.request(GET_BATCH, {
+      batchId,
+    })
+
+    return this.handleResponse('getBatch', req)
+  }
+
+  /**
+   * get batch and check status for subscription fail fallback
+   *
+   * @param batchId
+   */
+  fallbackGetBatchSubscription = async (batchId: string): Promise<IBatch | null> => {
+    const result = await this.getBatch(batchId)
+    if (['submitted', 'cancelled', 'evaluate'].includes(result.status)) {
+      return result
+    }
+    return null
+  }
+
+  /**
    * Start a websocket subscription for a specific batchID
    *
    * @param batchId
    * @param observe
    */
   /* istanbul ignore next */
-  public subscribeBatchStatusUpdated(batchId: string, observe: (status: string) => void): void {
+  public async subscribeBatchStatusUpdated(
+    batchId: string,
+    observe: (batch: IBatch) => void
+  ): Promise<void> {
+    handlePollFallback(() => this.fallbackGetBatchSubscription(batchId), observe)
+
     const query = BATCH_STATUS_UPDATED
     this.pubsub.request({ query, variables: { batchId } }).subscribe({
       next: ({ data, errors }: IBatchStatusSubscription) => {
         const batch = data?.batchStatusUpdated
         if (errors) this.handleGraphQLErrors(errors)
-        else if (batch?.id) observe(batch?.status)
+        else if (batch?.id) observe(batch)
       },
     })
   }

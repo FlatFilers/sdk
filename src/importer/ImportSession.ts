@@ -105,13 +105,13 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     return chunkIterator
   }
 
-  private subscribeToBatchStatus(): void {
-    return this.api.subscribeBatchStatusUpdated(this.batchId, async (status) => {
-      if (status === 'evaluate') {
+  private async subscribeToBatchStatus(): Promise<void> {
+    return await this.api.subscribeBatchStatusUpdated(this.batchId, async (batch) => {
+      if (batch.status === 'evaluate') {
         this.emit('evaluate', this)
       }
 
-      if (status === 'submitted') {
+      if (batch.status === 'submitted') {
         this.emit('submit', this)
         this.emit('complete', {
           batchId: this.batchId,
@@ -119,7 +119,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
         })
       }
 
-      if (status === 'cancelled') {
+      if (batch.status === 'cancelled') {
         const meta = await this.api.init()
         this.meta = { ...this.meta, ...meta }
         this.init()
