@@ -51,7 +51,6 @@ describe('ImportSession', () => {
   })
 
   describe('init', () => {
-    const spy = jest.spyOn(session, 'emit')
     const mockSubscription = (status: string) =>
       jest
         .spyOn(flatfile.api as ApiService, 'subscribeBatchStatusUpdated')
@@ -60,6 +59,8 @@ describe('ImportSession', () => {
         )
 
     test('should emit evaluate on batch subscription after init', async () => {
+      const spy = jest.spyOn(session, 'emit')
+
       mockSubscription('evaluate')
       session.init()
 
@@ -73,6 +74,7 @@ describe('ImportSession', () => {
     })
 
     test('should emit complete on batch subscription after and batch was submitted', async () => {
+      const spy = jest.spyOn(session, 'emit')
       mockSubscription('submitted')
       session.init()
 
@@ -87,6 +89,7 @@ describe('ImportSession', () => {
 
     test('should init if batch got cancelled', async () => {
       mockSubscription('cancelled')
+      const spy = jest.spyOn(session, 'emit')
 
       session.init()
 
