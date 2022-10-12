@@ -1,7 +1,6 @@
 import { ClientError, GraphQLClient } from 'graphql-request'
 import { GraphQLError } from 'graphql-request/dist/types'
 import { SubscriptionClient } from 'graphql-subscriptions-client'
-import { IBatch } from 'old/graphql/subscriptions/BATCH_STATUS_UPDATED'
 
 import { FlatfileError } from '../errors/FlatfileError'
 import { RequestError } from '../errors/RequestError'
@@ -26,6 +25,7 @@ import { UPDATE_RECORD_STATUS } from './queries/UPDATE_RECORDS_STATUS'
 import {
   BATCH_STATUS_UPDATED,
   BatchStatusUpdatedResponse,
+  IBatch,
 } from './subscriptions/BATCH_STATUS_UPDATED'
 
 const DEFAULT_PAGE_LIMIT = process.env.DEFAULT_PAGE_LIMIT

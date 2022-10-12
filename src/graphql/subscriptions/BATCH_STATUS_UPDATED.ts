@@ -1,10 +1,12 @@
 import { gql } from 'graphql-request'
 
+export interface IBatch {
+  id: string
+  status: string
+}
+
 export interface BatchStatusUpdatedResponse {
-  batchStatusUpdated: {
-    id: string
-    status: string
-  }
+  batchStatusUpdated: IBatch
 }
 
 export const BATCH_STATUS_UPDATED = gql`
