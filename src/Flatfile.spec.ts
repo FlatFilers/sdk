@@ -3,7 +3,8 @@ import { ImplementationError } from './errors/ImplementationError'
 import { Flatfile } from './Flatfile'
 import { ApiService } from './graphql/ApiService'
 import { ImportSession } from './importer/ImportSession'
-import { RecordChunkIterator } from './lib/RecordChunkIterator'
+import { IteratorCallback, RecordChunkIterator } from './lib/RecordChunkIterator'
+import { RecordsChunk } from './service/RecordsChunk'
 import { UIService } from './service/UIService'
 import { IFlatfileImporterConfig } from './types'
 
@@ -173,6 +174,12 @@ describe('Flatfile', () => {
       })
 
       test('should call processing pending records on evaluate', async () => {
+        jest
+          .spyOn(ImportSession.prototype, 'processPendingRecords')
+          .mockImplementation((fn: IteratorCallback) => {
+            fn({ records: [{ data: true }] } as unknown as RecordsChunk, jest.fn())
+            return Promise.resolve({} as RecordChunkIterator)
+          })
         const importSessionConfig = {
           chunkSize: 10,
           onData: jest.fn(),
@@ -185,6 +192,7 @@ describe('Flatfile', () => {
           expect.any(Function),
           { chunkSize: 10 }
         )
+        expect(importSessionConfig.onData).toHaveBeenCalled()
       })
 
       test('should call on-complete event handler on submit', async () => {
