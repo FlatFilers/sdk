@@ -166,7 +166,10 @@ describe('ApiService', () => {
         mockGraphQLRequest('getBatch', 200, payload)
         const result = await api.fallbackGetBatchSubscription('batchId')
 
-        expect(result).toEqual(payload)
+        expect(result).toEqual({
+          result: payload,
+          stopPoll: ['submitted', 'cancelled'].includes(status),
+        })
       }
     )
 
