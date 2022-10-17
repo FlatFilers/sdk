@@ -12,10 +12,13 @@ export const handlePollFallback = (
   const idTimeout: NodeJS.Timeout = setTimeout(() => {
     clearInterval(idInterval)
     idInterval = setInterval(async () => {
-      const result = await fallbackMethod()
+      const data = await fallbackMethod()
 
-      if (result) {
-        cb(result)
+      if (data?.result) {
+        cb(data.result)
+      }
+
+      if (data?.stopPoll) {
         clearTimers()
       }
     }, pollingInterval)

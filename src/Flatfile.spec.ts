@@ -182,7 +182,7 @@ describe('Flatfile', () => {
         await new Promise(process.nextTick)
 
         expect(ImportSession.prototype.processPendingRecords).toHaveBeenCalledWith(
-          importSessionConfig.onData,
+          expect.any(Function),
           { chunkSize: 10 }
         )
       })

@@ -4,7 +4,7 @@ const wait = async (time = 0) => await new Promise((resolve) => setTimeout(resol
 
 describe('handlePollFallback', () => {
   test('should execute poll method and callback', async () => {
-    const fallbackMethod = jest.fn().mockResolvedValue(Promise.resolve(true))
+    const fallbackMethod = jest.fn().mockResolvedValue(Promise.resolve({ result: true }))
     const callback = jest.fn()
 
     handlePollFallback(fallbackMethod, callback, 0, 0)

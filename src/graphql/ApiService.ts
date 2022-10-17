@@ -218,10 +218,12 @@ export class ApiService {
    *
    * @param batchId
    */
-  fallbackGetBatchSubscription = async (batchId: string): Promise<IBatch | null> => {
+  fallbackGetBatchSubscription = async (
+    batchId: string
+  ): Promise<{ result: IBatch; stopPoll: boolean } | null> => {
     const result = await this.getBatch(batchId)
     if (['submitted', 'cancelled', 'evaluate'].includes(result.status)) {
-      return result
+      return { result, stopPoll: ['submitted', 'cancelled'].includes(result.status) }
     }
     return null
   }
