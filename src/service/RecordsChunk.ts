@@ -17,7 +17,7 @@ export class RecordsChunk {
    */
   public async getNextChunk(): Promise<RecordsChunk | null> {
     const { index, limit, status } = this.meta ?? {}
-    const response = await this.session.api.getRecordsByStatus(this.session, status, 0, limit)
+    const response = await this.session.api.getRecordsByStatus(this.session, status, index, limit)
     const { rows = [], totalRows } = response ?? {}
 
     if (response?.totalRows < 1) {
