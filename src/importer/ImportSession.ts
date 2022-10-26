@@ -91,8 +91,11 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     cb: IteratorCallback,
     options?: IChunkOptions
   ): Promise<RecordChunkIterator> {
-    // temp hack because workbook ID is not available during init yet
-    this.meta.workbookId = await this.api.getWorkbookId(this.batchId)
+    // don't fetch workbookId on each request:
+    if (!this.meta.workbookId) {
+      // temp hack because workbook ID is not available during init yet
+      this.meta.workbookId = await this.api.getWorkbookId(this.batchId)
+    }
 
     const chunkIterator = new RecordChunkIterator(this, cb, {
       chunkSize: options?.chunkSize || 1000,
@@ -107,7 +110,11 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
 
   private async subscribeToBatchStatus(): Promise<void> {
     return await this.api.subscribeBatchStatusUpdated(this.batchId, async (batch) => {
-      if (batch.status === 'evaluate') {
+      // only emit this emit once
+      // otherwise, many RecordChunkIterators could be created
+      // in this case, the record chunks passed to onData could be unreliable
+      if (batch.status === 'evaluate' && this.meta.status !== 'evaluate') {
+        this.meta.status = 'evaluate'
         this.emit('evaluate', this)
       }
 
@@ -187,6 +194,7 @@ export interface IImportMeta {
   workbookId?: string
   schemaIds: string[]
   synced?: boolean
+  status?: string
 }
 
 export interface IChunkOptions {
