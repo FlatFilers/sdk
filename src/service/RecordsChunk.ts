@@ -34,7 +34,7 @@ export class RecordsChunk {
       rows.map((r) => new FlatfileRecord(r)),
       {
         status,
-        skip: skip,
+        skip,
         limit,
         totalRecords: totalRows,
         index: typeof index === 'number' ? index + 1 : undefined,
