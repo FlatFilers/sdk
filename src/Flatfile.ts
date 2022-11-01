@@ -108,6 +108,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
         onInit,
         onData,
         onComplete,
+        allowWebsocketFallback,
       } = options ?? {}
       if (!mountOn && options?.open) {
         this.ui.showLoader()
@@ -116,7 +117,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const meta = await api.init(!!onData)
       const { mountUrl } = this.config
 
-      const session = new ImportSession(this, { mountUrl, ...meta })
+      const session = new ImportSession(this, { mountUrl, ...meta, allowWebsocketFallback })
 
       if (onInit) session.on('init', onInit)
 

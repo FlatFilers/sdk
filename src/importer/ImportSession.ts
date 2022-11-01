@@ -106,25 +106,29 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
   }
 
   private async subscribeToBatchStatus(): Promise<void> {
-    return await this.api.subscribeBatchStatusUpdated(this.batchId, async (batch) => {
-      if (batch.status === 'evaluate') {
-        this.emit('evaluate', this)
-      }
+    return await this.api.subscribeBatchStatusUpdated(
+      this.batchId,
+      async (batch) => {
+        if (batch.status === 'evaluate') {
+          this.emit('evaluate', this)
+        }
 
-      if (batch.status === 'submitted') {
-        this.emit('submit', this)
-        this.emit('complete', {
-          batchId: this.batchId,
-          data: (sample = false) => this.api.getAllRecords(this.batchId, 0, sample),
-        })
-      }
+        if (batch.status === 'submitted') {
+          this.emit('submit', this)
+          this.emit('complete', {
+            batchId: this.batchId,
+            data: (sample = false) => this.api.getAllRecords(this.batchId, 0, sample),
+          })
+        }
 
-      if (batch.status === 'cancelled') {
-        const meta = await this.api.init()
-        this.meta = { ...this.meta, ...meta }
-        this.init()
-      }
-    })
+        if (batch.status === 'cancelled') {
+          const meta = await this.api.init()
+          this.meta = { ...this.meta, ...meta }
+          this.init()
+        }
+      },
+      this.meta.allowWebsocketFallback
+    )
   }
 
   /**
@@ -187,6 +191,7 @@ export interface IImportMeta {
   workbookId?: string
   schemaIds: string[]
   synced?: boolean
+  allowWebsocketFallback?: boolean
 }
 
 export interface IChunkOptions {

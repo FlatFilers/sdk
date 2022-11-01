@@ -237,9 +237,12 @@ export class ApiService {
   /* istanbul ignore next */
   public async subscribeBatchStatusUpdated(
     batchId: string,
-    observe: (batch: IBatch) => void
+    observe: (batch: IBatch) => void,
+    allowWebsocketFallback?: boolean
   ): Promise<void> {
-    handlePollFallback(() => this.fallbackGetBatchSubscription(batchId), observe)
+    if (allowWebsocketFallback) {
+      handlePollFallback(() => this.fallbackGetBatchSubscription(batchId), observe)
+    }
 
     const query = BATCH_STATUS_UPDATED
     this.pubsub.request({ query, variables: { batchId } }).subscribe({
