@@ -213,21 +213,6 @@ export class ApiService {
   }
 
   /**
-   * get batch and check status for subscription fail fallback
-   *
-   * @param batchId
-   */
-  fallbackGetBatchSubscription = async (
-    batchId: string
-  ): Promise<{ result: IBatch; stopPoll: boolean } | null> => {
-    const result = await this.getBatch(batchId)
-    if (['submitted', 'cancelled', 'evaluate'].includes(result.status)) {
-      return { result, stopPoll: ['submitted', 'cancelled'].includes(result.status) }
-    }
-    return null
-  }
-
-  /**
    * Start a websocket subscription for a specific batchID
    *
    * @param batchId
