@@ -7,7 +7,6 @@ import { RequestError } from '../errors/RequestError'
 import { UnauthorizedError } from '../errors/UnauthorizedError'
 import { IImportMeta, ImportSession } from '../importer/ImportSession'
 import { ERecordStatus, TPrimitive } from '../service/FlatfileRecord'
-import { handlePollFallback } from '../utils/handlePollFallback'
 import {
   INITIALIZE_EMPTY_BATCH,
   InitializeEmptyBatchPayload,
@@ -239,8 +238,6 @@ export class ApiService {
     batchId: string,
     observe: (batch: IBatch) => void
   ): Promise<void> {
-    handlePollFallback(() => this.fallbackGetBatchSubscription(batchId), observe)
-
     const query = BATCH_STATUS_UPDATED
     this.pubsub.request({ query, variables: { batchId } }).subscribe({
       next: ({ data, errors }: IBatchStatusSubscription) => {
