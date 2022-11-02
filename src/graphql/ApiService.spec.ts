@@ -8,16 +8,6 @@ import { mockGraphQLRequest } from '../lib/test-helper'
 import { ERecordStatus } from '../service/FlatfileRecord'
 import { ApiService } from './ApiService'
 
-jest.mock('../utils/handlePollFallback', () => {
-  return {
-    ...jest.requireActual('../utils/handlePollFallback'),
-
-    WAIT_TIME_BEFORE_START_POLLING: 0,
-
-    POLLING_INTERVAL: 0,
-  }
-})
-
 describe('ApiService', () => {
   let session: ImportSession
   let api: ApiService
@@ -152,36 +142,6 @@ describe('ApiService', () => {
     test('handles errors', async () => {
       mockError()
       await expect(req()).rejects.toThrow(RequestError)
-    })
-  })
-
-  describe('fallbackGetBatchSubscription', () => {
-    test.each(['submitted', 'cancelled', 'evaluate'])(
-      'should get batch on execute fallback',
-      async (status) => {
-        const payload = {
-          status: status,
-          id: 'batchId',
-        }
-        mockGraphQLRequest('getBatch', 200, payload)
-        const result = await api.fallbackGetBatchSubscription('batchId')
-
-        expect(result).toEqual({
-          result: payload,
-          stopPoll: ['submitted', 'cancelled'].includes(status),
-        })
-      }
-    )
-
-    test('should get null', async () => {
-      const payload = {
-        status: 'invalid',
-        id: 'batchId',
-      }
-      mockGraphQLRequest('getBatch', 200, payload)
-
-      const result = await api.fallbackGetBatchSubscription('batchId')
-      expect(result).toBeNull()
     })
   })
 
