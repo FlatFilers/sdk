@@ -16,8 +16,13 @@ export class RecordsChunk {
    * Get the next chunk of data based on the current chunk
    */
   public async getNextChunk(): Promise<RecordsChunk | null> {
-    const { index, limit, status } = this.meta ?? {}
-    const response = await this.session.api.getRecordsByStatus(this.session, status, index, limit)
+    const { index, limit, status, totalRecords } = this.meta ?? {}
+    let { skip } = this.meta ?? {}
+    if (skip >= totalRecords) {
+      // totalRecords is actually total remaining records
+      skip = 0
+    }
+    const response = await this.session.api.getRecordsByStatus(this.session, status, skip, limit)
     const { rows = [], totalRows } = response ?? {}
 
     if (response?.totalRows < 1) {
@@ -29,7 +34,7 @@ export class RecordsChunk {
       rows.map((r) => new FlatfileRecord(r)),
       {
         status,
-        skip: 0,
+        skip,
         limit,
         totalRecords: totalRows,
         index: typeof index === 'number' ? index + 1 : undefined,
