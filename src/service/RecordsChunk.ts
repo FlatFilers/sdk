@@ -17,10 +17,15 @@ export class RecordsChunk {
    */
   public async getNextChunk(): Promise<RecordsChunk | null> {
     const { index, limit, status } = this.meta ?? {}
-    const response = await this.session.api.getRecordsByStatus(this.session, status, index, limit)
+
+    // because we change the status after each chunk rather than waiting to the
+    // end we need to make sure to always get the first page as this is only querying
+    // for remaining data.
+    // TODO: this should be refactored to be more sensible
+    const response = await this.session.api.getRecordsByStatus(this.session, status, 0, limit)
     const { rows = [], totalRows } = response ?? {}
 
-    if (response?.totalRows < 1) {
+    if (response?.totalRows < 1 || rows.length === 0) {
       return null
     }
 
