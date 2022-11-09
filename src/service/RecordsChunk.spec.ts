@@ -3,7 +3,7 @@ import { ApiService } from '../graphql/ApiService'
 import { IRowResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { ImportSession } from '../importer/ImportSession'
 import { createChunk } from '../lib/test-helper'
-import { FlatfileRecord } from './FlatfileRecord'
+import { ERecordStatus, FlatfileRecord } from './FlatfileRecord'
 import { BASE_RECORD } from './FlatfileRecord.spec'
 import { RecordsChunk } from './RecordsChunk'
 
@@ -34,11 +34,13 @@ describe('RecordsChunk', function () {
   describe('getNextChunk', () => {
     test('increments properly', async () => {
       const response = {
-        rows: Array.from(Array(100).keys()).map(() => ({
+        rows: Array.from(Array(100).keys()).map<IRowResponse>(() => ({
           info: [],
           data: {},
-          id: '1',
-        })) as unknown as IRowResponse[],
+          valid: true,
+          status: ERecordStatus.SUBMITTED,
+          id: 1,
+        })),
         totalRows: 100,
       }
       jest
