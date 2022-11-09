@@ -1,6 +1,5 @@
 import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
-import { IRowResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { ImportSession } from '../importer/ImportSession'
 import { createChunk } from '../lib/test-helper'
 import { ERecordStatus, FlatfileRecord } from './FlatfileRecord'
@@ -34,7 +33,7 @@ describe('RecordsChunk', function () {
   describe('getNextChunk', () => {
     test('increments properly', async () => {
       const response = {
-        rows: Array.from(Array(100).keys()).map<IRowResponse>(() => ({
+        rows: Array.from(Array(100).keys()).map(() => ({
           info: [],
           data: {},
           valid: true,
