@@ -1,6 +1,6 @@
 {
   "name": "@flatfile/sdk",
-  "version": "2.1.5",
+  "version": "2.1.6",
   "description": "Flatfile SDK",
   "private": false,
   "repository": {
