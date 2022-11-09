@@ -1,5 +1,6 @@
 import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
+import { IRowResponse } from '../graphql/queries/GET_FINAL_DATABASE_VIEW'
 import { ImportSession } from '../importer/ImportSession'
 import { createChunk } from '../lib/test-helper'
 import { FlatfileRecord } from './FlatfileRecord'
@@ -32,7 +33,14 @@ describe('RecordsChunk', function () {
 
   describe('getNextChunk', () => {
     test('increments properly', async () => {
-      const response = { rows: [], totalRows: 100 }
+      const response = {
+        rows: Array.from(Array(100).keys()).map(() => ({
+          info: [],
+          data: {},
+          id: '1',
+        })) as unknown as IRowResponse[],
+        totalRows: 100,
+      }
       jest
         .spyOn(ApiService.prototype, 'getRecordsByStatus')
         .mockResolvedValueOnce(response)
