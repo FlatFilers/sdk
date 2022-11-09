@@ -204,7 +204,7 @@ describe('Flatfile', () => {
         expect(ImportSession.prototype.processPendingRecords).not.toHaveBeenCalled()
         expect(importSessionConfig.onComplete).toHaveBeenCalledTimes(1)
         expect(importSessionConfig.onComplete).toHaveBeenCalledWith({
-          batchId: fakeImportMeta.batchId,
+          batchId: session.meta.batchId,
           data: expect.any(Function),
         })
       })

@@ -117,7 +117,6 @@ export class Flatfile extends TypedEventManager<IEvents> {
       const { mountUrl } = this.config
 
       const session = new ImportSession(this, { mountUrl, ...meta })
-
       if (onInit) session.on('init', onInit)
 
       if (onData) {
@@ -140,8 +139,8 @@ export class Flatfile extends TypedEventManager<IEvents> {
         if (onComplete) {
           session.iframe?.close()
           onComplete({
-            batchId: meta.batchId,
-            data: (sample = false) => api.getAllRecords(meta.batchId, 0, sample),
+            batchId: session.meta.batchId,
+            data: (sample = false) => api.getAllRecords(session.meta.batchId, 0, sample),
           })
         } else {
           if (!onData) {
