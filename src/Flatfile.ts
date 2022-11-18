@@ -310,6 +310,7 @@ export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
   'open',
   'mountOn',
   'theme',
+  'showProgress',
 ]
 
 export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [
