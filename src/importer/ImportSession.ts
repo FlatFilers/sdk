@@ -199,6 +199,7 @@ export interface IUrlOptions {
   theme?: ITheme
   autoContinue?: boolean
   customFields?: ICustomField[]
+  preventUserDefinedFields?: boolean
 }
 
 export interface ICustomField {
