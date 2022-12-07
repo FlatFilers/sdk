@@ -54,9 +54,10 @@ describe('ImportSession', () => {
     const mockSubscription = (status: string) =>
       jest
         .spyOn(flatfile.api as ApiService, 'subscribeBatchStatusUpdated')
-        .mockImplementation((batchId: string, method: (batch: IBatch) => void) =>
-          Promise.resolve(method({ id: batchId, status }))
-        )
+        .mockImplementation((batchId: string, observe: (batch: IBatch) => void) => {
+          observe({ id: batchId, status })
+          return { unsubscribe: jest.fn() }
+        })
 
     test('should emit evaluate on batch subscription after init', async () => {
       const spy = jest.spyOn(session, 'emit')
