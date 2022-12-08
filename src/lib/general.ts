@@ -17,6 +17,6 @@ export function useOrInit<T>(current: T | undefined, setter: () => T): T {
  */
 export function toQs(obj: Record<string, string>): string {
   return Object.keys(obj)
-    .map((k) => `${k}=${encodeURI(obj[k])}`)
+    .map((k) => `${k}=${encodeURIComponent(obj[k])}`)
     .join('&')
 }

@@ -80,7 +80,7 @@ export function Sandbox(): any {
                 label: 'Real Tests',
               },
               {
-                field: 'foos',
+                field: 'foo',
                 type: 'string',
                 label: 'Fax Bars',
               },

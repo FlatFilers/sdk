@@ -109,6 +109,7 @@ export class Flatfile extends TypedEventManager<IEvents> {
         onData,
         onComplete,
         showProgress,
+        preventUserDefinedFields,
       } = options ?? {}
       if (!mountOn && options?.open) {
         this.ui.showLoader()
@@ -163,13 +164,13 @@ export class Flatfile extends TypedEventManager<IEvents> {
           )
         }
         const importFrame = session.openInEmbeddedIframe(
-          { theme, autoContinue, customFields },
+          { theme, autoContinue, customFields, preventUserDefinedFields },
           mountOn
         )
         importFrame.on('load', () => this.ui.hideLoader())
       }
       if (options?.open === 'window') {
-        session.openInNewWindow({ theme, autoContinue, customFields })
+        session.openInNewWindow({ theme, autoContinue, customFields, preventUserDefinedFields })
         this.ui.destroy()
       }
       return session
@@ -311,6 +312,7 @@ export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
   'mountOn',
   'theme',
   'showProgress',
+  'preventUserDefinedFields',
 ]
 
 export const IMPORTER_CONFIG_KEYS: (keyof IFlatfileImporterConfig)[] = [

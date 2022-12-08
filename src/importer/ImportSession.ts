@@ -140,6 +140,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
       ...(options?.autoContinue ? { autoContinue: '1' } : {}),
       ...(options?.theme ? { theme: JSON.stringify(options.theme) } : {}),
       ...(options?.customFields ? { customFields: JSON.stringify(options.customFields) } : {}),
+      ...(options?.preventUserDefinedFields ? { preventUserDefinedFields: 'true' } : {}),
     }
     return `${MOUNT_URL}/e/?${toQs(qs)}`
   }
@@ -199,6 +200,7 @@ export interface IUrlOptions {
   theme?: ITheme
   autoContinue?: boolean
   customFields?: ICustomField[]
+  preventUserDefinedFields?: boolean
 }
 
 export interface ICustomField {
