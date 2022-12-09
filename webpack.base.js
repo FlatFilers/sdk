@@ -36,16 +36,13 @@ module.exports = {
       {
         // Include ts, tsx, js, and jsx files.
         test: /\.(ts|js)x?$/,
-        exclude: /node_modules/,
+        exclude: /node_modules\/(?!graphql-subscriptions-client)/,
         use: {
           loader: 'babel-loader',
           options: {
             presets: [
               [
                 '@babel/preset-env',
-                {
-                  targets: "> 0.25%, not dead",
-                },
               ],
               [
                 '@babel/preset-react',
