@@ -20,6 +20,11 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
     this.ui = this.flatfile.ui
     this.api = this.flatfile?.api as ApiService
     this.bubble('error', this.flatfile)
+
+    this.on('close', () => {
+      this.$subscription?.unsubscribe()
+      this.api.pubsub?.unsubscribeAll()
+    })
   }
 
   public get batchId(): string {
@@ -149,8 +154,6 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    * Close the importer iframe
    */
   public close(): void {
-    this.$subscription?.unsubscribe()
-
     if (this.$iframe) {
       this.$iframe?.close()
     } else {

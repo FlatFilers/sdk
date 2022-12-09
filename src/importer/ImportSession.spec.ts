@@ -1,3 +1,5 @@
+import { SubscriptionClient } from 'graphql-subscriptions-client'
+
 import { Flatfile } from '../Flatfile'
 import { ApiService } from '../graphql/ApiService'
 import { IteratorCallback, RecordChunkIterator } from '../lib/RecordChunkIterator'
@@ -12,6 +14,16 @@ describe('ImportSession', () => {
   let session: ImportSession
   let callbackFn: IteratorCallback
   let flatfile: Flatfile
+
+  const unsubscribe = jest.fn()
+  const mockSubscription = (status: string) =>
+    jest
+      .spyOn(flatfile.api as ApiService, 'subscribeBatchStatusUpdated')
+      .mockImplementation((batchId: string, method: (batch: IBatch) => void) => {
+        method({ id: batchId, status })
+
+        return { unsubscribe }
+      })
 
   beforeEach(async () => {
     jest.clearAllMocks()
@@ -50,15 +62,21 @@ describe('ImportSession', () => {
     })
   })
 
-  describe('init', () => {
-    const mockSubscription = (status: string) =>
-      jest
-        .spyOn(flatfile.api as ApiService, 'subscribeBatchStatusUpdated')
-        .mockImplementation((batchId: string, observe: (batch: IBatch) => void) => {
-          observe({ id: batchId, status })
-          return { unsubscribe: jest.fn() }
-        })
+  describe('close', () => {
+    test('should close subscriptions when emit', async () => {
+      session.api.pubsub = new SubscriptionClient('ws://localhost:3000/graphql')
+      const spyAll = jest.spyOn(session.api.pubsub, 'unsubscribeAll')
 
+      mockSubscription('submitted')
+      session.init()
+      session.emit('close')
+
+      expect(unsubscribe).toHaveBeenCalled()
+      expect(spyAll).toHaveBeenCalled()
+    })
+  })
+
+  describe('init', () => {
     test('should emit evaluate on batch subscription after init', async () => {
       const spy = jest.spyOn(session, 'emit')
 
