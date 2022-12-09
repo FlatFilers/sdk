@@ -305,6 +305,7 @@ export const SESSION_CONFIG_KEYS: (keyof DataReqOptions)[] = [
   'autoContinue',
   'customFields',
   'chunkSize',
+  'chunkTimeout',
   'onComplete',
   'onData',
   'onInit',
