@@ -166,11 +166,12 @@ describe('Flatfile', () => {
           onData: jest.fn(),
         }
         await flatfile.startOrResumeImportSession(importSessionConfig)
-        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(4)
+        expect(ImportSession.prototype.on).toHaveBeenCalledTimes(5)
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('error', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('evaluate', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('submit', expect.any(Function))
         expect(ImportSession.prototype.on).toHaveBeenCalledWith('init', importSessionConfig.onInit)
+        expect(ImportSession.prototype.on).toHaveBeenCalledWith('close', expect.any(Function))
       })
 
       test('should call processing pending records on evaluate', async () => {
