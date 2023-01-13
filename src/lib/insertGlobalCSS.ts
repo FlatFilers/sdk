@@ -14,6 +14,7 @@ const GLOBAL_CSS = `
     font-family: 'Avenir Next', sans-serif;
   }
   .flatfile-sdk .flatfile-close {
+    display: none;
     position: absolute;
     right: 20px;
     top: 15px;
@@ -25,7 +26,6 @@ const GLOBAL_CSS = `
     cursor: pointer;
   }
   .flatfile-sdk .flatfile-close:after {
-    display: inline-block;
     content: '✕';
     color: white;
     font-size: 20px;
@@ -43,6 +43,9 @@ const GLOBAL_CSS = `
   }
   body.flatfile-active .flatfile-sdk {
     display: block;
+  }
+  body.flatfile-active .flatfile-sdk .flatfile-close{
+    display: inline-block;
   }
   .flatfile-sdk .flatfile-loader {
     z-index: 10;
