@@ -64,7 +64,7 @@ export class UIService {
   }
 
   private spinner(): SVGElement {
-    const svg = this.createSVGNode('svg', { viewBox: '0 0 50 50', color: '#3b2fc9' })
+    const svg = this.createSVGNode('svg', { viewBox: '0 0 50 50', color: '#616A7D' })
     const circle = this.createSVGNode('circle', {
       cx: '25',
       cy: '25',

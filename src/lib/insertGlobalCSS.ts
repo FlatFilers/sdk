@@ -70,7 +70,7 @@ const GLOBAL_CSS = `
     display: inline-block;
   }
   .flatfile-sdk .flatfile-loader svg circle {
-    stroke: #3b2fc9;
+    stroke: #616A7D;
     stroke-linecap: round;
     animation: dash 1.5s ease-in-out infinite;
   }
