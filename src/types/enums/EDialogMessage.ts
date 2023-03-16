@@ -1,4 +1,4 @@
 export enum EDialogMessage {
-  Default = 'Connecting to Flatfile...',
+  Default = 'Connecting...',
   Authenticating = 'Authenticating...',
 }
