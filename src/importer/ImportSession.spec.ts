@@ -156,11 +156,13 @@ describe('ImportSession', () => {
 
     describe('close', () => {
       test('calls ImportFrame.close if session was opened in iframe mode', () => {
+        const spy = jest.spyOn(session, 'emit')
         jest.spyOn(ImportFrame.prototype, 'close')
         session.openInEmbeddedIframe()
 
         session.close()
         expect(ImportFrame.prototype.close).toHaveBeenCalled()
+        expect(spy).toHaveBeenCalledWith('close')
       })
 
       test('do not call ImportFrame.close if session was opened in new window', () => {
