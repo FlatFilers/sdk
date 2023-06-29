@@ -154,6 +154,7 @@ export class ImportSession extends TypedEventManager<IImportSessionEvents> {
    * Close the importer iframe
    */
   public close(): void {
+    this.emit('close')
     if (this.$iframe) {
       this.$iframe?.close()
     } else {
