@@ -1,5 +1,7 @@
 # @flatfile/sdk
 
+> **DEPRECATED**: This package is deprecated. Please use [@flatfile/javascript](https://www.npmjs.com/package/@flatfile/javascript) and [@flatfile/api](https://www.npmjs.com/package/@flatfile/api) instead. For updated documentation, visit the [Flatfile Documentation](https://flatfile.com/docs/documentation/).
+
 ## Install
 ```
 npm install @flatfile/sdk
